@@ -6,17 +6,29 @@
   <title>Trans.</title>
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
-    body { background-color: #f4f5f7; color: #333; max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 75px; user-select: none; }
+    body { background-color: #f4f5f7; color: #333; margin: 0; padding: 0; user-select: none; }
+    
+    /* Center container for desktop view */
+    .app-wrapper { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; position: relative; padding-bottom: 75px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+
     .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #fff; border-bottom: 1px solid #eee; }
     .top-bar h2 { font-size: 18px; font-weight: 600; }
     .month-selector { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; font-size: 16px; font-weight: 600; }
+    
     .view-tabs { display: flex; background: #fff; border-bottom: 1px solid #e0e0e0; }
     .view-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 14px; color: #777; cursor: pointer; }
     .view-tab.active { color: #ff5252; font-weight: bold; border-bottom: 2px solid #ff5252; }
+    
     .summary-header { display: flex; justify-content: space-around; background: #fafafa; padding: 12px 0; border-bottom: 1px solid #eee; text-align: center; }
     .summary-box label { font-size: 12px; color: #777; display: block; margin-bottom: 2px; }
     .summary-box span { font-size: 15px; font-weight: 600; }
     .exp-val { color: #ff5252; }
+
+    /* Views */
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+
+    /* Daily List */
     .day-group { margin-top: 10px; background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
     .day-header { display: flex; justify-content: space-between; padding: 10px 16px; background: #fcfcfc; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0; }
     .day-header strong { font-size: 16px; color: #111; margin-right: 4px; }
@@ -26,7 +38,24 @@
     .trans-details strong { font-size: 15px; color: #222; display: block; }
     .trans-details span { font-size: 12px; color: #aaa; }
     .trans-amount { font-size: 16px; font-weight: 600; color: #ff5252; }
-    .fab { position: fixed; bottom: 25px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 99; }
+
+    /* Calendar Grid */
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 10px; gap: 4px; background: #fff; }
+    .cal-day-name { text-align: center; font-size: 12px; font-weight: bold; color: #888; padding: 6px 0; }
+    .cal-cell { background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px; min-height: 52px; padding: 4px; font-size: 11px; }
+    .cal-date-num { font-weight: bold; color: #333; margin-bottom: 2px; }
+    .cal-spend { color: #ff5252; font-weight: 600; font-size: 10px; }
+
+    /* Summary Progress Bars */
+    .summary-item { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
+    .summary-label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .progress-bg { background: #eee; height: 8px; border-radius: 4px; overflow: hidden; }
+    .progress-fill { background: #ff5252; height: 100%; border-radius: 4px; }
+
+    /* Floating Add Button aligned inside the app-wrapper */
+    .fab { position: absolute; bottom: 25px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 99; }
+
+    /* Modal Form Overlay */
     .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; display: none; flex-direction: column; z-index: 999; max-width: 480px; margin: 0 auto; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #eee; }
     .form-fields { padding: 10px 20px; flex: 1; }
@@ -44,6 +73,7 @@
 </head>
 <body>
 
+<div class="app-wrapper">
   <div class="top-bar">
     <span>🔍</span>
     <h2>Trans.</h2>
@@ -57,10 +87,10 @@
   </div>
 
   <div class="view-tabs">
-    <div class="view-tab active">Daily</div>
-    <div class="view-tab">Calendar</div>
-    <div class="view-tab">Monthly</div>
-    <div class="view-tab">Summary</div>
+    <div class="view-tab active" onclick="switchTab('daily', this)">Daily</div>
+    <div class="view-tab" onclick="switchTab('calendar', this)">Calendar</div>
+    <div class="view-tab" onclick="switchTab('monthly', this)">Monthly</div>
+    <div class="view-tab" onclick="switchTab('summary', this)">Summary</div>
   </div>
 
   <div class="summary-header">
@@ -69,275 +99,373 @@
     <div class="summary-box"><label>Total</label><span id="net-total">-£ 0.00</span></div>
   </div>
 
-  <div id="transaction-container"></div>
+  <!-- Daily View Panel -->
+  <div id="panel-daily" class="view-panel active">
+    <div id="transaction-container"></div>
+  </div>
+
+  <!-- Calendar View Panel -->
+  <div id="panel-calendar" class="view-panel">
+    <div class="calendar-grid" id="calendar-container"></div>
+  </div>
+
+  <!-- Monthly View Panel -->
+  <div id="panel-monthly" class="view-panel">
+    <div id="monthly-container"></div>
+  </div>
+
+  <!-- Summary View Panel -->
+  <div id="panel-summary" class="view-panel">
+    <div id="summary-container"></div>
+  </div>
+
   <button id="add-fab" class="fab">+</button>
+</div>
 
-  <!-- Add / Edit Modal -->
-  <div class="modal" id="entry-modal">
-    <div class="modal-header">
-      <span id="close-modal-top" style="font-size: 16px; cursor: pointer; color: #ff5252; font-weight: bold;">‹ Back</span>
-      <h3 id="modal-title" style="font-size: 16px;">Expense</h3>
-      <span id="close-modal-x" style="cursor: pointer; font-size: 18px;">✕</span>
+<!-- Add / Edit Modal -->
+<div class="modal" id="entry-modal">
+  <div class="modal-header">
+    <span id="close-modal-top" style="font-size: 16px; cursor: pointer; color: #ff5252; font-weight: bold;">‹ Back</span>
+    <h3 id="modal-title" style="font-size: 16px;">Expense</h3>
+    <span id="close-modal-x" style="cursor: pointer; font-size: 18px;">✕</span>
+  </div>
+
+  <div class="form-fields">
+    <div class="field-row"><label>Date</label><input type="date" id="input-date"></div>
+    <div class="field-row"><label>Amount</label><input type="text" id="input-amount" class="amount-input" placeholder="0.00"></div>
+    <div class="field-row">
+      <label>Category</label>
+      <select id="input-category">
+        <option value="Food">Food</option>
+        <option value="Car">Car</option>
+        <option value="Household">Household</option>
+        <option value="Subscriptions">Subscriptions</option>
+        <option value="Other">Other</option>
+      </select>
     </div>
-
-    <div class="form-fields">
-      <div class="field-row"><label>Date</label><input type="date" id="input-date"></div>
-      <div class="field-row"><label>Amount</label><input type="text" id="input-amount" class="amount-input" placeholder="0.00"></div>
-      <div class="field-row">
-        <label>Category</label>
-        <select id="input-category">
-          <option value="Food">Food</option>
-          <option value="Car">Car</option>
-          <option value="Household">Household</option>
-          <option value="Subscriptions">Subscriptions</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-      <div class="field-row">
-        <label>Merchant</label>
-        <input type="text" id="input-merchant" placeholder="Merchant/Shop (e.g. Tesco)" list="merchant-list">
-        <datalist id="merchant-list"></datalist>
-      </div>
-    </div>
-
-    <button id="delete-btn" class="delete-action-btn">Delete Transaction</button>
-
-    <div class="keypad-header"><span>Keypad Entry</span></div>
-    <div class="keypad">
-      <button class="key-btn" data-key="+">+</button>
-      <button class="key-btn" data-key="-">-</button>
-      <button class="key-btn" data-key="*">×</button>
-      <button class="key-btn" data-key="/">÷</button>
-      <button class="key-btn" data-key="7">7</button>
-      <button class="key-btn" data-key="8">8</button>
-      <button class="key-btn" data-key="9">9</button>
-      <button class="key-btn" data-key="=">=</button>
-      <button class="key-btn" data-key="4">4</button>
-      <button class="key-btn" data-key="5">5</button>
-      <button class="key-btn" data-key="6">6</button>
-      <button class="key-btn" data-key=".">.</button>
-      <button class="key-btn" data-key="1">1</button>
-      <button class="key-btn" data-key="2">2</button>
-      <button class="key-btn" data-key="3">3</button>
-      <button class="key-btn" id="key-backspace">⌫</button>
-      <button class="key-btn" style="grid-column: span 2;" data-key="0">0</button>
-      <button class="key-btn ok-btn" id="key-ok" style="grid-column: span 2;">OK</button>
+    <div class="field-row">
+      <label>Merchant</label>
+      <input type="text" id="input-merchant" placeholder="Merchant/Shop (e.g. Tesco)" list="merchant-list">
+      <datalist id="merchant-list"></datalist>
     </div>
   </div>
 
-  <script>
-    const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
+  <button id="delete-btn" class="delete-action-btn">Delete Transaction</button>
 
-    let expenses = JSON.parse(localStorage.getItem('expenses_data') || '[]');
-    let editingId = null;
+  <div class="keypad-header"><span>Keypad Entry</span></div>
+  <div class="keypad">
+    <button class="key-btn" data-key="+">+</button>
+    <button class="key-btn" data-key="-">-</button>
+    <button class="key-btn" data-key="*">×</button>
+    <button class="key-btn" data-key="/">÷</button>
+    <button class="key-btn" data-key="7">7</button>
+    <button class="key-btn" data-key="8">8</button>
+    <button class="key-btn" data-key="9">9</button>
+    <button class="key-btn" data-key="=">=</button>
+    <button class="key-btn" data-key="4">4</button>
+    <button class="key-btn" data-key="5">5</button>
+    <button class="key-btn" data-key="6">6</button>
+    <button class="key-btn" data-key=".">.</button>
+    <button class="key-btn" data-key="1">1</button>
+    <button class="key-btn" data-key="2">2</button>
+    <button class="key-btn" data-key="3">3</button>
+    <button class="key-btn" id="key-backspace">⌫</button>
+    <button class="key-btn" style="grid-column: span 2;" data-key="0">0</button>
+    <button class="key-btn ok-btn" id="key-ok" style="grid-column: span 2;">OK</button>
+  </div>
+</div>
 
-    // Save locally immediately
-    function saveLocal() {
-      localStorage.setItem('expenses_data', JSON.stringify(expenses));
-      renderTransactions();
-      updateAutoSuggest();
-    }
+<script>
+  const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
 
-    async function syncWithSupabase() {
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?select=*&order=date.desc`, {
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-        });
+  let expenses = JSON.parse(localStorage.getItem('expenses_data') || '[]');
+  let editingId = null;
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.length > 0) {
-            expenses = data;
-            saveLocal();
-          }
-        }
-      } catch (e) {
-        console.log("Supabase offline or pending permission update");
-      }
-    }
+  function saveLocal() {
+    localStorage.setItem('expenses_data', JSON.stringify(expenses));
+    renderAllViews();
+    updateAutoSuggest();
+  }
 
-    function renderTransactions() {
-      const container = document.getElementById('transaction-container');
-      container.innerHTML = '';
-
-      let totalExp = 0;
-      const grouped = {};
-
-      expenses.forEach(item => {
-        totalExp += parseFloat(item.amount);
-        const dateKey = item.date;
-        if (!grouped[dateKey]) grouped[dateKey] = [];
-        grouped[dateKey].push(item);
+  async function syncWithSupabase() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?select=*&order=date.desc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       });
-
-      document.getElementById('total-exp').innerText = '£ ' + totalExp.toFixed(2);
-      document.getElementById('net-total').innerText = '-£ ' + totalExp.toFixed(2);
-
-      if (expenses.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions recorded.<br>Tap + to add one.</div>';
-        return;
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0) {
+          expenses = data;
+          saveLocal();
+        }
       }
+    } catch (e) {}
+  }
 
-      Object.keys(grouped).forEach(dateStr => {
-        const dateObj = new Date(dateStr);
-        const dayNum = dateObj.getDate();
-        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-        let dayTotal = grouped[dateStr].reduce((sum, item) => sum + parseFloat(item.amount), 0);
+  function switchTab(tabName, el) {
+    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById(`panel-${tabName}`).classList.add('active');
+  }
 
-        let groupHtml = `
-          <div class="day-group">
-            <div class="day-header">
-              <div><strong>${dayNum}</strong> <span style="background:#888;color:#fff;padding:1px 4px;border-radius:3px;font-size:10px;">${dayName}</span></div>
-              <div style="color: #ff5252; font-weight: 600;">£ ${dayTotal.toFixed(2)}</div>
-            </div>
-        `;
+  function renderAllViews() {
+    renderDaily();
+    renderCalendar();
+    renderMonthly();
+    renderSummary();
+  }
 
-        grouped[dateStr].forEach(item => {
-          groupHtml += `
-            <div class="trans-row" onclick="editExpense('${item.id}')">
-              <div class="trans-left">
-                <span class="trans-category">${item.category}</span>
-                <div class="trans-details">
-                  <strong>${item.merchant}</strong>
-                  <span>Credit Cards</span>
-                </div>
+  function renderDaily() {
+    const container = document.getElementById('transaction-container');
+    container.innerHTML = '';
+
+    let totalExp = 0;
+    const grouped = {};
+
+    expenses.forEach(item => {
+      totalExp += parseFloat(item.amount);
+      const dateKey = item.date;
+      if (!grouped[dateKey]) grouped[dateKey] = [];
+      grouped[dateKey].push(item);
+    });
+
+    document.getElementById('total-exp').innerText = '£ ' + totalExp.toFixed(2);
+    document.getElementById('net-total').innerText = '-£ ' + totalExp.toFixed(2);
+
+    if (expenses.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions recorded.<br>Tap + to add one.</div>';
+      return;
+    }
+
+    Object.keys(grouped).forEach(dateStr => {
+      const dateObj = new Date(dateStr);
+      const dayNum = dateObj.getDate();
+      const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+      let dayTotal = grouped[dateStr].reduce((sum, item) => sum + parseFloat(item.amount), 0);
+
+      let groupHtml = `
+        <div class="day-group">
+          <div class="day-header">
+            <div><strong>${dayNum}</strong> <span style="background:#888;color:#fff;padding:1px 4px;border-radius:3px;font-size:10px;">${dayName}</span></div>
+            <div style="color: #ff5252; font-weight: 600;">£ ${dayTotal.toFixed(2)}</div>
+          </div>
+      `;
+
+      grouped[dateStr].forEach(item => {
+        groupHtml += `
+          <div class="trans-row" onclick="editExpense('${item.id}')">
+            <div class="trans-left">
+              <span class="trans-category">${item.category}</span>
+              <div class="trans-details">
+                <strong>${item.merchant}</strong>
+                <span>Credit Cards</span>
               </div>
-              <div class="trans-amount">£ ${parseFloat(item.amount).toFixed(2)}</div>
             </div>
-          `;
-        });
-
-        groupHtml += `</div>`;
-        container.innerHTML += groupHtml;
+            <div class="trans-amount">£ ${parseFloat(item.amount).toFixed(2)}</div>
+          </div>
+        `;
       });
-    }
 
-    function updateAutoSuggest() {
-      const datalist = document.getElementById('merchant-list');
-      const uniqueMerchants = [...new Set(expenses.map(e => e.merchant))];
-      datalist.innerHTML = uniqueMerchants.map(m => `<option value="${m}">`).join('');
-    }
+      groupHtml += `</div>`;
+      container.innerHTML += groupHtml;
+    });
+  }
 
-    function openModal(isEdit = false) {
-      document.getElementById('entry-modal').style.display = 'flex';
-      document.getElementById('delete-btn').style.display = isEdit ? 'block' : 'none';
-      document.getElementById('modal-title').innerText = isEdit ? 'Edit Expense' : 'Expense';
-      if (!isEdit) {
-        editingId = null;
-        document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
-        document.getElementById('input-amount').value = "";
-        document.getElementById('input-merchant').value = "";
-      }
-    }
+  function renderCalendar() {
+    const cal = document.getElementById('calendar-container');
+    cal.innerHTML = '';
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    days.forEach(d => cal.innerHTML += `<div class="cal-day-name">${d}</div>`);
 
-    function closeModal() { document.getElementById('entry-modal').style.display = 'none'; }
-
-    function editExpense(id) {
-      const item = expenses.find(e => e.id == id);
-      if (!item) return;
-      editingId = id;
-      document.getElementById('input-date').value = item.date;
-      document.getElementById('input-amount').value = item.amount;
-      document.getElementById('input-merchant').value = item.merchant;
-      document.getElementById('input-category').value = item.category || 'Food';
-      openModal(true);
-    }
-
-    document.getElementById('add-fab').addEventListener('click', () => openModal(false));
-    document.getElementById('close-modal-top').addEventListener('click', closeModal);
-    document.getElementById('close-modal-x').addEventListener('click', closeModal);
-
-    document.querySelectorAll('.key-btn[data-key]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const val = btn.getAttribute('data-key');
-        const input = document.getElementById('input-amount');
-        if (['+', '-', '*', '/'].includes(val)) {
-          input.value += " " + val + " ";
-        } else if (val === '=') {
-          try { input.value = eval(input.value).toString(); } catch (e) { input.value = "0"; }
-        } else {
-          input.value += val;
-        }
-      });
+    const dateMap = {};
+    expenses.forEach(e => {
+      const d = parseInt(e.date.split('-')[2]);
+      dateMap[d] = (dateMap[d] || 0) + parseFloat(e.amount);
     });
 
-    document.getElementById('key-backspace').addEventListener('click', () => {
+    for (let i = 1; i <= 31; i++) {
+      const spend = dateMap[i] ? `£${dateMap[i].toFixed(0)}` : '';
+      cal.innerHTML += `
+        <div class="cal-cell">
+          <div class="cal-date-num">${i}</div>
+          <div class="cal-spend">${spend}</div>
+        </div>
+      `;
+    }
+  }
+
+  function renderMonthly() {
+    const container = document.getElementById('monthly-container');
+    container.innerHTML = '';
+    const monthlyMap = {};
+
+    expenses.forEach(e => {
+      const monthKey = e.date.substring(0, 7);
+      monthlyMap[monthKey] = (monthlyMap[monthKey] || 0) + parseFloat(e.amount);
+    });
+
+    Object.keys(monthlyMap).forEach(m => {
+      container.innerHTML += `
+        <div class="day-group">
+          <div class="day-header">
+            <strong>${m}</strong>
+            <span style="color:#ff5252; font-weight:bold;">£ ${monthlyMap[m].toFixed(2)}</span>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function renderSummary() {
+    const container = document.getElementById('summary-container');
+    container.innerHTML = '';
+
+    let total = 0;
+    const catMap = {};
+
+    expenses.forEach(e => {
+      const amt = parseFloat(e.amount);
+      total += amt;
+      catMap[e.category] = (catMap[e.category] || 0) + amt;
+    });
+
+    Object.keys(catMap).forEach(cat => {
+      const amt = catMap[cat];
+      const pct = total > 0 ? ((amt / total) * 100).toFixed(1) : 0;
+      container.innerHTML += `
+        <div class="summary-item">
+          <div class="summary-label">
+            <span>${cat}</span>
+            <span style="color:#ff5252;">£ ${amt.toFixed(2)} (${pct}%)</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-fill" style="width: ${pct}%;"></div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function updateAutoSuggest() {
+    const datalist = document.getElementById('merchant-list');
+    const uniqueMerchants = [...new Set(expenses.map(e => e.merchant))];
+    datalist.innerHTML = uniqueMerchants.map(m => `<option value="${m}">`).join('');
+  }
+
+  function openModal(isEdit = false) {
+    document.getElementById('entry-modal').style.display = 'flex';
+    document.getElementById('delete-btn').style.display = isEdit ? 'block' : 'none';
+    document.getElementById('modal-title').innerText = isEdit ? 'Edit Expense' : 'Expense';
+    if (!isEdit) {
+      editingId = null;
+      document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('input-amount').value = "";
+      document.getElementById('input-merchant').value = "";
+    }
+  }
+
+  function closeModal() { document.getElementById('entry-modal').style.display = 'none'; }
+
+  function editExpense(id) {
+    const item = expenses.find(e => e.id == id);
+    if (!item) return;
+    editingId = id;
+    document.getElementById('input-date').value = item.date;
+    document.getElementById('input-amount').value = item.amount;
+    document.getElementById('input-merchant').value = item.merchant;
+    document.getElementById('input-category').value = item.category || 'Food';
+    openModal(true);
+  }
+
+  document.getElementById('add-fab').addEventListener('click', () => openModal(false));
+  document.getElementById('close-modal-top').addEventListener('click', closeModal);
+  document.getElementById('close-modal-x').addEventListener('click', closeModal);
+
+  document.querySelectorAll('.key-btn[data-key]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.getAttribute('data-key');
       const input = document.getElementById('input-amount');
-      input.value = input.value.trim().slice(0, -1);
+      if (['+', '-', '*', '/'].includes(val)) {
+        input.value += " " + val + " ";
+      } else if (val === '=') {
+        try { input.value = eval(input.value).toString(); } catch (e) { input.value = "0"; }
+      } else {
+        input.value += val;
+      }
     });
+  });
 
-    document.getElementById('delete-btn').addEventListener('click', async () => {
-      if (!editingId) return;
-      expenses = expenses.filter(e => e.id != editingId);
+  document.getElementById('key-backspace').addEventListener('click', () => {
+    const input = document.getElementById('input-amount');
+    input.value = input.value.trim().slice(0, -1);
+  });
+
+  document.getElementById('delete-btn').addEventListener('click', async () => {
+    if (!editingId) return;
+    expenses = expenses.filter(e => e.id != editingId);
+    saveLocal();
+    closeModal();
+
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
+        method: 'DELETE',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+    } catch (e) {}
+  });
+
+  document.getElementById('key-ok').addEventListener('click', async () => {
+    const merchant = document.getElementById('input-merchant').value || 'Expense';
+    const amountVal = document.getElementById('input-amount').value;
+    let amount = 0;
+    try { amount = parseFloat(eval(amountVal || '0')); } catch(e) { amount = 0; }
+    const category = document.getElementById('input-category').value;
+    const date = document.getElementById('input-date').value;
+
+    if (!amount || amount <= 0) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+
+    if (editingId) {
+      const item = expenses.find(e => e.id == editingId);
+      if (item) {
+        item.merchant = merchant;
+        item.amount = amount;
+        item.category = category;
+        item.date = date;
+      }
       saveLocal();
       closeModal();
 
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
-          method: 'DELETE',
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+          method: 'PATCH',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ merchant, amount, category, date })
         });
-      } catch (e) {}
-    });
+      } catch(e) {}
+    } else {
+      const newObj = { id: Date.now().toString(), merchant, amount, category, date, currency: '£' };
+      expenses.unshift(newObj);
+      saveLocal();
+      closeModal();
 
-    document.getElementById('key-ok').addEventListener('click', async () => {
-      const merchant = document.getElementById('input-merchant').value || 'Expense';
-      const amountVal = document.getElementById('input-amount').value;
-      let amount = 0;
-      try { amount = parseFloat(eval(amountVal || '0')); } catch(e) { amount = 0; }
-      const category = document.getElementById('input-category').value;
-      const date = document.getElementById('input-date').value;
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ merchant, amount, category, date, currency: '£' })
+        });
+      } catch(e) {}
+    }
+  });
 
-      if (!amount || amount <= 0) {
-        alert("Please enter a valid amount.");
-        return;
-      }
-
-      if (editingId) {
-        // Edit existing locally
-        const item = expenses.find(e => e.id == editingId);
-        if (item) {
-          item.merchant = merchant;
-          item.amount = amount;
-          item.category = category;
-          item.date = date;
-        }
-        saveLocal();
-        closeModal();
-
-        // Push to Supabase
-        try {
-          await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
-            method: 'PATCH',
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ merchant, amount, category, date })
-          });
-        } catch(e) {}
-      } else {
-        // Save new locally
-        const newObj = { id: Date.now().toString(), merchant, amount, category, date, currency: '£' };
-        expenses.unshift(newObj);
-        saveLocal();
-        closeModal();
-
-        // Push to Supabase
-        try {
-          await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
-            method: 'POST',
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ merchant, amount, category, date, currency: '£' })
-          });
-        } catch(e) {}
-      }
-    });
-
-    // Render local entries immediately on screen load
-    renderTransactions();
-    updateAutoSuggest();
-
-    // Sync online database records in background
-    syncWithSupabase();
-  </script>
+  renderAllViews();
+  updateAutoSuggest();
+  syncWithSupabase();
+</script>
 </body>
 </html>
