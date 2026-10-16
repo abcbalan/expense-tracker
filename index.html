@@ -2,331 +2,572 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trans.</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Trans. - Money Manager</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#FF5252',
+            brandDark: '#E03E3E',
+            incomeBlue: '#2196F3',
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
-    body { background-color: #f4f5f7; color: #333; max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 70px; }
-
-    /* Top Navigation Bar */
-    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; border-bottom: 1px solid #eee; }
-    .top-bar h2 { font-size: 18px; font-weight: 600; }
-    .month-selector { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #fff; font-size: 16px; font-weight: 500; }
-    
-    /* Navigation Tabs */
-    .view-tabs { display: flex; background: #fff; border-bottom: 1px solid #e0e0e0; }
-    .view-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 14px; color: #888; cursor: pointer; }
-    .view-tab.active { color: #ff5252; font-weight: bold; border-bottom: 2px solid #ff5252; }
-
-    /* Income / Expense / Total Summary Header */
-    .summary-header { display: flex; justify-content: space-around; background: #fafafa; padding: 10px 0; border-bottom: 1px solid #eee; text-align: center; }
-    .summary-box label { font-size: 12px; color: #777; display: block; }
-    .summary-box span { font-size: 14px; font-weight: 600; }
-    .income-val { color: #2196f3; }
-    .exp-val { color: #ff5252; }
-    .total-val { color: #333; }
-
-    /* Daily Transaction List */
-    .day-group { margin-top: 10px; background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
-    .day-header { display: flex; justify-content: space-between; padding: 8px 16px; background: #fdfdfd; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0; }
-    .day-header strong { font-size: 16px; color: #111; margin-right: 4px; }
-    .day-header span.day-tag { background: #888; color: #fff; padding: 1px 4px; border-radius: 3px; font-size: 10px; }
-
-    .trans-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f8f8f8; }
-    .trans-left { display: flex; gap: 12px; align-items: center; }
-    .trans-category { font-size: 12px; color: #999; width: 60px; }
-    .trans-details strong { font-size: 15px; color: #222; display: block; }
-    .trans-details span { font-size: 12px; color: #a0a0a0; }
-    .trans-amount { font-size: 15px; font-weight: 600; color: #ff5252; }
-
-    /* Floating Add Button */
-    .fab { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 999; }
-
-    /* Modal Form Overlay */
-    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; display: none; flex-direction: column; z-index: 9999; width: 100%; max-width: 480px; margin: 0 auto; overflow-y: auto; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #eee; background: #fff; }
-    .type-switcher { display: flex; width: 80%; margin: 10px auto; border: 1px solid #ff5252; border-radius: 6px; overflow: hidden; }
-    .type-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; color: #ff5252; background: #fff; border: none; cursor: pointer; }
-    .type-btn.active { background: #ff5252; color: #fff; }
-
-    .form-fields { padding: 10px 20px; flex: 1; }
-    .field-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; font-size: 15px; }
-    .field-row label { width: 80px; color: #888; }
-    .field-row input, .field-row select { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
-    .field-row input.amount-input { color: #ff5252; font-size: 20px; font-weight: bold; }
-
-    /* Custom Keypad */
-    .keypad-header { background: #000; color: #fff; display: flex; justify-content: space-between; padding: 10px 16px; font-size: 14px; }
-    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); background: #f0f0f2; gap: 1px; }
-    .key-btn { background: #fff; border: none; padding: 18px 0; font-size: 18px; font-weight: 500; cursor: pointer; text-align: center; }
-    .key-btn:active { background: #e0e0e0; }
-    .key-btn.ok-btn { background: #ff5252; color: #fff; grid-row: span 2; display: flex; justify-content: center; align-items: center; font-size: 18px; }
+    /* Global fixes for mobile tap and touch highlights */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      box-sizing: border-box;
+    }
+    input, select, textarea {
+      user-select: text;
+    }
+    /* Hide scrollbars for slick look */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Active feedback for touch */
+    .btn-active:active {
+      transform: scale(0.96);
+      opacity: 0.85;
+    }
   </style>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col justify-start items-center p-0 m-0">
 
-  <!-- Top Navigation -->
-  <div class="top-bar">
-    <span>🔍</span>
-    <h2>Trans.</h2>
-    <span>⚙️</span>
-  </div>
+  <!-- Mobile Frame Container (centered on desktop, native width on mobile) -->
+  <div id="app-root" class="w-full max-w-md min-h-screen bg-white flex flex-col relative shadow-xl overflow-hidden pb-16">
 
-  <div class="month-selector">
-    <span>‹</span>
-    <span id="current-month-display">Oct 2026</span>
-    <span>›</span>
-  </div>
-
-  <!-- View Mode Tabs -->
-  <div class="view-tabs">
-    <div class="view-tab active">Daily</div>
-    <div class="view-tab">Calendar</div>
-    <div class="view-tab">Monthly</div>
-    <div class="view-tab">Summary</div>
-  </div>
-
-  <!-- Income / Exp / Total Header Banner -->
-  <div class="summary-header">
-    <div class="summary-box">
-      <label>Income</label>
-      <span class="income-val">0.00</span>
-    </div>
-    <div class="summary-box">
-      <label>Exp.</label>
-      <span class="exp-val" id="total-exp">0.00</span>
-    </div>
-    <div class="summary-box">
-      <label>Total</label>
-      <span class="total-val" id="net-total">0.00</span>
-    </div>
-  </div>
-
-  <!-- Transaction List -->
-  <div id="transaction-container"></div>
-
-  <!-- Floating Add Button -->
-  <button id="add-fab" class="fab">+</button>
-
-  <!-- Add Expense Modal Screen -->
-  <div class="modal" id="entry-modal">
-    <div class="modal-header">
-      <span id="close-modal-top" style="font-size: 16px; cursor: pointer; color: #ff5252; font-weight: bold;">‹ Back</span>
-      <h3 style="font-size: 16px;">Expense</h3>
-      <span id="close-modal-x" style="cursor: pointer; font-size: 18px;">✕</span>
-    </div>
-
-    <div class="type-switcher">
-      <button class="type-btn">Income</button>
-      <button class="type-btn active">Expense</button>
-      <button class="type-btn">Transfer</button>
-    </div>
-
-    <div class="form-fields">
-      <div class="field-row">
-        <label>Date</label>
-        <input type="date" id="input-date">
+    <!-- 1. TOP HEADER BAR -->
+    <header class="flex justify-between items-center px-4 py-3 bg-white border-b border-gray-200 sticky top-0 z-10">
+      <button class="p-2 text-gray-700 hover:text-gray-900 rounded-full btn-active focus:outline-none" aria-label="Search">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+      </button>
+      <h1 class="text-lg font-bold tracking-tight text-gray-900">Trans.</h1>
+      <div class="flex items-center space-x-1">
+        <button class="p-2 text-gray-700 hover:text-gray-900 rounded-full btn-active focus:outline-none" aria-label="Favorites">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+        </button>
+        <button class="p-2 text-gray-700 hover:text-gray-900 rounded-full btn-active focus:outline-none" aria-label="Settings">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+        </button>
       </div>
-      <div class="field-row">
-        <label>Amount</label>
-        <input type="text" id="input-amount" class="amount-input" placeholder="0.00">
-      </div>
-      <div class="field-row">
-        <label>Category</label>
-        <select id="input-category">
-          <option value="Food">Food</option>
-          <option value="Car">Car</option>
-          <option value="Household">Household</option>
-          <option value="Subscriptions">Subscriptions</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-      <div class="field-row">
-        <label>Merchant</label>
-        <input type="text" id="input-merchant" placeholder="Merchant/Shop (e.g., Tesco)" list="merchant-list">
-        <datalist id="merchant-list"></datalist>
-      </div>
-      <div class="field-row">
-        <label>Account</label>
-        <select id="input-account">
-          <option value="Credit Cards">Credit Cards</option>
-          <option value="Debit Card">Debit Card</option>
-          <option value="Cash">Cash</option>
-        </select>
-      </div>
+    </header>
+
+    <!-- 2. MONTH SELECTOR -->
+    <div class="flex justify-between items-center px-6 py-2 bg-white text-gray-800 text-sm font-semibold border-b border-gray-100">
+      <button id="prev-month" class="p-1.5 text-gray-500 hover:text-gray-900 btn-active focus:outline-none" aria-label="Previous Month">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+      <span id="current-month-display" class="tracking-wide text-base">Oct 2026</span>
+      <button id="next-month" class="p-1.5 text-gray-500 hover:text-gray-900 btn-active focus:outline-none" aria-label="Next Month">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+      </button>
     </div>
 
-    <!-- Custom Keypad -->
-    <div class="keypad-header">
-      <span>Keypad Entry</span>
+    <!-- 3. VIEW MODE TABS -->
+    <nav class="flex bg-white border-b border-gray-200 text-xs font-medium text-gray-500">
+      <button class="view-tab flex-1 py-2.5 text-center border-b-2 border-brand text-brand font-bold transition-all" data-tab="daily">Daily</button>
+      <button class="view-tab flex-1 py-2.5 text-center border-b-2 border-transparent hover:text-gray-700 transition-all" data-tab="calendar">Calendar</button>
+      <button class="view-tab flex-1 py-2.5 text-center border-b-2 border-transparent hover:text-gray-700 transition-all" data-tab="monthly">Monthly</button>
+      <button class="view-tab flex-1 py-2.5 text-center border-b-2 border-transparent hover:text-gray-700 transition-all" data-tab="summary">Summary</button>
+    </nav>
+
+    <!-- 4. SUMMARY HEADER BANNER -->
+    <section class="grid grid-cols-3 bg-gray-50 py-2.5 px-2 text-center border-b border-gray-200">
+      <div class="flex flex-col">
+        <span class="text-[11px] text-gray-500 font-medium">Income</span>
+        <span id="header-income" class="text-xs sm:text-sm font-semibold text-incomeBlue">£0.00</span>
+      </div>
+      <div class="flex flex-col border-x border-gray-200">
+        <span class="text-[11px] text-gray-500 font-medium">Exp.</span>
+        <span id="header-expense" class="text-xs sm:text-sm font-semibold text-brand">£0.00</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-[11px] text-gray-500 font-medium">Total</span>
+        <span id="header-total" class="text-xs sm:text-sm font-semibold text-gray-800">£0.00</span>
+      </div>
+    </section>
+
+    <!-- 5. DAILY TRANSACTION LIST -->
+    <main id="transaction-container" class="flex-1 overflow-y-auto bg-gray-100 no-scrollbar pb-24">
+      <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+        <svg class="w-8 h-8 animate-spin mb-2 text-brand" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="text-xs font-medium">Loading transactions...</span>
+      </div>
+    </main>
+
+    <!-- 6. FLOATING ADD BUTTON -->
+    <button id="add-fab-btn" type="button" class="fixed bottom-6 right-6 md:absolute md:bottom-6 md:right-6 w-14 h-14 bg-brand text-white rounded-full shadow-lg hover:bg-brandDark flex items-center justify-center text-3xl font-light btn-active transition-all z-40 focus:outline-none">
+      +
+    </button>
+
+    <!-- BOTTOM NAVBAR -->
+    <footer class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center py-1.5 z-30">
+      <button class="flex flex-col items-center text-brand">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+        <span class="text-[10px] font-bold mt-0.5">Trans.</span>
+      </button>
+      <button class="flex flex-col items-center text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        <span class="text-[10px] mt-0.5">Stats</span>
+      </button>
+      <button class="flex flex-col items-center text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+        <span class="text-[10px] mt-0.5">Accounts</span>
+      </button>
+      <button class="flex flex-col items-center text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
+        <span class="text-[10px] mt-0.5">More</span>
+      </button>
+    </footer>
+
+    <!-- 7. ENTRY MODAL & CALCULATOR KEYPAD -->
+    <div id="entry-modal" class="fixed inset-0 bg-white z-50 flex flex-col hidden max-w-md mx-auto transition-transform duration-200 ease-in-out">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center px-4 py-3 border-b border-gray-200 bg-white">
+        <button id="modal-cancel-btn" type="button" class="text-brand font-semibold text-sm flex items-center btn-active">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+          Trans.
+        </button>
+        <h2 id="modal-title" class="text-base font-bold text-gray-900">Expense</h2>
+        <button type="button" class="text-gray-400 hover:text-gray-600 btn-active">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+        </button>
+      </div>
+
+      <!-- Type Switcher -->
+      <div class="px-6 py-2.5 bg-white">
+        <div class="flex rounded-md border border-brand overflow-hidden text-xs font-semibold">
+          <button type="button" class="type-tab flex-1 py-1.5 text-center text-brand bg-white" data-type="Income">Income</button>
+          <button type="button" class="type-tab flex-1 py-1.5 text-center text-white bg-brand active-type" data-type="Expense">Expense</button>
+          <button type="button" class="type-tab flex-1 py-1.5 text-center text-brand bg-white" data-type="Transfer">Transfer</button>
+        </div>
+      </div>
+
+      <!-- Input Form Fields -->
+      <div class="flex-1 overflow-y-auto px-4 py-2 space-y-3 bg-white no-scrollbar text-sm">
+        
+        <div class="flex items-center border-b border-gray-200 py-2">
+          <label class="w-20 text-gray-400 font-medium">Date</label>
+          <input type="date" id="field-date" class="flex-1 bg-transparent font-medium text-gray-800 outline-none">
+        </div>
+
+        <div class="flex items-center border-b border-brand/50 py-2">
+          <label class="w-20 text-gray-400 font-medium">Amount</label>
+          <input type="text" id="field-amount" readonly placeholder="0.00" class="flex-1 bg-transparent text-xl font-bold text-brand outline-none cursor-pointer">
+        </div>
+
+        <div class="flex items-center border-b border-gray-200 py-2">
+          <label class="w-20 text-gray-400 font-medium">Category</label>
+          <select id="field-category" class="flex-1 bg-transparent font-medium text-gray-800 outline-none cursor-pointer">
+            <option value="Food">Food</option>
+            <option value="Car">Car</option>
+            <option value="Household">Household</option>
+            <option value="Subscriptions">Subscriptions</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Bills">Bills</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="flex items-center border-b border-gray-200 py-2">
+          <label class="w-20 text-gray-400 font-medium">Merchant</label>
+          <input type="text" id="field-merchant" placeholder="Merchant or shop (e.g. Tesco)" list="merchant-list-options" class="flex-1 bg-transparent font-medium text-gray-800 outline-none">
+          <datalist id="merchant-list-options"></datalist>
+        </div>
+
+        <div class="flex items-center border-b border-gray-200 py-2">
+          <label class="w-20 text-gray-400 font-medium">Account</label>
+          <select id="field-account" class="flex-1 bg-transparent font-medium text-gray-800 outline-none cursor-pointer">
+            <option value="Credit Cards">Credit Cards</option>
+            <option value="Debit Card">Debit Card</option>
+            <option value="Cash">Cash</option>
+            <option value="Savings">Savings</option>
+          </select>
+        </div>
+
+        <div class="flex items-center border-b border-gray-200 py-2">
+          <label class="w-20 text-gray-400 font-medium">Note</label>
+          <input type="text" id="field-note" placeholder="Optional notes" class="flex-1 bg-transparent font-medium text-gray-800 outline-none">
+        </div>
+
+      </div>
+
+      <!-- Calculator Keypad Top Bar -->
+      <div class="bg-gray-900 text-white text-xs px-4 py-2 flex justify-between items-center font-medium">
+        <span>Amount</span>
+        <div class="flex space-x-3 items-center">
+          <button id="modal-close-x" type="button" class="text-gray-300 hover:text-white text-sm font-bold btn-active">✕</button>
+        </div>
+      </div>
+
+      <!-- Interactive On-Screen Calculator Keypad -->
+      <div class="grid grid-cols-4 bg-gray-200 gap-px text-gray-800 text-lg font-medium">
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="+">+</button>
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="-">-</button>
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="*">×</button>
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="/">÷</button>
+
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="7">7</button>
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="8">8</button>
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="9">9</button>
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="=">=</button>
+
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="4">4</button>
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="5">5</button>
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="6">6</button>
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key=".">.</button>
+
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="1">1</button>
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="2">2</button>
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200" data-key="3">3</button>
+        <button type="button" id="keypad-backspace" class="bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200 text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path></svg>
+        </button>
+
+        <button type="button" class="keypad-btn bg-white py-3.5 flex items-center justify-center hover:bg-gray-50 active:bg-gray-200 col-span-2" data-key="0">0</button>
+        <button type="button" id="keypad-ok-btn" class="bg-brand text-white font-bold py-3.5 flex items-center justify-center hover:bg-brandDark active:opacity-90 col-span-2 text-base tracking-wider">
+          OK
+        </button>
+      </div>
+
     </div>
-    <div class="keypad">
-      <button class="key-btn" data-key="+">+</button>
-      <button class="key-btn" data-key="-">-</button>
-      <button class="key-btn" data-key="*">×</button>
-      <button class="key-btn" data-key="/">÷</button>
 
-      <button class="key-btn" data-key="7">7</button>
-      <button class="key-btn" data-key="8">8</button>
-      <button class="key-btn" data-key="9">9</button>
-      <button class="key-btn" data-key="=">=</button>
-
-      <button class="key-btn" data-key="4">4</button>
-      <button class="key-btn" data-key="5">5</button>
-      <button class="key-btn" data-key="6">6</button>
-      <button class="key-btn" data-key=".">.</button>
-
-      <button class="key-btn" data-key="1">1</button>
-      <button class="key-btn" data-key="2">2</button>
-      <button class="key-btn" data-key="3">3</button>
-      <button class="key-btn" id="key-backspace">⌫</button>
-
-      <button class="key-btn" style="grid-column: span 2;" data-key="0">0</button>
-      <button class="key-btn ok-btn" id="key-ok" style="grid-column: span 2;">OK</button>
-    </div>
   </div>
 
   <script>
+    // --- 8. SUPABASE CLIENT CONFIGURATION ---
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    let supabaseClient = null;
+    try {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    } catch(err) {
+      console.warn("Supabase initialization failed or offline fallback activated:", err);
+    }
 
-    let expenses = [];
+    // State Variables
+    let expensesList = [];
+    let currentCalcExpr = "";
+    let selectedType = "Expense";
 
-    async function fetchExpenses() {
-      const { data, error } = await supabase.from('expenses').select('*').order('date', { ascending: false });
-      if (!error && data) {
-        expenses = data;
-        renderTransactions();
-        updateAutoSuggest();
+    // --- DOM ELEMENT REFERENCES ---
+    const appRoot = document.getElementById('app-root');
+    const transactionContainer = document.getElementById('transaction-container');
+    const addFabBtn = document.getElementById('add-fab-btn');
+    const entryModal = document.getElementById('entry-modal');
+    const modalCancelBtn = document.getElementById('modal-cancel-btn');
+    const modalCloseX = document.getElementById('modal-close-x');
+    const fieldAmount = document.getElementById('field-amount');
+    const fieldDate = document.getElementById('field-date');
+    const fieldCategory = document.getElementById('field-category');
+    const fieldMerchant = document.getElementById('field-merchant');
+    const fieldAccount = document.getElementById('field-account');
+    const fieldNote = document.getElementById('field-note');
+    const keypadOkBtn = document.getElementById('keypad-ok-btn');
+    const keypadBackspace = document.getElementById('keypad-backspace');
+
+    // Header Summary Elements
+    const headerIncome = document.getElementById('header-income');
+    const headerExpense = document.getElementById('header-expense');
+    const headerTotal = document.getElementById('header-total');
+
+    // Default Date Setup
+    const todayISO = new Date().toISOString().split('T')[0];
+
+    // --- DATA FETCHING & RENDERING ---
+    async function loadExpensesData() {
+      if (!supabaseClient) {
+        renderUIWithData([]);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('expenses')
+          .select('*')
+          .order('date', { ascending: false });
+
+        if (error) throw error;
+        expensesList = data || [];
+        renderUIWithData(expensesList);
+        updateMerchantSuggestions();
+      } catch (err) {
+        console.error("Error fetching data from Supabase:", err);
+        renderUIWithData(expensesList);
       }
     }
 
-    function renderTransactions() {
-      const container = document.getElementById('transaction-container');
-      container.innerHTML = '';
+    function renderUIWithData(items) {
+      transactionContainer.innerHTML = '';
 
-      let totalExp = 0;
-      const grouped = {};
+      if (!items || items.length === 0) {
+        transactionContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+            <div class="w-16 h-16 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center mb-3">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <p class="text-sm font-semibold text-gray-600">No transactions recorded</p>
+            <p class="text-xs text-gray-400 mt-1">Tap the red plus (+) button below to add your first expense.</p>
+          </div>
+        `;
+        headerIncome.textContent = "£0.00";
+        headerExpense.textContent = "£0.00";
+        headerTotal.textContent = "£0.00";
+        return;
+      }
 
-      expenses.forEach(item => {
-        totalExp += parseFloat(item.amount);
-        const dateKey = item.date;
-        if (!grouped[dateKey]) grouped[dateKey] = [];
-        grouped[dateKey].push(item);
+      let totalIncomeVal = 0;
+      let totalExpenseVal = 0;
+
+      // Group entries by date
+      const groupedByDate = {};
+      items.forEach(item => {
+        const amt = parseFloat(item.amount) || 0;
+        if (item.type === 'Income') {
+          totalIncomeVal += amt;
+        } else {
+          totalExpenseVal += amt;
+        }
+
+        const dateKey = item.date || 'Undated';
+        if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
+        groupedByDate[dateKey].push(item);
       });
 
-      document.getElementById('total-exp').innerText = '£ ' + totalExp.toFixed(2);
-      document.getElementById('net-total').innerText = '-£ ' + totalExp.toFixed(2);
+      // Update Summary Header Banner
+      headerIncome.textContent = `£${totalIncomeVal.toFixed(2)}`;
+      headerExpense.textContent = `£${totalExpenseVal.toFixed(2)}`;
+      const netVal = totalIncomeVal - totalExpenseVal;
+      headerTotal.textContent = `${netVal < 0 ? '-' : ''}£${Math.abs(netVal).toFixed(2)}`;
 
-      Object.keys(grouped).forEach(dateStr => {
+      // Build DOM for grouped transactions
+      Object.keys(groupedByDate).sort().reverse().forEach(dateStr => {
         const dateObj = new Date(dateStr);
-        const dayNum = dateObj.getDate();
-        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+        const dayNum = isNaN(dateObj.getDate()) ? '--' : dateObj.getDate();
+        const dayName = isNaN(dateObj.getDay()) ? '' : dateObj.toLocaleDateString('en-US', { weekday: 'short' });
 
-        let dayTotal = grouped[dateStr].reduce((sum, item) => sum + parseFloat(item.amount), 0);
+        const dayTotal = groupedByDate[dateStr].reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
 
-        let groupHtml = `
-          <div class="day-group">
-            <div class="day-header">
-              <div>
-                <strong>${dayNum}</strong>
-                <span class="day-tag">${dayName}</span>
-              </div>
-              <div style="color: #ff5252; font-weight: 600;">£ ${dayTotal.toFixed(2)}</div>
+        const groupDiv = document.createElement('div');
+        groupDiv.className = "bg-white mb-2 border-y border-gray-200/80 shadow-sm";
+
+        let dayHeaderHtml = `
+          <div class="flex justify-between items-center px-4 py-2 bg-gray-50 border-b border-gray-100 text-xs">
+            <div class="flex items-center space-x-1.5">
+              <span class="text-base font-bold text-gray-900">${dayNum}</span>
+              <span class="bg-gray-400 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">${dayName}</span>
             </div>
+            <span class="font-bold text-brand text-xs">£${dayTotal.toFixed(2)}</span>
+          </div>
         `;
 
-        grouped[dateStr].forEach(item => {
-          groupHtml += `
-            <div class="trans-row">
-              <div class="trans-left">
-                <span class="trans-category">${item.category}</span>
-                <div class="trans-details">
-                  <strong>${item.merchant}</strong>
-                  <span>Credit Cards</span>
+        let rowsHtml = '';
+        groupedByDate[dateStr].forEach(entry => {
+          rowsHtml += `
+            <div class="flex justify-between items-center px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+              <div class="flex items-center space-x-3">
+                <span class="text-xs text-gray-400 w-16 truncate font-medium">${entry.category || 'Expense'}</span>
+                <div class="flex flex-col">
+                  <span class="text-sm font-semibold text-gray-900 leading-snug">${escapeHtml(entry.merchant || 'Expense')}</span>
+                  <span class="text-[11px] text-gray-400 font-normal">${entry.account || 'Credit Cards'}</span>
                 </div>
               </div>
-              <div class="trans-amount">£ ${parseFloat(item.amount).toFixed(2)}</div>
+              <span class="text-sm font-bold text-brand">£${parseFloat(entry.amount || 0).toFixed(2)}</span>
             </div>
           `;
         });
 
-        groupHtml += `</div>`;
-        container.innerHTML += groupHtml;
+        groupDiv.innerHTML = dayHeaderHtml + rowsHtml;
+        transactionContainer.appendChild(groupDiv);
       });
     }
 
-    function updateAutoSuggest() {
-      const datalist = document.getElementById('merchant-list');
-      const uniqueMerchants = [...new Set(expenses.map(e => e.merchant))];
-      datalist.innerHTML = uniqueMerchants.map(m => `<option value="${m}">`).join('');
+    function updateMerchantSuggestions() {
+      const datalist = document.getElementById('merchant-list-options');
+      if (!datalist) return;
+      const merchants = [...new Set(expensesList.map(e => e.merchant).filter(Boolean))];
+      datalist.innerHTML = merchants.map(m => `<option value="${escapeHtml(m)}">`).join('');
     }
 
-    function openModal() {
-      document.getElementById('entry-modal').style.display = 'flex';
-      document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
-      document.getElementById('input-amount').value = "";
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function closeModal() {
-      document.getElementById('entry-modal').style.display = 'none';
+    // --- MODAL CONTROLS ---
+    function openEntryModal() {
+      currentCalcExpr = "";
+      fieldAmount.value = "";
+      fieldDate.value = todayISO;
+      fieldMerchant.value = "";
+      fieldNote.value = "";
+      fieldCategory.value = "Food";
+      fieldAccount.value = "Credit Cards";
+      entryModal.classList.remove('hidden');
     }
 
-    // Event Listeners for explicit click handling
-    document.getElementById('add-fab').addEventListener('click', openModal);
-    document.getElementById('close-modal-top').addEventListener('click', closeModal);
-    document.getElementById('close-modal-x').addEventListener('click', closeModal);
+    function closeEntryModal() {
+      entryModal.classList.add('hidden');
+    }
 
-    document.querySelectorAll('.key-btn[data-key]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const val = btn.getAttribute('data-key');
-        const input = document.getElementById('input-amount');
-        if (['+', '-', '*', '/'].includes(val)) {
-          input.value += " " + val + " ";
-        } else if (val === '=') {
-          try { input.value = eval(input.value).toString(); } catch (e) { input.value = "0"; }
-        } else {
-          input.value += val;
+    // Explicit Event Handling for Mobile & Desktop
+    addFabBtn.addEventListener('click', openEntryModal);
+    addFabBtn.addEventListener('touchstart', (e) => { e.preventDefault(); openEntryModal(); }, {passive: false});
+
+    modalCancelBtn.addEventListener('click', closeEntryModal);
+    modalCloseX.addEventListener('click', closeEntryModal);
+
+    // --- CALCULATOR KEYPAD LOGIC ---
+    document.querySelectorAll('.keypad-btn').forEach(btn => {
+      const handler = (e) => {
+        if (e) e.preventDefault();
+        const key = btn.getAttribute('data-key');
+        handleKeypadInput(key);
+      };
+      btn.addEventListener('click', handler);
+      btn.addEventListener('touchstart', handler, {passive: false});
+    });
+
+    function handleKeypadInput(key) {
+      if (['+', '-', '*', '/'].includes(key)) {
+        if (currentCalcExpr !== "" && !['+', '-', '*', '/'].includes(currentCalcExpr.slice(-1))) {
+          currentCalcExpr += key;
         }
+      } else if (key === '=') {
+        evaluateCalcExpression();
+      } else {
+        currentCalcExpr += key;
+      }
+      fieldAmount.value = currentCalcExpr;
+    }
+
+    function evaluateCalcExpression() {
+      if (!currentCalcExpr) return;
+      try {
+        // Safe evaluation for basic math
+        const sanitized = currentCalcExpr.replace(/[^0-9+\-*/.]/g, '');
+        const res = Function(`'use strict'; return (${sanitized})`)();
+        currentCalcExpr = isNaN(res) ? "" : String(parseFloat(res.toFixed(2)));
+        fieldAmount.value = currentCalcExpr;
+      } catch (e) {
+        // In case of syntax error in expression
+      }
+    }
+
+    keypadBackspace.addEventListener('click', handleBackspace);
+    keypadBackspace.addEventListener('touchstart', (e) => { e.preventDefault(); handleBackspace(); }, {passive: false});
+
+    function handleBackspace() {
+      currentCalcExpr = currentCalcExpr.slice(0, -1);
+      fieldAmount.value = currentCalcExpr;
+    }
+
+    // TYPE SWITCHER TABS
+    document.querySelectorAll('.type-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.type-tab').forEach(t => {
+          t.classList.remove('bg-brand', 'text-white');
+          t.classList.add('bg-white', 'text-brand');
+        });
+        tab.classList.remove('bg-white', 'text-brand');
+        tab.classList.add('bg-brand', 'text-white');
+        selectedType = tab.getAttribute('data-type');
+        document.getElementById('modal-title').textContent = selectedType;
       });
     });
 
-    document.getElementById('key-backspace').addEventListener('click', () => {
-      const input = document.getElementById('input-amount');
-      input.value = input.value.trim().slice(0, -1);
-    });
+    // --- SAVE TRANSACTION TO SUPABASE ---
+    async function saveTransaction() {
+      evaluateCalcExpression();
+      const numVal = parseFloat(currentCalcExpr);
 
-    document.getElementById('key-ok').addEventListener('click', async () => {
-      const merchant = document.getElementById('input-merchant').value || 'Expense';
-      const amountVal = document.getElementById('input-amount').value;
-      
-      let amount = 0;
-      try { amount = parseFloat(eval(amountVal || '0')); } catch(e) { amount = 0; }
-
-      const category = document.getElementById('input-category').value;
-      const date = document.getElementById('input-date').value;
-
-      if (!amount || amount <= 0) {
-        alert("Please enter a valid amount.");
+      if (isNaN(numVal) || numVal <= 0) {
+        showToast("Please enter a valid amount.");
         return;
       }
 
-      const { error } = await supabase.from('expenses').insert([{
-        merchant, amount, category, date, currency: '£'
-      }]);
+      const newEntry = {
+        merchant: fieldMerchant.value.trim() || 'Expense',
+        amount: numVal,
+        category: fieldCategory.value,
+        account: fieldAccount.value,
+        date: fieldDate.value || todayISO,
+        type: selectedType,
+        currency: '£'
+      };
 
-      if (error) {
-        alert("Error saving: " + error.message);
-      } else {
-        document.getElementById('input-merchant').value = '';
-        closeModal();
-        fetchExpenses();
+      // Optimistic UI update
+      expensesList.unshift(newEntry);
+      renderUIWithData(expensesList);
+      closeEntryModal();
+
+      if (supabaseClient) {
+        try {
+          const { error } = await supabaseClient.from('expenses').insert([newEntry]);
+          if (error) throw error;
+          loadExpensesData(); // Refresh clean state
+        } catch (err) {
+          console.error("Failed to save to database:", err);
+          showToast("Saved locally. Supabase error: " + err.message);
+        }
       }
+    }
+
+    keypadOkBtn.addEventListener('click', saveTransaction);
+    keypadOkBtn.addEventListener('touchstart', (e) => { e.preventDefault(); saveTransaction(); }, {passive: false});
+
+    // View tab switching visual effect
+    document.querySelectorAll('.view-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.view-tab').forEach(t => {
+          t.classList.remove('border-brand', 'text-brand', 'font-bold');
+          t.classList.add('border-transparent', 'text-gray-500');
+        });
+        tab.classList.remove('border-transparent', 'text-gray-500');
+        tab.classList.add('border-brand', 'text-brand', 'font-bold');
+      });
     });
 
-    fetchExpenses();
+    // Custom non-blocking notification banner
+    function showToast(msg) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-4 py-2 rounded-full shadow-2xl z-50 transition-opacity duration-300';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    // Initial Load
+    window.onload = () => {
+      loadExpensesData();
+    };
   </script>
 </body>
 </html>
