@@ -299,6 +299,7 @@
   function logout() {
     accessToken = null;
     localStorage.removeItem('sb_access_token');
+    localStorage.removeItem('expenses_data');
     expenses = [];
     document.getElementById('auth-screen').style.display = 'flex';
   }
@@ -307,7 +308,6 @@
   document.getElementById('auth-password').addEventListener('keypress', (e) => { if(e.key === 'Enter') login(); });
   document.getElementById('btn-logout').addEventListener('click', logout);
 
-  // Check initial auth state persistently
   if (accessToken) {
     document.getElementById('auth-screen').style.display = 'none';
   }
@@ -327,10 +327,11 @@
       if (res.ok) {
         const data = await res.json();
         if (data) {
+          // Strictly keep only entries returned by Supabase for this logged-in account
           expenses = data;
           saveLocal();
         }
-      } else if (res.status === 401) {
+      } else if (res.status === 401 || res.status === 403) {
         logout();
       }
     } catch (e) {}
@@ -744,6 +745,7 @@
   });
 
   if (accessToken) {
+    document.getElementById('auth-screen').style.display = 'none';
     updateMonthHeader();
     syncWithSupabase();
   }
