@@ -293,6 +293,8 @@
 
   let expenses = [];
   let accessToken = localStorage.getItem('sb_access_token') || null;
+  let currentUserEmail = localStorage.getItem('sb_user_email') || null;
+  let currentUserId = null;
   let editingId = null;
   let currentDate = new Date(2026, 9, 1); // Oct 2026
 
@@ -309,6 +311,23 @@
     'Phone': '#d35400', 'Toys': '#f1c40f', 'Council Tax': '#e67e22', 'Donation': '#16a085'
   };
 
+  function parseJwt(token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(window.atob(base64));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  if (accessToken) {
+    const payload = parseJwt(accessToken);
+    if (payload && payload.sub) {
+      currentUserId = payload.sub;
+    }
+  }
+
   async function login() {
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value.trim();
@@ -324,8 +343,15 @@
       const data = await res.json();
       if (res.ok && data.access_token) {
         accessToken = data.access_token;
+        currentUserEmail = email;
         localStorage.setItem('sb_access_token', accessToken);
+        localStorage.setItem('sb_user_email', currentUserEmail);
+        
+        const payload = parseJwt(accessToken);
+        if (payload && payload.sub) currentUserId = payload.sub;
+
         document.getElementById('auth-screen').style.display = 'none';
+        loadLocalForUser();
         syncWithSupabase();
       } else {
         errEl.innerText = data.error_description || data.msg || "Invalid login credentials.";
@@ -337,9 +363,11 @@
 
   function logout() {
     accessToken = null;
-    localStorage.removeItem('sb_access_token');
-    localStorage.removeItem('expenses_data');
+    currentUserEmail = null;
+    currentUserId = null;
     expenses = [];
+    localStorage.removeItem('sb_access_token');
+    localStorage.removeItem('sb_user_email');
     document.getElementById('auth-screen').style.display = 'flex';
   }
 
@@ -349,23 +377,28 @@
 
   if (accessToken) {
     document.getElementById('auth-screen').style.display = 'none';
+    loadLocalForUser();
+  }
+
+  function loadLocalForUser() {
+    if (!currentUserEmail) return;
+    const stored = localStorage.getItem(`expenses_data_${currentUserEmail}`);
+    expenses = stored ? JSON.parse(stored) : [];
+    renderAllViews();
+    updateAutoSuggest();
   }
 
   function saveLocal() {
-    localStorage.setItem('expenses_data', JSON.stringify(expenses));
+    if (!currentUserEmail) return;
+    localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
     renderAllViews();
     updateAutoSuggest();
   }
 
   async function syncWithSupabase() {
-    if (!accessToken) return;
+    if (!accessToken || !currentUserId) return;
     try {
-      const base64Url = accessToken.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const payload = JSON.parse(window.atob(base64));
-      const userId = payload.sub;
-
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${userId}&select=*&order=date.desc`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${currentUserId}&select=*&order=date.desc`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
       });
       if (res.ok) {
@@ -396,7 +429,7 @@
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `expenses_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `expenses_export_${currentUserEmail || 'user'}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -921,7 +954,7 @@
   });
 
   document.getElementById('key-ok').addEventListener('click', async () => {
-    if (!accessToken) return;
+    if (!accessToken || !currentUserId) return;
     const merchant = document.getElementById('input-merchant').value.trim() || 'Expense';
     const category = document.getElementById('input-category').value || 'Other';
     const amountVal = document.getElementById('input-amount').value;
@@ -955,7 +988,7 @@
         });
       } catch(e) {}
     } else {
-      const newObj = { id: Date.now().toString(), merchant, amount, category, date, currency: '£', repeat };
+      const newObj = { id: Date.now().toString(), user_id: currentUserId, merchant, amount, category, date, currency: '£', repeat };
       expenses.unshift(newObj);
       saveLocal();
       closeModal();
@@ -964,14 +997,15 @@
         await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
           method: 'POST',
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ merchant, amount, category, date, currency: '£', repeat })
+          body: JSON.stringify({ user_id: currentUserId, merchant, amount, category, date, currency: '£', repeat })
         });
       } catch(e) {}
     }
   });
 
-  if (accessToken) {
+  if (accessToken && currentUserId) {
     document.getElementById('auth-screen').style.display = 'none';
+    loadLocalForUser();
     updateMonthHeader();
     syncWithSupabase();
   }
