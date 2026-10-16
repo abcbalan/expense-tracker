@@ -26,15 +26,12 @@
     .summary-box span { font-size: 15px; font-weight: 600; }
     .exp-val { color: #ff5252; }
 
-    /* Views */
     .view-panel { display: none; }
     .view-panel.active { display: block; }
 
-    /* Search Bar */
     .search-box { display: none; padding: 10px 16px; background: #fafafa; border-bottom: 1px solid #eee; }
     .search-box input { width: 100%; padding: 8px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; }
 
-    /* Daily List */
     .day-group { margin-top: 10px; background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
     .day-header { display: flex; justify-content: space-between; padding: 10px 16px; background: #fcfcfc; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0; }
     .day-header strong { font-size: 16px; color: #111; margin-right: 4px; }
@@ -49,10 +46,10 @@
     .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 10px; gap: 4px; background: #fff; }
     .cal-day-name { text-align: center; font-size: 12px; font-weight: bold; color: #888; padding: 6px 0; }
     .cal-cell { background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px; min-height: 52px; padding: 4px; font-size: 11px; }
+    .cal-cell.empty { background: transparent; border: none; }
     .cal-date-num { font-weight: bold; color: #333; margin-bottom: 2px; }
     .cal-spend { color: #ff5252; font-weight: 600; font-size: 10px; }
 
-    /* Summary Progress Bars */
     .summary-item { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
     .summary-label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
     .progress-bg { background: #eee; height: 8px; border-radius: 4px; overflow: hidden; }
@@ -60,7 +57,6 @@
 
     .fab { position: absolute; bottom: 25px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 99; }
 
-    /* Modal Overlay */
     .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; display: none; flex-direction: column; z-index: 999; max-width: 480px; margin: 0 auto; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #eee; }
     .form-fields { padding: 10px 20px; flex: 1; }
@@ -289,7 +285,7 @@
       grouped[dateKey].push(item);
     });
 
-    Object.keys(grouped).forEach(dateStr => {
+    Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a)).forEach(dateStr => {
       const dateObj = new Date(dateStr);
       const dayNum = dateObj.getDate();
       const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
@@ -331,6 +327,9 @@
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
+    
+    // First day of week (0=Sun, 1=Mon...) & total days
+    const firstDayIndex = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
     const dateMap = {};
@@ -339,6 +338,12 @@
       dateMap[d] = (dateMap[d] || 0) + parseFloat(e.amount);
     });
 
+    // Empty lead-in cells
+    for (let x = 0; x < firstDayIndex; x++) {
+      cal.innerHTML += `<div class="cal-cell empty"></div>`;
+    }
+
+    // Days of the month
     for (let i = 1; i <= daysInMonth; i++) {
       const spend = dateMap[i] ? `£${dateMap[i].toFixed(0)}` : '';
       cal.innerHTML += `
@@ -360,7 +365,7 @@
       monthlyMap[monthKey] = (monthlyMap[monthKey] || 0) + parseFloat(e.amount);
     });
 
-    Object.keys(monthlyMap).forEach(m => {
+    Object.keys(monthlyMap).sort().reverse().forEach(m => {
       container.innerHTML += `
         <div class="day-group">
           <div class="day-header">
