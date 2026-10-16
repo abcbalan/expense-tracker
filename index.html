@@ -1,3 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Trans.</title>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f4f5f7; color: #333; margin: 0; padding: 0; user-select: none; height: 100vh; overflow: hidden; }
+    
+    .app-wrapper { max-width: 480px; margin: 0 auto; background: #fff; height: 100vh; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+
+    /* Login Screen */
+    #auth-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; max-width: 480px; margin: 0 auto; }
+    .auth-box { width: 100%; max-width: 320px; }
+    .auth-box h2 { font-size: 24px; margin-bottom: 20px; text-align: center; color: #111; }
+    .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+    .auth-btn { width: 100%; padding: 12px; background: #ff5252; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+    .auth-error { color: #ff5252; font-size: 14px; text-align: center; margin-top: 10px; }
+
+    /* Sticky Header Container */
+    .sticky-header { flex-shrink: 0; background: #fff; z-index: 90; }
+
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #fff; border-bottom: 1px solid #eee; }
+    .top-bar h2 { font-size: 18px; font-weight: 600; }
+    .icon-btn { cursor: pointer; font-size: 18px; padding: 4px; }
+
+    .month-selector { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; font-size: 16px; font-weight: 600; }
+    .nav-arrow { cursor: pointer; padding: 0 10px; font-size: 20px; color: #ff5252; }
+
+    .view-tabs { display: flex; background: #fff; border-bottom: 1px solid #e0e0e0; }
+    .view-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 14px; color: #777; cursor: pointer; }
+    .view-tab.active { color: #ff5252; font-weight: bold; border-bottom: 2px solid #ff5252; }
+    
+    .summary-header { display: flex; justify-content: space-around; background: #fafafa; padding: 12px 0; border-bottom: 1px solid #eee; text-align: center; }
+    .summary-box label { font-size: 12px; color: #777; display: block; margin-bottom: 2px; }
+    .summary-box span { font-size: 15px; font-weight: 600; }
+    .exp-val { color: #ff5252; }
+
+    /* Scrollable Content Container */
+    .scrollable-content { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+
+    .page-screen { display: none; }
+    .page-screen.active { display: block; }
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+
+    .search-box { display: none; padding: 10px 16px; background: #fafafa; border-bottom: 1px solid #eee; }
+    .search-box input { width: 100%; padding: 8px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; }
+
+    /* Daily List */
+    .day-group { margin-top: 10px; background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+    .day-header { display: flex; justify-content: space-between; padding: 10px 16px; background: #fcfcfc; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0; }
+    .day-header strong { font-size: 16px; color: #111; margin-right: 4px; }
+    .trans-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f8f8f8; cursor: pointer; }
+    .trans-left { display: flex; gap: 12px; align-items: center; }
+    .trans-category { font-size: 13px; color: #888; width: 85px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .trans-details strong { font-size: 15px; color: #222; display: block; }
+    .trans-amount { font-size: 16px; font-weight: 600; color: #ff5252; }
+
+    /* Calendar Grid */
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 10px; gap: 4px; background: #fff; }
+    .cal-day-name { text-align: center; font-size: 12px; font-weight: bold; color: #888; padding: 6px 0; }
+    .cal-cell { background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px; min-height: 52px; padding: 4px; font-size: 11px; }
+    .cal-cell.empty { background: transparent; border: none; }
+    .cal-date-num { font-weight: bold; color: #333; margin-bottom: 2px; }
+    .cal-spend { color: #ff5252; font-weight: 600; font-size: 10px; }
+
+    /* Summary Progress Bars */
+    .summary-item { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
+    .summary-label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .progress-bg { background: #eee; height: 8px; border-radius: 4px; overflow: hidden; }
+    .progress-fill { background: #ff5252; height: 100%; border-radius: 4px; }
+
+    /* Stats Page Design */
+    .chart-container { width: 180px; height: 180px; margin: 20px auto; position: relative; }
+    .pie-svg { width: 100%; height: 100%; transform: rotate(-90deg); border-radius: 50%; }
+    .stats-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
+    .badge-percent { padding: 4px 8px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: bold; width: 42px; text-align: center; }
+
+    /* Floating Add Button */
+    .fab { position: absolute; bottom: 75px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 95; }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+    .nav-item { text-align: center; color: #999; font-size: 11px; cursor: pointer; flex: 1; }
+    .nav-item.active { color: #ff5252; font-weight: bold; }
+    .nav-item span { display: block; font-size: 18px; margin-bottom: 2px; }
+
+    /* Modal Overlay */
+    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; display: none; flex-direction: column; z-index: 999; max-width: 480px; margin: 0 auto; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #eee; }
+    .form-fields { padding: 10px 20px; flex: 1; }
+    .field-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #eee; font-size: 15px; }
+    .field-row label { width: 90px; color: #777; font-weight: 500; }
+    .field-row input, .field-row select { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
+    .field-row input.amount-input { color: #ff5252; font-size: 22px; font-weight: bold; }
+    
+    /* Category Grid Modal */
+    #category-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; flex-direction: column; justify-content: flex-end; max-width: 480px; margin: 0 auto; }
+    .cat-sheet { background: #fff; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; flex-direction: column; max-height: 70vh; }
+    .cat-sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #111; color: #fff; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #e0e0e0; padding: 1px; overflow-y: auto; }
+    .cat-tile { background: #fff; padding: 20px 10px; text-align: center; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 75px; color: #333; }
+    .cat-tile:active { background: #f0f0f0; }
+    .cat-tile.add-tile { color: #ff5252; font-weight: bold; }
+
+    .keypad-header { background: #111; color: #fff; display: flex; justify-content: space-between; padding: 10px 16px; font-size: 14px; }
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); background: #e5e5e8; gap: 1px; }
+    .key-btn { background: #fff; border: none; padding: 18px 0; font-size: 20px; font-weight: 500; cursor: pointer; text-align: center; }
+    .key-btn:active { background: #ddd; }
+    .key-btn.ok-btn { background: #ff5252; color: #fff; grid-row: span 2; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; }
+    .delete-action-btn { background: #dc2626; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 8px; margin: 15px 20px; cursor: pointer; display: none; }
+  </style>
+  <!-- SheetJS for Excel file import support -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<!-- Secure Login Screen -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>Trans. Login</h2>
+    <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
+    <input type="password" id="auth-password" class="auth-input" placeholder="Password">
+    <button class="auth-btn" id="btn-login">Log In</button>
+    <div id="auth-error" class="auth-error"></div>
+  </div>
+</div>
+
+<div class="app-wrapper">
+  
+  <!-- Sticky Header Container -->
+  <div class="sticky-header">
+    <div id="screen-trans-top" class="page-top-segment active">
+      <div class="top-bar">
+        <span class="icon-btn" id="btn-search">🔍</span>
+        <h2>Trans.</h2>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <label for="import-file-input" class="icon-btn" title="Import Excel / CSV" style="cursor:pointer;">📥</label>
+          <input type="file" id="import-file-input" accept=".csv, .xls, .xlsx" style="display:none;">
+          <span class="icon-btn" id="btn-export-excel" title="Export to Excel / CSV">📤</span>
+          <span class="icon-btn" id="btn-sync" title="Sync">🔄</span>
+          <span class="icon-btn" id="btn-logout" title="Log Out">🚪</span>
+        </div>
+      </div>
+
+      <div id="search-box" class="search-box">
+        <input type="text" id="search-input" placeholder="Search merchant or category...">
+      </div>
+
+      <div class="month-selector">
+        <span class="nav-arrow btn-prev-m">‹</span>
+        <span class="current-month-txt">Oct 2026</span>
+        <span class="nav-arrow btn-next-m">›</span>
+      </div>
+
+      <div class="view-tabs">
+        <div class="view-tab active" data-tab="daily">Daily</div>
+        <div class="view-tab" data-tab="calendar">Calendar</div>
+        <div class="view-tab" data-tab="monthly">Monthly</div>
+        <div class="view-tab" data-tab="summary">Summary</div>
+      </div>
+
+      <div class="summary-header">
+        <div class="summary-box"><label>Income</label><span style="color:#2196f3;">£ 0.00</span></div>
+        <div class="summary-box"><label>Exp.</label><span class="exp-val total-exp-txt">£ 0.00</span></div>
+        <div class="summary-box"><label>Total</label><span class="net-total-txt">-£ 0.00</span></div>
+      </div>
+    </div>
+
+    <div id="screen-stats-top" class="page-top-segment" style="display:none;">
+      <div class="top-bar">
+        <h2>Stats</h2>
+        <div style="display:flex; gap:10px;">
+          <span class="icon-btn" id="btn-stats-sync" title="Sync">🔄</span>
+          <span class="icon-btn" onclick="logout()" title="Log Out">🚪</span>
+        </div>
+      </div>
+
+      <div class="month-selector">
+        <span class="nav-arrow btn-prev-m">‹</span>
+        <span class="current-month-txt">Oct 2026</span>
+        <span class="nav-arrow btn-next-m">›</span>
+      </div>
+
+      <div class="summary-header">
+        <div class="summary-box"><label>Exp.</label><span class="exp-val total-exp-txt">£ 0.00</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content Area -->
+  <div class="scrollable-content">
+    <!-- Transactions Page Screen -->
+    <div id="screen-trans" class="page-screen active">
+      <div id="panel-daily" class="view-panel active"><div id="transaction-container"></div></div>
+      <div id="panel-calendar" class="view-panel"><div class="calendar-grid" id="calendar-container"></div></div>
+      <div id="panel-monthly" class="view-panel"><div id="monthly-container"></div></div>
+      <div id="panel-summary" class="view-panel"><div id="summary-container"></div></div>
+    </div>
+
+    <!-- Stats Page Screen -->
+    <div id="screen-stats" class="page-screen">
+      <div class="chart-container">
+        <svg id="svgPie" class="pie-svg" viewBox="0 0 32 32"></svg>
+      </div>
+      <div id="stats-list-container"></div>
+    </div>
+  </div>
+
+  <button id="add-fab" class="fab">+</button>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-trans">
+      <span>📋</span>
+      Trans.
+    </div>
+    <div class="nav-item" id="nav-stats">
+      <span>📊</span>
+      Stats
+    </div>
+  </div>
+</div>
+
+<!-- Modal Form -->
+<div class="modal" id="entry-modal">
+  <div class="modal-header">
+    <span id="close-modal-top" style="font-size: 16px; cursor: pointer; color: #ff5252; font-weight: bold;">‹ Back</span>
+    <h3 id="modal-title" style="font-size: 16px;">Expense</h3>
+    <span id="close-modal-x" style="cursor: pointer; font-size: 18px;">✕</span>
+  </div>
+
+  <div class="form-fields">
+    <div class="field-row"><label>Date</label><input type="date" id="input-date"></div>
+    <div class="field-row"><label>Amount</label><input type="text" id="input-amount" class="amount-input" placeholder="0.00"></div>
+    <div class="field-row" id="category-picker-trigger" style="cursor:pointer;">
+      <label>Category</label>
+      <input type="text" id="input-category" value="Food" readonly style="cursor:pointer;">
+    </div>
+    <div class="field-row">
+      <label>Merchant</label>
+      <input type="text" id="input-merchant" placeholder="Merchant (e.g. Tesco)" list="merchant-list">
+      <datalist id="merchant-list"></datalist>
+      <span id="btn-clear-merchant" style="font-size:12px; color:#ff5252; cursor:pointer; padding:2px 6px; margin-left:4px;" title="Remove current typed merchant from future suggestions">🗑️ Clean</span>
+    </div>
+    <div class="field-row">
+      <label>Repeat</label>
+      <select id="input-repeat">
+        <option value="none">None</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+      </select>
+    </div>
+  </div>
+
+  <button id="delete-btn" class="delete-action-btn">Delete Transaction</button>
+
+  <div class="keypad-header"><span>Keypad Entry</span></div>
+  <div class="keypad">
+    <button class="key-btn" data-key="+">+</button>
+    <button class="key-btn" data-key="-">-</button>
+    <button class="key-btn" data-key="*">×</button>
+    <button class="key-btn" data-key="/">÷</button>
+    <button class="key-btn" data-key="7">7</button>
+    <button class="key-btn" data-key="8">8</button>
+    <button class="key-btn" data-key="9">9</button>
+    <button class="key-btn" data-key="=">=</button>
+    <button class="key-btn" data-key="4">4</button>
+    <button class="key-btn" data-key="5">5</button>
+    <button class="key-btn" data-key="6">6</button>
+    <button class="key-btn" data-key=".">.</button>
+    <button class="key-btn" data-key="1">1</button>
+    <button class="key-btn" data-key="2">2</button>
+    <button class="key-btn" data-key="3">3</button>
+    <button class="key-btn" id="key-backspace">⌫</button>
+    <button class="key-btn" style="grid-column: span 2;" data-key="0">0</button>
+    <button class="key-btn ok-btn" id="key-ok" style="grid-column: span 2;">OK</button>
+  </div>
+</div>
+
+<!-- Category Grid Popup Modal -->
+<div id="category-modal">
+  <div class="cat-sheet">
+    <div class="cat-sheet-header">
+      <span>Category</span>
+      <span id="close-cat-modal" style="cursor:pointer; font-size:20px;">✕</span>
+    </div>
+    <div class="cat-grid" id="cat-grid-container"></div>
+  </div>
+</div>
+
 <script>
   const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
@@ -34,7 +327,9 @@
 
   if (accessToken) {
     const payload = parseJwt(accessToken);
-    if (payload && payload.sub) currentUserId = payload.sub;
+    if (payload && payload.sub) {
+      currentUserId = payload.sub;
+    }
   }
 
   async function login() {
@@ -60,7 +355,8 @@
         if (payload && payload.sub) currentUserId = payload.sub;
 
         document.getElementById('auth-screen').style.display = 'none';
-        loadLocalForUser();
+        
+        // Force an immediate fresh sync from Supabase upon logging in
         await syncWithSupabase();
       } else {
         errEl.innerText = data.error_description || data.msg || "Invalid login credentials.";
@@ -86,16 +382,7 @@
 
   if (accessToken && currentUserId) {
     document.getElementById('auth-screen').style.display = 'none';
-    loadLocalForUser();
     syncWithSupabase();
-  }
-
-  function loadLocalForUser() {
-    if (!currentUserEmail) return;
-    const stored = localStorage.getItem(`expenses_data_${currentUserEmail}`);
-    expenses = stored ? JSON.parse(stored) : [];
-    updateMonthHeader();
-    updateAutoSuggest();
   }
 
   async function saveLocalAndSupabase(item) {
@@ -112,9 +399,8 @@
     renderAllViews();
     updateAutoSuggest();
 
-    // Push to Supabase
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
+      await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_KEY,
@@ -124,12 +410,28 @@
         },
         body: JSON.stringify(item)
       });
-      if (!res.ok) {
-        const errData = await res.json();
-        console.error("Supabase Save Error:", errData);
-      }
     } catch (e) {
-      console.error("Cloud save network failure", e);
+      console.error("Cloud save failed", e);
+    }
+  }
+
+  async function deleteFromLocalAndSupabase(id) {
+    if (!currentUserEmail) return;
+    expenses = expenses.filter(e => e.id !== id);
+    localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
+    renderAllViews();
+    updateAutoSuggest();
+
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+    } catch (e) {
+      console.error("Cloud delete failed", e);
     }
   }
 
@@ -142,30 +444,11 @@
       if (res.ok) {
         const cloudData = await res.json();
         if (Array.isArray(cloudData)) {
-          // Merge local and cloud data so local entries are not erased
-          const map = new Map();
-          expenses.forEach(e => map.set(e.id, e));
-          cloudData.forEach(e => map.set(e.id, e));
-          expenses = Array.from(map.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
-
+          // Always trust Supabase as the source of truth for abcbalan@gmail.com across all devices
+          expenses = cloudData;
           localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
           updateMonthHeader();
           updateAutoSuggest();
-
-          // Push any local entries that were missing from cloud up to Supabase
-          for (let item of expenses) {
-            item.user_id = currentUserId;
-            await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
-              method: 'POST',
-              headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-                'Prefer': 'resolution=merge-duplicates'
-              },
-              body: JSON.stringify(item)
-            });
-          }
         }
       } else if (res.status === 401 || res.status === 403) {
         logout();
@@ -300,13 +583,13 @@
     renderDaily(e.target.value.toLowerCase());
   });
 
-  document.getElementById('btn-sync').addEventListener('click', async () => {
-    await syncWithSupabase();
+  document.getElementById('btn-sync').addEventListener('click', () => {
+    syncWithSupabase();
     alert("Synced with Supabase database!");
   });
 
-  document.getElementById('btn-stats-sync').addEventListener('click', async () => {
-    await syncWithSupabase();
+  document.getElementById('btn-stats-sync').addEventListener('click', () => {
+    syncWithSupabase();
     alert("Synced with Supabase database!");
   });
 
@@ -723,3 +1006,5 @@
     syncWithSupabase();
   }
 </script>
+</body>
+</html>
