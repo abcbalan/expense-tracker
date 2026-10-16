@@ -86,10 +86,20 @@
     .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; display: none; flex-direction: column; z-index: 999; max-width: 480px; margin: 0 auto; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #eee; }
     .form-fields { padding: 10px 20px; flex: 1; }
-    .field-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #eee; font-size: 15px; }
+    .field-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #eee; font-size: 15px; cursor: pointer; }
     .field-row label { width: 90px; color: #777; font-weight: 500; }
-    .field-row input, .field-row select { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
-    .field-row input.amount-input { color: #ff5252; font-size: 22px; font-weight: bold; }
+    .field-row input { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; pointer-events: none; }
+    .field-row input.amount-input { color: #ff5252; font-size: 22px; font-weight: bold; pointer-events: auto; }
+    
+    /* Category Grid Modal */
+    #category-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; flex-direction: column; justify-content: flex-end; max-width: 480px; margin: 0 auto; }
+    .cat-sheet { background: #fff; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; flex-direction: column; max-height: 70vh; }
+    .cat-sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #111; color: #fff; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #e0e0e0; padding: 1px; overflow-y: auto; }
+    .cat-tile { background: #fff; padding: 20px 10px; text-align: center; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 75px; color: #333; }
+    .cat-tile:active { background: #f0f0f0; }
+    .cat-tile.add-tile { color: #ff5252; font-weight: bold; }
+
     .keypad-header { background: #111; color: #fff; display: flex; justify-content: space-between; padding: 10px 16px; font-size: 14px; }
     .keypad { display: grid; grid-template-columns: repeat(4, 1fr); background: #e5e5e8; gap: 1px; }
     .key-btn { background: #fff; border: none; padding: 18px 0; font-size: 20px; font-weight: 500; cursor: pointer; text-align: center; }
@@ -205,9 +215,9 @@
   <div class="form-fields">
     <div class="field-row"><label>Date</label><input type="date" id="input-date"></div>
     <div class="field-row"><label>Amount</label><input type="text" id="input-amount" class="amount-input" placeholder="0.00"></div>
-    <div class="field-row">
+    <div class="field-row" id="category-picker-trigger">
       <label>Category</label>
-      <select id="input-category"></select>
+      <input type="text" id="input-category" value="Food" readonly style="cursor:pointer;">
     </div>
     <div class="field-row">
       <label>Merchant</label>
@@ -238,6 +248,17 @@
     <button class="key-btn" id="key-backspace">⌫</button>
     <button class="key-btn" style="grid-column: span 2;" data-key="0">0</button>
     <button class="key-btn ok-btn" id="key-ok" style="grid-column: span 2;">OK</button>
+  </div>
+</div>
+
+<!-- Category Grid Popup Modal -->
+<div id="category-modal">
+  <div class="cat-sheet">
+    <div class="cat-sheet-header">
+      <span>Category</span>
+      <span id="close-cat-modal" style="cursor:pointer; font-size:20px;">✕</span>
+    </div>
+    <div class="cat-grid" id="cat-grid-container"></div>
   </div>
 </div>
 
@@ -627,44 +648,57 @@
   }
 
   function updateAutoSuggest() {
-    // Populate Merchants Autocomplete
     const merchantDatalist = document.getElementById('merchant-list');
     const uniqueMerchants = [...new Set(expenses.map(e => e.merchant).filter(Boolean))];
     merchantDatalist.innerHTML = uniqueMerchants.map(m => `<option value="${m}">`).join('');
+  }
 
-    // Populate Category Dropdown (Base + Custom + "+ Add New Category")
-    const catSelect = document.getElementById('input-category');
-    const currentVal = catSelect.value;
-    
-    // Combine base categories, user custom categories, and any unique categories from past entries
+  // Render Category Grid Popup
+  function buildCategoryGrid() {
+    const gridContainer = document.getElementById('cat-grid-container');
+    gridContainer.innerHTML = '';
+
     const usedCategories = expenses.map(e => e.category).filter(Boolean);
     const allCategories = [...new Set([...baseCategories, ...customCategories, ...usedCategories])];
 
-    let html = allCategories.map(c => `<option value="${c}">${c}</option>`).join('');
-    html += `<option value="__ADD_NEW__" style="font-weight:bold; color:#ff5252;">+ Add New Category...</option>`;
-    
-    catSelect.innerHTML = html;
-    if (currentVal && allCategories.includes(currentVal)) {
-      catSelect.value = currentVal;
-    }
-  }
+    allCategories.forEach(cat => {
+      const tile = document.createElement('div');
+      tile.className = 'cat-tile';
+      tile.innerText = cat;
+      tile.onclick = () => {
+        document.getElementById('input-category').value = cat;
+        document.getElementById('category-modal').style.display = 'none';
+      };
+      gridContainer.appendChild(tile);
+    });
 
-  // Handle Category "+ Add New Category" Selection
-  document.getElementById('input-category').addEventListener('change', (e) => {
-    if (e.target.value === '__ADD_NEW__') {
+    // Add "+ Add New" Tile
+    const addTile = document.createElement('div');
+    addTile.className = 'cat-tile add-tile';
+    addTile.innerText = '+ Add New';
+    addTile.onclick = () => {
       const newCat = prompt("Enter new category name:");
       if (newCat && newCat.trim() !== "") {
         const trimmed = newCat.trim();
-        if (!customCategories.includes(trimmed)) {
+        if (!customCategories.includes(trimmed) && !baseCategories.includes(trimmed)) {
           customCategories.push(trimmed);
           localStorage.setItem('custom_categories', JSON.stringify(customCategories));
         }
-        updateAutoSuggest();
-        e.target.value = trimmed;
-      } else {
-        e.target.value = baseCategories[0];
+        buildCategoryGrid();
+        document.getElementById('input-category').value = trimmed;
+        document.getElementById('category-modal').style.display = 'none';
       }
-    }
+    };
+    gridContainer.appendChild(addTile);
+  }
+
+  document.getElementById('category-picker-trigger').addEventListener('click', () => {
+    buildCategoryGrid();
+    document.getElementById('category-modal').style.display = 'flex';
+  });
+
+  document.getElementById('close-cat-modal').addEventListener('click', () => {
+    document.getElementById('category-modal').style.display = 'none';
   });
 
   function openModal(isEdit = false) {
