@@ -72,7 +72,7 @@
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 16px; font-weight: 600; }
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
-    .form-control { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; }
+    .form-control { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; background: #fff; }
 
     /* Keypad */
     .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
@@ -211,7 +211,7 @@
           </div>
           <div class="form-group" style="flex:1;">
             <label>Category</label>
-            <input type="text" id="input-category" class="form-control" readonly style="background:#fff; cursor:pointer;" value="Food">
+            <input type="text" id="input-category" class="form-control" readonly style="cursor:pointer;" value="Food">
           </div>
         </div>
 
@@ -227,14 +227,6 @@
         <div class="form-group">
           <label>Amount (£)</label>
           <input type="text" id="input-amount" class="form-control" placeholder="0.00" readonly style="font-size:20px; font-weight:600; text-align:right;">
-        </div>
-
-        <div class="form-group" style="display:none;">
-          <label>Repeat</label>
-          <select id="input-repeat" class="form-control">
-            <option value="none">None</option>
-            <option value="monthly">Monthly</option>
-          </select>
         </div>
 
         <!-- Keypad -->
@@ -262,7 +254,7 @@
     </div>
 
     <!-- Category Picker Modal -->
-    <div class="modal" id="category-modal">
+    <div class="modal" id="category-modal" style="z-index: 150;">
       <div class="modal-content" style="height:60vh;">
         <div class="modal-header">
           <span>Select Category</span>
@@ -405,7 +397,6 @@
       renderAllViews();
       updateAutoSuggest();
 
-      // Push to Supabase
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
           method: 'POST',
@@ -886,6 +877,7 @@
 
     function closeModal() {
       modal.style.display = 'none';
+      catModal.style.display = 'none';
       editingId = null;
     }
 
@@ -896,7 +888,6 @@
       document.getElementById('input-amount').value = '';
       document.getElementById('input-category').value = 'Food';
       document.getElementById('input-merchant').value = '';
-      document.getElementById('input-repeat').value = 'none';
       openModal(false);
     });
 
@@ -911,7 +902,6 @@
       document.getElementById('input-amount').value = item.amount;
       document.getElementById('input-category').value = item.category;
       document.getElementById('input-merchant').value = item.merchant || '';
-      document.getElementById('input-repeat').value = item.repeat || 'none';
       openModal(true);
     };
 
@@ -997,7 +987,6 @@
 
       const category = document.getElementById('input-category').value;
       const merchant = document.getElementById('input-merchant').value.trim();
-      const repeat = document.getElementById('input-repeat').value;
 
       const item = {
         id: editingId || 'exp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
@@ -1007,7 +996,7 @@
         merchant: merchant,
         amount: amount,
         currency: '£',
-        repeat: repeat
+        repeat: 'none'
       };
 
       await saveLocalAndSupabase(item);
