@@ -293,7 +293,7 @@
 
   let expenses = [];
   let accessToken = localStorage.getItem('sb_access_token') || null;
-  let currentUserEmail = localStorage.getItem('sb_user_email') || null;
+  let currentUserEmail = (localStorage.getItem('sb_user_email') || '').toLowerCase().trim();
   let currentUserId = null;
   let editingId = null;
   let currentDate = new Date(2026, 9, 1); // Oct 2026
@@ -329,7 +329,7 @@
   }
 
   async function login() {
-    const email = document.getElementById('auth-email').value.trim();
+    const emailInput = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value.trim();
     const errEl = document.getElementById('auth-error');
     errEl.innerText = "";
@@ -338,12 +338,12 @@
       const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
         method: 'POST',
         headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: emailInput, password })
       });
       const data = await res.json();
       if (res.ok && data.access_token) {
         accessToken = data.access_token;
-        currentUserEmail = email;
+        currentUserEmail = emailInput.toLowerCase().trim();
         localStorage.setItem('sb_access_token', accessToken);
         localStorage.setItem('sb_user_email', currentUserEmail);
         
@@ -375,7 +375,7 @@
   document.getElementById('auth-password').addEventListener('keypress', (e) => { if(e.key === 'Enter') login(); });
   document.getElementById('btn-logout').addEventListener('click', logout);
 
-  if (accessToken) {
+  if (accessToken && currentUserId) {
     document.getElementById('auth-screen').style.display = 'none';
     loadLocalForUser();
   }
@@ -403,9 +403,13 @@
       });
       if (res.ok) {
         const data = await res.json();
-        // Only update local if remote actually has records, preventing empty remote syncs from wiping local entries
         if (data && data.length > 0) {
-          expenses = data;
+          const existingIds = new Set(expenses.map(e => e.id));
+          data.forEach(remoteItem => {
+            if (!existingIds.has(remoteItem.id)) {
+              expenses.push(remoteItem);
+            }
+          });
           saveLocal();
         }
       } else if (res.status === 401 || res.status === 403) {
