@@ -39,7 +39,10 @@
     .view-tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: 500; color: #4b5563; cursor: pointer; border-bottom: 2px solid transparent; }
     .view-tab.active { color: #10b981; border-bottom-color: #10b981; background: #fff; }
 
-    /* Main Content Area */
+    /* Main Screens & Panels */
+    .main-screen { display: none; flex-direction: column; height: 100%; width: 100%; }
+    .main-screen.active { display: flex; }
+
     .content-area { flex: 1; overflow-y: auto; background: #f9fafb; padding-bottom: 80px; }
     .view-panel { display: none; }
     .view-panel.active { display: block; }
@@ -118,9 +121,9 @@
       <div id="auth-error" class="auth-error"></div>
     </div>
 
-    <!-- Top Screen: Transactions -->
-    <div id="screen-trans" class="view-panel active" style="display:flex; flex-direction:column; height:100%;">
-      <div class="top-bar" id="screen-trans-top">
+    <!-- Screen 1: Transactions -->
+    <div id="screen-trans" class="main-screen active">
+      <div class="top-bar">
         <h1>ExpenseTracker</h1>
         <div class="top-actions">
           <button class="icon-btn" id="btn-search" title="Search">🔍</button>
@@ -162,9 +165,9 @@
       </div>
     </div>
 
-    <!-- Top Screen: Stats / Charts -->
-    <div id="screen-stats" class="view-panel" style="display:flex; flex-direction:column; height:100%;">
-      <div class="top-bar" id="screen-stats-top" style="display:none;">
+    <!-- Screen 2: Stats / Charts -->
+    <div id="screen-stats" class="main-screen">
+      <div class="top-bar">
         <h1>Statistics</h1>
         <div class="top-actions">
           <button class="icon-btn" id="btn-stats-sync" title="Sync Cloud">🔄</button>
@@ -619,8 +622,6 @@
     document.getElementById('nav-trans').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.add('active');
       document.getElementById('screen-stats').classList.remove('active');
-      document.getElementById('screen-trans-top').style.display = 'flex';
-      document.getElementById('screen-stats-top').style.display = 'none';
       document.getElementById('nav-trans').classList.add('active');
       document.getElementById('nav-stats').classList.remove('active');
       renderAllViews();
@@ -629,8 +630,6 @@
     document.getElementById('nav-stats').addEventListener('click', () => {
       document.getElementById('screen-stats').classList.add('active');
       document.getElementById('screen-trans').classList.remove('active');
-      document.getElementById('screen-stats-top').style.display = 'flex';
-      document.getElementById('screen-trans-top').style.display = 'none';
       document.getElementById('nav-stats').classList.add('active');
       document.getElementById('nav-trans').classList.remove('active');
       renderStats();
