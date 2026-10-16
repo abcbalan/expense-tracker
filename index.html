@@ -44,8 +44,6 @@
       margin-top: 15px;
       cursor: pointer;
     }
-    
-    /* View Tabs for Daily/Weekly/Monthly/Yearly */
     .tabs { display: flex; gap: 4px; margin-top: 20px; border-bottom: 2px solid #eee; }
     .tab-btn {
       flex: 1;
@@ -57,7 +55,6 @@
       cursor: pointer;
     }
     .tab-btn.active { background: #2563eb; color: white; font-weight: bold; }
-    
     .total-banner {
       background: #eff6ff;
       border: 1px solid #bfdbfe;
@@ -69,7 +66,6 @@
       font-weight: bold;
       color: #1e3a8a;
     }
-
     .expense-card {
       background: #fafafa;
       border: 1px solid #e5e7eb;
@@ -98,7 +94,6 @@
   <div class="container">
     <h1>Expense Tracker</h1>
 
-    <!-- Currency Selection -->
     <div>
       <label for="currency">Currency</label>
       <select id="currency">
@@ -108,14 +103,13 @@
       </select>
     </div>
 
-    <!-- Expense Entry Form -->
-    <form id="expense-form">
+    <div>
       <label for="merchant">Merchant / Shop</label>
-      <input type="text" id="merchant" list="merchant-list" placeholder="e.g. Costco, Tesco" required>
+      <input type="text" id="merchant" list="merchant-list" placeholder="e.g. Costco, Tesco">
       <datalist id="merchant-list"></datalist>
 
       <label for="amount">Amount</label>
-      <input type="number" step="0.01" id="amount" placeholder="0.00" required>
+      <input type="number" step="0.01" id="amount" placeholder="0.00">
 
       <label for="category">Category</label>
       <select id="category">
@@ -131,10 +125,9 @@
         <label for="recurring">Monthly Regular</label>
       </div>
 
-      <button type="submit" class="submit-btn">Save Expense</button>
-    </form>
+      <button type="button" id="save-btn" class="submit-btn" onclick="addExpense()">Save Expense</button>
+    </div>
 
-    <!-- Reading Views Tabs -->
     <div class="tabs">
       <button class="tab-btn active" onclick="setFilter('all', this)">All</button>
       <button class="tab-btn" onclick="setFilter('daily', this)">Daily</button>
@@ -149,7 +142,7 @@
 
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ'; // Ensure your key stays here!
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let expenses = [];
@@ -158,7 +151,7 @@
     async function loadExpenses() {
       const { data, error } = await supabase.from('expenses').select('*').order('date', { ascending: false });
       if (error) {
-        alert("Error saving/loading: " + error.message);
+        alert("Database load error: " + error.message);
       } else if (data) {
         expenses = data;
         renderList();
@@ -230,10 +223,16 @@
       loadExpenses();
     }
 
-    document.getElementById('expense-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    async function addExpense() {
       const merchant = document.getElementById('merchant').value;
-      const amount = parseFloat(document.getElementById('amount').value);
+      const amountVal = document.getElementById('amount').value;
+      
+      if (!merchant || !amountVal) {
+        alert("Please enter both Merchant and Amount.");
+        return;
+      }
+
+      const amount = parseFloat(amountVal);
       const category = document.getElementById('category').value;
       const is_recurring = document.getElementById('recurring').checked;
       const currency = document.getElementById('currency').value;
@@ -244,14 +243,14 @@
       }]);
 
       if (error) {
-        alert("Failed to save: " + error.message);
+        alert("Save failed: " + error.message);
       } else {
         document.getElementById('merchant').value = '';
         document.getElementById('amount').value = '';
         document.getElementById('recurring').checked = false;
         loadExpenses();
       }
-    });
+    }
 
     document.getElementById('currency').addEventListener('change', renderList);
 
