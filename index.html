@@ -3,141 +3,189 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Expense Tracker</title>
+  <title>Trans.</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 16px;
-      margin: 0;
-      padding: 12px;
-      background-color: #f4f4f9;
-      color: #333;
-    }
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    h1 { font-size: 22px; margin-bottom: 15px; text-align: center; }
-    label { font-weight: 600; font-size: 15px; display: block; margin-top: 10px; }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      margin-top: 4px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    input[type="checkbox"] { width: 18px; height: 18px; }
-    .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-    .checkbox-group label { margin-top: 0; font-weight: normal; }
-    button.submit-btn {
-      background-color: #2563eb;
-      color: white;
-      font-weight: bold;
-      border: none;
-      margin-top: 15px;
-      cursor: pointer;
-    }
-    .tabs { display: flex; gap: 4px; margin-top: 20px; border-bottom: 2px solid #eee; }
-    .tab-btn {
-      flex: 1;
-      padding: 8px 4px;
-      font-size: 14px;
-      background: #f0f0f0;
-      border: none;
-      border-radius: 6px 6px 0 0;
-      cursor: pointer;
-    }
-    .tab-btn.active { background: #2563eb; color: white; font-weight: bold; }
-    .total-banner {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      padding: 10px;
-      border-radius: 8px;
-      text-align: center;
-      margin-top: 10px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #1e3a8a;
-    }
-    .expense-card {
-      background: #fafafa;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 10px;
-      margin-top: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .expense-amount { font-size: 18px; font-weight: bold; color: #111827; }
-    .delete-btn {
-      background: none;
-      border: none;
-      color: #dc2626;
-      font-size: 13px;
-      cursor: pointer;
-      width: auto;
-      padding: 0;
-      margin-top: 2px;
-    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f4f5f7; color: #333; max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 70px; }
+
+    /* Top Navigation Bar */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; border-bottom: 1px solid #eee; }
+    .top-bar h2 { font-size: 18px; font-weight: 600; }
+    .month-selector { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #fff; font-size: 16px; font-weight: 500; }
+    
+    /* Navigation Tabs */
+    .view-tabs { display: flex; background: #fff; border-bottom: 1px solid #e0e0e0; }
+    .view-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 14px; color: #888; cursor: pointer; }
+    .view-tab.active { color: #ff5252; font-weight: bold; border-bottom: 2px solid #ff5252; }
+
+    /* Income / Expense / Total Summary Header */
+    .summary-header { display: flex; justify-content: space-around; background: #fafafa; padding: 10px 0; border-bottom: 1px solid #eee; text-align: center; }
+    .summary-box label { font-size: 12px; color: #777; display: block; }
+    .summary-box span { font-size: 14px; font-weight: 600; }
+    .income-val { color: #2196f3; }
+    .exp-val { color: #ff5252; }
+    .total-val { color: #333; }
+
+    /* Daily Transaction List */
+    .day-group { margin-top: 10px; background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+    .day-header { display: flex; justify-content: space-between; padding: 8px 16px; background: #fdfdfd; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0; }
+    .day-header strong { font-size: 16px; color: #111; margin-right: 4px; }
+    .day-header span.day-tag { background: #888; color: #fff; padding: 1px 4px; border-radius: 3px; font-size: 10px; }
+
+    .trans-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f8f8f8; }
+    .trans-left { display: flex; gap: 12px; align-items: center; }
+    .trans-category { font-size: 12px; color: #999; width: 60px; }
+    .trans-details strong { font-size: 15px; color: #222; display: block; }
+    .trans-details span { font-size: 12px; color: #a0a0a0; }
+    .trans-amount { font-size: 15px; font-weight: 600; color: #ff5252; }
+
+    /* Floating Add Button */
+    .fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 28px; box-shadow: 0 4px 10px rgba(255,82,82,0.4); cursor: pointer; border: none; }
+
+    /* Modal Form Overlay */
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; display: none; flex-direction: column; z-index: 100; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #eee; }
+    .type-switcher { display: flex; width: 80%; margin: 10px auto; border: 1px solid #ff5252; border-radius: 6px; overflow: hidden; }
+    .type-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; color: #ff5252; background: #fff; border: none; }
+    .type-btn.active { background: #ff5252; color: #fff; }
+
+    .form-fields { padding: 10px 20px; flex: 1; }
+    .field-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; font-size: 15px; }
+    .field-row label { width: 80px; color: #888; }
+    .field-row input, .field-row select { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
+    .field-row input.amount-input { color: #ff5252; font-size: 20px; font-weight: bold; }
+
+    /* Custom Keypad */
+    .keypad-header { background: #000; color: #fff; display: flex; justify-content: space-between; padding: 10px 16px; font-size: 14px; }
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); background: #f0f0f2; gap: 1px; }
+    .key-btn { background: #fff; border: none; padding: 18px 0; font-size: 18px; font-weight: 500; cursor: pointer; text-align: center; }
+    .key-btn:active { background: #e0e0e0; }
+    .key-btn.ok-btn { background: #ff5252; color: #fff; grid-row: span 2; display: flex; justify-content: center; align-items: center; font-size: 18px; }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>Expense Tracker</h1>
+  <!-- Top Navigation -->
+  <div class="top-bar">
+    <span>🔍</span>
+    <h2>Trans.</h2>
+    <span>⚙️</span>
+  </div>
 
-    <div>
-      <label for="currency">Currency</label>
-      <select id="currency">
-        <option value="£">£ (GBP)</option>
-        <option value="$">$ (USD)</option>
-        <option value="€">€ (EUR)</option>
-      </select>
+  <div class="month-selector">
+    <span>‹</span>
+    <span id="current-month-display">Oct 2026</span>
+    <span>›</span>
+  </div>
+
+  <!-- View Mode Tabs -->
+  <div class="view-tabs">
+    <div class="view-tab active">Daily</div>
+    <div class="view-tab">Calendar</div>
+    <div class="view-tab">Monthly</div>
+    <div class="view-tab">Summary</div>
+  </div>
+
+  <!-- Income / Exp / Total Header Banner -->
+  <div class="summary-header">
+    <div class="summary-box">
+      <label>Income</label>
+      <span class="income-val">0.00</span>
+    </div>
+    <div class="summary-box">
+      <label>Exp.</label>
+      <span class="exp-val" id="total-exp">0.00</span>
+    </div>
+    <div class="summary-box">
+      <label>Total</label>
+      <span class="total-val" id="net-total">0.00</span>
+    </div>
+  </div>
+
+  <!-- Transaction List -->
+  <div id="transaction-container"></div>
+
+  <!-- Floating Add Button -->
+  <button class="fab" onclick="openModal()">+</button>
+
+  <!-- Add Expense Modal Screen -->
+  <div class="modal" id="entry-modal">
+    <div class="modal-header">
+      <span onclick="closeModal()" style="font-size: 20px; cursor: pointer;">‹ Trans.</span>
+      <h3 style="font-size: 16px;">Expense</h3>
+      <span>⭐</span>
     </div>
 
-    <div>
-      <label for="merchant">Merchant / Shop</label>
-      <input type="text" id="merchant" list="merchant-list" placeholder="e.g. Costco, Tesco">
-      <datalist id="merchant-list"></datalist>
+    <div class="type-switcher">
+      <button class="type-btn">Income</button>
+      <button class="type-btn active">Expense</button>
+      <button class="type-btn">Transfer</button>
+    </div>
 
-      <label for="amount">Amount</label>
-      <input type="number" step="0.01" id="amount" placeholder="0.00">
-
-      <label for="category">Category</label>
-      <select id="category">
-        <option value="Food">Food</option>
-        <option value="Household (Electric/Water)">Household (Electric/Water)</option>
-        <option value="Car/Petrol">Car/Petrol</option>
-        <option value="Subscriptions">Subscriptions</option>
-        <option value="Other">Other</option>
-      </select>
-
-      <div class="checkbox-group">
-        <input type="checkbox" id="recurring">
-        <label for="recurring">Monthly Regular</label>
+    <div class="form-fields">
+      <div class="field-row">
+        <label>Date</label>
+        <input type="date" id="input-date">
       </div>
-
-      <button type="button" id="save-btn" class="submit-btn" onclick="addExpense()">Save Expense</button>
+      <div class="field-row">
+        <label>Amount</label>
+        <input type="text" id="input-amount" class="amount-input" readonly placeholder="0.00">
+      </div>
+      <div class="field-row">
+        <label>Category</label>
+        <select id="input-category">
+          <option value="Food">Food</option>
+          <option value="Car">Car</option>
+          <option value="Household">Household</option>
+          <option value="Subscriptions">Subscriptions</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <label>Merchant</label>
+        <input type="text" id="input-merchant" placeholder="Merchant/Shop (e.g., Tesco)" list="merchant-list">
+        <datalist id="merchant-list"></datalist>
+      </div>
+      <div class="field-row">
+        <label>Account</label>
+        <select id="input-account">
+          <option value="Credit Cards">Credit Cards</option>
+          <option value="Debit Card">Debit Card</option>
+          <option value="Cash">Cash</option>
+        </select>
+      </div>
     </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" onclick="setFilter('all', this)">All</button>
-      <button class="tab-btn" onclick="setFilter('daily', this)">Daily</button>
-      <button class="tab-btn" onclick="setFilter('weekly', this)">Weekly</button>
-      <button class="tab-btn" onclick="setFilter('monthly', this)">Monthly</button>
-      <button class="tab-btn" onclick="setFilter('yearly', this)">Yearly</button>
+    <!-- Custom Keypad -->
+    <div class="keypad-header">
+      <span>Amount</span>
+      <span onclick="closeModal()" style="cursor: pointer;">✕</span>
     </div>
+    <div class="keypad">
+      <button class="key-btn" onclick="keyInput('+')">+</button>
+      <button class="key-btn" onclick="keyInput('-')">-</button>
+      <button class="key-btn" onclick="keyInput('*')">×</button>
+      <button class="key-btn" onclick="keyInput('/')">÷</button>
 
-    <div id="total-banner" class="total-banner">Total: £0.00</div>
-    <div id="expense-list"></div>
+      <button class="key-btn" onclick="keyInput('7')">7</button>
+      <button class="key-btn" onclick="keyInput('8')">8</button>
+      <button class="key-btn" onclick="keyInput('9')">9</button>
+      <button class="key-btn" onclick="keyInput('=')">=</button>
+
+      <button class="key-btn" onclick="keyInput('4')">4</button>
+      <button class="key-btn" onclick="keyInput('5')">5</button>
+      <button class="key-btn" onclick="keyInput('6')">6</button>
+      <button class="key-btn" onclick="keyInput('.')">.</button>
+
+      <button class="key-btn" onclick="keyInput('1')">1</button>
+      <button class="key-btn" onclick="keyInput('2')">2</button>
+      <button class="key-btn" onclick="keyInput('3')">3</button>
+      <button class="key-btn" onclick="keyBackspace()">⌫</button>
+
+      <button class="key-btn" style="grid-column: span 2;" onclick="keyInput('0')">0</button>
+      <button class="key-btn ok-btn" style="grid-column: span 2;" onclick="saveTransaction()">OK</button>
+    </div>
   </div>
 
   <script>
@@ -146,69 +194,69 @@
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let expenses = [];
-    let currentFilter = 'all';
+    let amountString = "";
 
-    async function loadExpenses() {
+    async function fetchExpenses() {
       const { data, error } = await supabase.from('expenses').select('*').order('date', { ascending: false });
-      if (error) {
-        alert("Database load error: " + error.message);
-      } else if (data) {
+      if (!error && data) {
         expenses = data;
-        renderList();
+        renderTransactions();
         updateAutoSuggest();
       }
     }
 
-    function setFilter(filter, btn) {
-      currentFilter = filter;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderList();
-    }
+    function renderTransactions() {
+      const container = document.getElementById('transaction-container');
+      container.innerHTML = '';
 
-    function filterExpenses() {
-      const now = new Date();
-      return expenses.filter(item => {
-        const itemDate = new Date(item.date);
-        if (currentFilter === 'daily') {
-          return itemDate.toDateString() === now.toDateString();
-        } else if (currentFilter === 'weekly') {
-          const diffDays = (now - itemDate) / (1000 * 3600 * 24);
-          return diffDays <= 7;
-        } else if (currentFilter === 'monthly') {
-          return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
-        } else if (currentFilter === 'yearly') {
-          return itemDate.getFullYear() === now.getFullYear();
-        }
-        return true;
+      let totalExp = 0;
+      const grouped = {};
+
+      expenses.forEach(item => {
+        totalExp += parseFloat(item.amount);
+        const dateKey = item.date;
+        if (!grouped[dateKey]) grouped[dateKey] = [];
+        grouped[dateKey].push(item);
       });
-    }
 
-    function renderList() {
-      const listEl = document.getElementById('expense-list');
-      const bannerEl = document.getElementById('total-banner');
-      const currency = document.getElementById('currency').value;
-      const filtered = filterExpenses();
+      document.getElementById('total-exp').innerText = '£ ' + totalExp.toFixed(2);
+      document.getElementById('net-total').innerText = '-£ ' + totalExp.toFixed(2);
 
-      let total = filtered.reduce((sum, item) => sum + parseFloat(item.amount), 0);
-      bannerEl.innerText = `Total: ${currency}${total.toFixed(2)}`;
+      Object.keys(grouped).forEach(dateStr => {
+        const dateObj = new Date(dateStr);
+        const dayNum = dateObj.getDate();
+        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
 
-      listEl.innerHTML = '';
-      filtered.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'expense-card';
-        div.innerHTML = `
-          <div>
-            <strong>${item.merchant}</strong>
-            <div style="font-size: 13px; color: #666;">${item.category} • ${item.date}</div>
-            ${item.is_recurring ? '<span style="font-size: 11px; background:#dbeafe; color:#1e40af; padding: 2px 4px; border-radius: 4px;">Monthly</span>' : ''}
-          </div>
-          <div style="text-align: right;">
-            <div class="expense-amount">${item.currency || currency}${parseFloat(item.amount).toFixed(2)}</div>
-            <button class="delete-btn" onclick="deleteExpense('${item.id}')">Delete</button>
-          </div>
+        let dayTotal = grouped[dateStr].reduce((sum, item) => sum + parseFloat(item.amount), 0);
+
+        let groupHtml = `
+          <div class="day-group">
+            <div class="day-header">
+              <div>
+                <strong>${dayNum}</strong>
+                <span class="day-tag">${dayName}</span>
+              </div>
+              <div style="color: #ff5252; font-weight: 600;">£ ${dayTotal.toFixed(2)}</div>
+            </div>
         `;
-        listEl.appendChild(div);
+
+        grouped[dateStr].forEach(item => {
+          groupHtml += `
+            <div class="trans-row">
+              <div class="trans-left">
+                <span class="trans-category">${item.category}</span>
+                <div class="trans-details">
+                  <strong>${item.merchant}</strong>
+                  <span>Credit Cards</span>
+                </div>
+              </div>
+              <div class="trans-amount">£ ${parseFloat(item.amount).toFixed(2)}</div>
+            </div>
+          `;
+        });
+
+        groupHtml += `</div>`;
+        container.innerHTML += groupHtml;
       });
     }
 
@@ -218,43 +266,58 @@
       datalist.innerHTML = uniqueMerchants.map(m => `<option value="${m}">`).join('');
     }
 
-    async function deleteExpense(id) {
-      await supabase.from('expenses').delete().eq('id', id);
-      loadExpenses();
+    function openModal() {
+      document.getElementById('entry-modal').style.display = 'flex';
+      document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+      amountString = "";
+      document.getElementById('input-amount').value = "";
     }
 
-    async function addExpense() {
-      const merchant = document.getElementById('merchant').value;
-      const amountVal = document.getElementById('amount').value;
-      
-      if (!merchant || !amountVal) {
-        alert("Please enter both Merchant and Amount.");
+    function closeModal() {
+      document.getElementById('entry-modal').style.display = 'none';
+    }
+
+    function keyInput(val) {
+      if (['+', '-', '*', '/'].includes(val)) {
+        amountString += " " + val + " ";
+      } else if (val === '=') {
+        try { amountString = eval(amountString).toString(); } catch (e) { amountString = "0"; }
+      } else {
+        amountString += val;
+      }
+      document.getElementById('input-amount').value = amountString;
+    }
+
+    function keyBackspace() {
+      amountString = amountString.trim().slice(0, -1);
+      document.getElementById('input-amount').value = amountString;
+    }
+
+    async function saveTransaction() {
+      const merchant = document.getElementById('input-merchant').value || 'Expense';
+      let amount = parseFloat(eval(amountString || '0'));
+      const category = document.getElementById('input-category').value;
+      const date = document.getElementById('input-date').value;
+
+      if (!amount || amount <= 0) {
+        alert("Please enter an amount.");
         return;
       }
 
-      const amount = parseFloat(amountVal);
-      const category = document.getElementById('category').value;
-      const is_recurring = document.getElementById('recurring').checked;
-      const currency = document.getElementById('currency').value;
-
       const { error } = await supabase.from('expenses').insert([{
-        merchant, amount, category, is_recurring, currency,
-        date: new Date().toISOString().split('T')[0]
+        merchant, amount, category, date, currency: '£'
       }]);
 
       if (error) {
-        alert("Save failed: " + error.message);
+        alert("Error saving: " + error.message);
       } else {
-        document.getElementById('merchant').value = '';
-        document.getElementById('amount').value = '';
-        document.getElementById('recurring').checked = false;
-        loadExpenses();
+        document.getElementById('input-merchant').value = '';
+        closeModal();
+        fetchExpenses();
       }
     }
 
-    document.getElementById('currency').addEventListener('change', renderList);
-
-    loadExpenses();
+    fetchExpenses();
   </script>
 </body>
 </html>
