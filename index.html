@@ -6,9 +6,9 @@
   <title>Trans.</title>
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
-    body { background-color: #f4f5f7; color: #333; margin: 0; padding: 0; user-select: none; }
+    body { background-color: #f4f5f7; color: #333; margin: 0; padding: 0; user-select: none; height: 100vh; overflow: hidden; }
     
-    .app-wrapper { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+    .app-wrapper { max-width: 480px; margin: 0 auto; background: #fff; height: 100vh; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
 
     /* Login Screen */
     #auth-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; max-width: 480px; margin: 0 auto; }
@@ -19,7 +19,7 @@
     .auth-error { color: #ff5252; font-size: 14px; text-align: center; margin-top: 10px; }
 
     /* Sticky Header Container */
-    .sticky-header { position: sticky; top: 0; z-index: 90; background: #fff; }
+    .sticky-header { flex-shrink: 0; background: #fff; z-index: 90; }
 
     .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #fff; border-bottom: 1px solid #eee; }
     .top-bar h2 { font-size: 18px; font-weight: 600; }
@@ -37,7 +37,10 @@
     .summary-box span { font-size: 15px; font-weight: 600; }
     .exp-val { color: #ff5252; }
 
-    .page-screen { display: none; flex: 1; padding-bottom: 70px; }
+    /* Scrollable Content Container */
+    .scrollable-content { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+
+    .page-screen { display: none; }
     .page-screen.active { display: block; }
     .view-panel { display: none; }
     .view-panel.active { display: block; }
@@ -77,11 +80,10 @@
     .badge-percent { padding: 4px 8px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: bold; width: 42px; text-align: center; }
 
     /* Floating Add Button */
-    .fab { position: fixed; bottom: 80px; right: calc(50% - 220px); width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 95; }
-    @media (max-width: 500px) { .fab { right: 20px; } }
+    .fab { position: absolute; bottom: 75px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 95; }
 
     /* Bottom Navigation Bar */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; height: 60px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
     .nav-item { text-align: center; color: #999; font-size: 11px; cursor: pointer; flex: 1; }
     .nav-item.active { color: #ff5252; font-weight: bold; }
     .nav-item span { display: block; font-size: 18px; margin-bottom: 2px; }
@@ -92,7 +94,7 @@
     .form-fields { padding: 10px 20px; flex: 1; }
     .field-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #eee; font-size: 15px; }
     .field-row label { width: 90px; color: #777; font-weight: 500; }
-    .field-row input { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
+    .field-row input, .field-row select { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
     .field-row input.amount-input { color: #ff5252; font-size: 22px; font-weight: bold; }
     
     /* Category Grid Modal */
@@ -103,13 +105,6 @@
     .cat-tile { background: #fff; padding: 20px 10px; text-align: center; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 75px; color: #333; }
     .cat-tile:active { background: #f0f0f0; }
     .cat-tile.add-tile { color: #ff5252; font-weight: bold; }
-
-    /* Merchant Manager Modal */
-    #merchant-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; max-width: 480px; margin: 0 auto; }
-    .merchant-sheet { background: #fff; width: 100%; border-radius: 12px; display: flex; flex-direction: column; max-height: 70vh; overflow: hidden; }
-    .merchant-list-container { padding: 10px; overflow-y: auto; flex: 1; }
-    .merchant-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
-    .merchant-del-btn { background: #dc2626; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
 
     .keypad-header { background: #111; color: #fff; display: flex; justify-content: space-between; padding: 10px 16px; font-size: 14px; }
     .keypad { display: grid; grid-template-columns: repeat(4, 1fr); background: #e5e5e8; gap: 1px; }
@@ -134,9 +129,8 @@
 
 <div class="app-wrapper">
   
-  <!-- Sticky Header Wrapper -->
+  <!-- Sticky Header Container -->
   <div class="sticky-header">
-    <!-- Transactions Screen Top Bar -->
     <div id="screen-trans-top" class="page-top-segment active">
       <div class="top-bar">
         <span class="icon-btn" id="btn-search">🔍</span>
@@ -171,7 +165,6 @@
       </div>
     </div>
 
-    <!-- Stats Screen Top Bar -->
     <div id="screen-stats-top" class="page-top-segment" style="display:none;">
       <div class="top-bar">
         <h2>Stats</h2>
@@ -193,20 +186,23 @@
     </div>
   </div>
 
-  <!-- Transactions Page Screen -->
-  <div id="screen-trans" class="page-screen active">
-    <div id="panel-daily" class="view-panel active"><div id="transaction-container"></div></div>
-    <div id="panel-calendar" class="view-panel"><div class="calendar-grid" id="calendar-container"></div></div>
-    <div id="panel-monthly" class="view-panel"><div id="monthly-container"></div></div>
-    <div id="panel-summary" class="view-panel"><div id="summary-container"></div></div>
-  </div>
-
-  <!-- Stats Page Screen -->
-  <div id="screen-stats" class="page-screen">
-    <div class="chart-container">
-      <svg id="svgPie" class="pie-svg" viewBox="0 0 32 32"></svg>
+  <!-- Scrollable Content Area -->
+  <div class="scrollable-content">
+    <!-- Transactions Page Screen -->
+    <div id="screen-trans" class="page-screen active">
+      <div id="panel-daily" class="view-panel active"><div id="transaction-container"></div></div>
+      <div id="panel-calendar" class="view-panel"><div class="calendar-grid" id="calendar-container"></div></div>
+      <div id="panel-monthly" class="view-panel"><div id="monthly-container"></div></div>
+      <div id="panel-summary" class="view-panel"><div id="summary-container"></div></div>
     </div>
-    <div id="stats-list-container"></div>
+
+    <!-- Stats Page Screen -->
+    <div id="screen-stats" class="page-screen">
+      <div class="chart-container">
+        <svg id="svgPie" class="pie-svg" viewBox="0 0 32 32"></svg>
+      </div>
+      <div id="stats-list-container"></div>
+    </div>
   </div>
 
   <button id="add-fab" class="fab">+</button>
@@ -243,11 +239,15 @@
       <label>Merchant</label>
       <input type="text" id="input-merchant" placeholder="Merchant (e.g. Tesco)" list="merchant-list">
       <datalist id="merchant-list"></datalist>
-      <span id="btn-manage-merchants" style="font-size:12px; color:#ff5252; cursor:pointer; padding:2px 6px; margin-left:4px; font-weight:500;" title="Manage/Remove merchants">⚙️ Manage</span>
+      <span id="btn-clear-merchant" style="font-size:12px; color:#ff5252; cursor:pointer; padding:2px 6px; margin-left:4px;" title="Remove current typed merchant from future suggestions">🗑️ Clean</span>
     </div>
-    <div class="field-row" style="border-bottom:none; padding-top:10px;">
-      <label style="width:140px;">Repeat Monthly</label>
-      <input type="checkbox" id="input-recurring" style="width:20px; height:20px; accent-color:#ff5252; cursor:pointer;">
+    <div class="field-row">
+      <label>Repeat</label>
+      <select id="input-repeat">
+        <option value="none">None</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+      </select>
     </div>
   </div>
 
@@ -284,17 +284,6 @@
       <span id="close-cat-modal" style="cursor:pointer; font-size:20px;">✕</span>
     </div>
     <div class="cat-grid" id="cat-grid-container"></div>
-  </div>
-</div>
-
-<!-- Merchant Manager Modal -->
-<div id="merchant-modal">
-  <div class="merchant-sheet">
-    <div class="cat-sheet-header">
-      <span>Manage Merchants</span>
-      <span id="close-merchant-modal" style="cursor:pointer; font-size:20px;">✕</span>
-    </div>
-    <div class="merchant-list-container" id="merchant-manager-list"></div>
   </div>
 </div>
 
@@ -465,34 +454,48 @@
     }
   }
 
-  // Expand recurring items for viewing across months
+  // Generate expanded instances for recurring transactions (Monthly / Yearly)
   function getExpandedExpenses() {
     let expanded = [];
     expenses.forEach(e => {
       expanded.push(e);
-      if (e.recurring && e.date) {
+      if (e.repeat && e.repeat !== 'none' && e.date) {
         let [origY, origM, origD] = e.date.split('-').map(Number);
         let currY = currentDate.getFullYear();
-        let currM = currentDate.getMonth() + 1; // 1-12
+        let currM = currentDate.getMonth() + 1;
 
-        // Generate recurring instances for months after the start date up to current viewed month
-        let startTotalMonths = origY * 12 + origM;
-        let viewTotalMonths = currY * 12 + currM;
+        if (e.repeat === 'monthly') {
+          let startTotalMonths = origY * 12 + origM;
+          let viewTotalMonths = currY * 12 + currM;
 
-        for (let m = startTotalMonths + 1; m <= viewTotalMonths; m++) {
-          let genY = Math.floor((m - 1) / 12);
-          let genM = ((m - 1) % 12) + 1;
-          let lastDayOfGenMonth = new Date(genY, genM, 0).getDate();
-          let genD = Math.min(origD, lastDayOfGenMonth);
+          for (let m = startTotalMonths + 1; m <= viewTotalMonths; m++) {
+            let genY = Math.floor((m - 1) / 12);
+            let genM = ((m - 1) % 12) + 1;
+            let lastDayOfGenMonth = new Date(genY, genM, 0).getDate();
+            let genD = Math.min(origD, lastDayOfGenMonth);
 
-          let genDateStr = `${genY}-${String(genM).padStart(2, '0')}-${String(genD).padStart(2, '0')}`;
-          
-          expanded.push({
-            ...e,
-            id: `${e.id}_rec_${genY}_${genM}`,
-            date: genDateStr,
-            isVirtualRecurring: true
-          });
+            let genDateStr = `${genY}-${String(genM).padStart(2, '0')}-${String(genD).padStart(2, '0')}`;
+            expanded.push({
+              ...e,
+              id: `${e.id}_rec_${genY}_${genM}`,
+              date: genDateStr,
+              isVirtualRecurring: true
+            });
+          }
+        } else if (e.repeat === 'yearly') {
+          for (let genY = origY + 1; genY <= currY; genY++) {
+            let lastDayOfGenMonth = new Date(genY, origM, 0).getDate();
+            let genD = Math.min(origD, lastDayOfGenMonth);
+            let genDateStr = `${genY}-${String(origM).padStart(2, '0')}-${String(genD).padStart(2, '0')}`;
+            if (genY === currY || `${genY}-${String(origM).padStart(2, '0')}` <= `${currY}-${String(currM).padStart(2, '0')}`) {
+              expanded.push({
+                ...e,
+                id: `${e.id}_rec_${genY}`,
+                date: genDateStr,
+                isVirtualRecurring: true
+              });
+            }
+          }
         }
       }
     });
@@ -547,13 +550,13 @@
 
       grouped[dateStr].forEach(item => {
         const clickAction = item.isVirtualRecurring ? `editExpense('${item.id.split('_rec_')[0]}')` : `editExpense('${item.id}')`;
-        const recBadge = item.recurring ? ` <span style="color:#2196f3; font-size:10px;" title="Recurring Monthly">🔄</span>` : '';
+        const repBadge = (item.repeat && item.repeat !== 'none') ? ` <span style="color:#2196f3; font-size:10px;" title="Repeating">🔄</span>` : '';
         groupHtml += `
           <div class="trans-row" onclick="${clickAction}">
             <div class="trans-left">
               <span class="trans-category">${item.category}</span>
               <div class="trans-details">
-                <strong>${item.merchant}${recBadge}</strong>
+                <strong>${item.merchant}${repBadge}</strong>
                 <span>Credit Cards</span>
               </div>
             </div>
@@ -779,44 +782,22 @@
     document.getElementById('category-modal').style.display = 'none';
   });
 
-  function buildMerchantManager() {
-    const container = document.getElementById('merchant-manager-list');
-    container.innerHTML = '';
-
-    const uniqueMerchants = [...new Set(expenses.map(e => e.merchant).filter(Boolean))]
-      .filter(m => !hiddenMerchants.includes(m));
-
-    if (uniqueMerchants.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">No saved merchants found.</div>';
+  // Clear / remove current typed merchant from future suggestions
+  document.getElementById('btn-clear-merchant').addEventListener('click', () => {
+    const merchantVal = document.getElementById('input-merchant').value.trim();
+    if (!merchantVal) {
+      alert("Please type or select a merchant name to remove from suggestions.");
       return;
     }
-
-    uniqueMerchants.forEach(m => {
-      const row = document.createElement('div');
-      row.className = 'merchant-item-row';
-      row.innerHTML = `
-        <span>${m}</span>
-        <button class="merchant-del-btn">Remove</button>
-      `;
-      row.querySelector('button').onclick = () => {
-        if (confirm(`Remove "${m}" from future merchant suggestions?`)) {
-          hiddenMerchants.push(m);
-          localStorage.setItem('hidden_merchants', JSON.stringify(hiddenMerchants));
-          buildMerchantManager();
-          updateAutoSuggest();
-        }
-      };
-      container.appendChild(row);
-    });
-  }
-
-  document.getElementById('btn-manage-merchants').addEventListener('click', () => {
-    buildMerchantManager();
-    document.getElementById('merchant-modal').style.display = 'flex';
-  });
-
-  document.getElementById('close-merchant-modal').addEventListener('click', () => {
-    document.getElementById('merchant-modal').style.display = 'none';
+    if (confirm(`Remove "${merchantVal}" from future merchant suggestions?`)) {
+      if (!hiddenMerchants.includes(merchantVal)) {
+        hiddenMerchants.push(merchantVal);
+        localStorage.setItem('hidden_merchants', JSON.stringify(hiddenMerchants));
+      }
+      updateAutoSuggest();
+      document.getElementById('input-merchant').value = "";
+      alert(`"${merchantVal}" has been removed from future suggestions.`);
+    }
   });
 
   function openModal(isEdit = false) {
@@ -830,7 +811,7 @@
       document.getElementById('input-amount').value = "";
       document.getElementById('input-merchant').value = "";
       document.getElementById('input-category').value = "Food";
-      document.getElementById('input-recurring').checked = false;
+      document.getElementById('input-repeat').value = "none";
     }
   }
 
@@ -845,7 +826,7 @@
     document.getElementById('input-amount').value = item.amount;
     document.getElementById('input-merchant').value = item.merchant;
     document.getElementById('input-category').value = item.category || 'Food';
-    document.getElementById('input-recurring').checked = !!item.recurring;
+    document.getElementById('input-repeat').value = item.repeat || 'none';
   }
 
   document.getElementById('add-fab').addEventListener('click', () => openModal(false));
@@ -893,7 +874,7 @@
     let amount = 0;
     try { amount = parseFloat(eval(amountVal || '0')); } catch(e) { amount = 0; }
     const date = document.getElementById('input-date').value;
-    const recurring = document.getElementById('input-recurring').checked;
+    const repeat = document.getElementById('input-repeat').value;
 
     if (!amount || amount <= 0) {
       alert("Please enter a valid amount.");
@@ -907,7 +888,7 @@
         item.amount = amount;
         item.category = category;
         item.date = date;
-        item.recurring = recurring;
+        item.repeat = repeat;
       }
       saveLocal();
       closeModal();
@@ -916,11 +897,11 @@
         await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
           method: 'PATCH',
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ merchant, amount, category, date, recurring })
+          body: JSON.stringify({ merchant, amount, category, date, repeat })
         });
       } catch(e) {}
     } else {
-      const newObj = { id: Date.now().toString(), merchant, amount, category, date, currency: '£', recurring };
+      const newObj = { id: Date.now().toString(), merchant, amount, category, date, currency: '£', repeat };
       expenses.unshift(newObj);
       saveLocal();
       closeModal();
@@ -929,7 +910,7 @@
         await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
           method: 'POST',
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ merchant, amount, category, date, currency: '£', recurring })
+          body: JSON.stringify({ merchant, amount, category, date, currency: '£', repeat })
         });
       } catch(e) {}
     }
