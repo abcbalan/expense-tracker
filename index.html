@@ -10,6 +10,14 @@
     
     .app-wrapper { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; position: relative; padding-bottom: 70px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
 
+    /* Login Screen */
+    #auth-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; max-width: 480px; margin: 0 auto; }
+    .auth-box { width: 100%; max-width: 320px; }
+    .auth-box h2 { font-size: 24px; margin-bottom: 20px; text-align: center; color: #111; }
+    .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+    .auth-btn { width: 100%; padding: 12px; background: #ff5252; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+    .auth-error { color: #ff5252; font-size: 14px; text-align: center; margin-top: 10px; }
+
     .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #fff; border-bottom: 1px solid #eee; }
     .top-bar h2 { font-size: 18px; font-weight: 600; }
     .icon-btn { cursor: pointer; font-size: 18px; padding: 4px; }
@@ -92,13 +100,27 @@
 </head>
 <body>
 
+<!-- Secure Login Screen -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>Trans. Login</h2>
+    <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
+    <input type="password" id="auth-password" class="auth-input" placeholder="Password">
+    <button class="auth-btn" id="btn-login">Log In</button>
+    <div id="auth-error" class="auth-error"></div>
+  </div>
+</div>
+
 <div class="app-wrapper">
   <!-- Transactions Page Screen -->
   <div id="screen-trans" class="page-screen active">
     <div class="top-bar">
       <span class="icon-btn" id="btn-search">🔍</span>
       <h2>Trans.</h2>
-      <span class="icon-btn" id="btn-sync">🔄</span>
+      <div style="display:flex; gap:10px;">
+        <span class="icon-btn" id="btn-sync" title="Sync">🔄</span>
+        <span class="icon-btn" id="btn-logout" title="Log Out">🚪</span>
+      </div>
     </div>
 
     <div id="search-box" class="search-box">
@@ -134,7 +156,10 @@
   <div id="screen-stats" class="page-screen">
     <div class="top-bar">
       <h2>Stats</h2>
-      <span class="icon-btn" id="btn-stats-sync">🔄</span>
+      <div style="display:flex; gap:10px;">
+        <span class="icon-btn" id="btn-stats-sync" title="Sync">🔄</span>
+        <span class="icon-btn" onclick="logout()" title="Log Out">🚪</span>
+      </div>
     </div>
 
     <div class="month-selector">
@@ -230,12 +255,7 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
 
   let expenses = [];
-  try {
-    expenses = JSON.parse(localStorage.getItem('expenses_data')) || [];
-  } catch(e) {
-    expenses = [];
-  }
-
+  let accessToken = localStorage.getItem('sb_access_token') || null;
   let editingId = null;
   let currentDate = new Date(2026, 9, 1); // Oct 2026
 
@@ -250,6 +270,48 @@
     'Other': '#e7e9ed'
   };
 
+  async function login() {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    const errEl = document.getElementById('auth-error');
+    errEl.innerText = "";
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.access_token) {
+        accessToken = data.access_token;
+        localStorage.setItem('sb_access_token', accessToken);
+        document.getElementById('auth-screen').style.display = 'none';
+        syncWithSupabase();
+      } else {
+        errEl.innerText = data.error_description || data.msg || "Invalid login credentials.";
+      }
+    } catch (e) {
+      errEl.innerText = "Connection error during login.";
+    }
+  }
+
+  function logout() {
+    accessToken = null;
+    localStorage.removeItem('sb_access_token');
+    expenses = [];
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+
+  document.getElementById('btn-login').addEventListener('click', login);
+  document.getElementById('auth-password').addEventListener('keypress', (e) => { if(e.key === 'Enter') login(); });
+  document.getElementById('btn-logout').addEventListener('click', logout);
+
+  // Check initial auth state persistently
+  if (accessToken) {
+    document.getElementById('auth-screen').style.display = 'none';
+  }
+
   function saveLocal() {
     localStorage.setItem('expenses_data', JSON.stringify(expenses));
     renderAllViews();
@@ -257,16 +319,19 @@
   }
 
   async function syncWithSupabase() {
+    if (!accessToken) return;
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?select=*&order=date.desc`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
       });
       if (res.ok) {
         const data = await res.json();
-        if (data && data.length > 0) {
+        if (data) {
           expenses = data;
           saveLocal();
         }
+      } else if (res.status === 401) {
+        logout();
       }
     } catch (e) {}
   }
@@ -617,7 +682,7 @@
   });
 
   document.getElementById('delete-btn').addEventListener('click', async () => {
-    if (!editingId) return;
+    if (!editingId || !accessToken) return;
     expenses = expenses.filter(e => e.id != editingId);
     saveLocal();
     closeModal();
@@ -625,12 +690,13 @@
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
         method: 'DELETE',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
       });
     } catch (e) {}
   });
 
   document.getElementById('key-ok').addEventListener('click', async () => {
+    if (!accessToken) return;
     const merchant = document.getElementById('input-merchant').value || 'Expense';
     const amountVal = document.getElementById('input-amount').value;
     let amount = 0;
@@ -657,7 +723,7 @@
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
           method: 'PATCH',
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ merchant, amount, category, date })
         });
       } catch(e) {}
@@ -670,15 +736,17 @@
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
           method: 'POST',
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ merchant, amount, category, date, currency: '£' })
         });
       } catch(e) {}
     }
   });
 
-  updateMonthHeader();
-  syncWithSupabase();
+  if (accessToken) {
+    updateMonthHeader();
+    syncWithSupabase();
+  }
 </script>
 </body>
 </html>
