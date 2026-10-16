@@ -8,7 +8,7 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
     body { background-color: #f4f5f7; color: #333; margin: 0; padding: 0; user-select: none; }
     
-    .app-wrapper { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+    .app-wrapper { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; position: relative; padding-bottom: 70px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
 
     /* Login Screen */
     #auth-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; max-width: 480px; margin: 0 auto; }
@@ -17,9 +17,6 @@
     .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
     .auth-btn { width: 100%; padding: 12px; background: #ff5252; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
     .auth-error { color: #ff5252; font-size: 14px; text-align: center; margin-top: 10px; }
-
-    /* Sticky Header Container */
-    .sticky-header { position: sticky; top: 0; z-index: 90; background: #fff; }
 
     .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #fff; border-bottom: 1px solid #eee; }
     .top-bar h2 { font-size: 18px; font-weight: 600; }
@@ -37,7 +34,7 @@
     .summary-box span { font-size: 15px; font-weight: 600; }
     .exp-val { color: #ff5252; }
 
-    .page-screen { display: none; flex: 1; padding-bottom: 70px; }
+    .page-screen { display: none; }
     .page-screen.active { display: block; }
     .view-panel { display: none; }
     .view-panel.active { display: block; }
@@ -77,11 +74,10 @@
     .badge-percent { padding: 4px 8px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: bold; width: 42px; text-align: center; }
 
     /* Floating Add Button */
-    .fab { position: fixed; bottom: 80px; right: calc(50% - 220px); width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 95; }
-    @media (max-width: 500px) { .fab { right: 20px; } }
+    .fab { position: absolute; bottom: 80px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 99; }
 
     /* Bottom Navigation Bar */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; height: 60px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
     .nav-item { text-align: center; color: #999; font-size: 11px; cursor: pointer; flex: 1; }
     .nav-item.active { color: #ff5252; font-weight: bold; }
     .nav-item span { display: block; font-size: 18px; margin-bottom: 2px; }
@@ -133,68 +129,40 @@
 </div>
 
 <div class="app-wrapper">
-  
-  <!-- Sticky Header Wrapper -->
-  <div class="sticky-header">
-    <!-- Transactions Screen Top Bar -->
-    <div id="screen-trans-top" class="page-top-segment active">
-      <div class="top-bar">
-        <span class="icon-btn" id="btn-search">🔍</span>
-        <h2>Trans.</h2>
-        <div style="display:flex; gap:10px;">
-          <span class="icon-btn" id="btn-sync" title="Sync">🔄</span>
-          <span class="icon-btn" id="btn-logout" title="Log Out">🚪</span>
-        </div>
-      </div>
-
-      <div id="search-box" class="search-box">
-        <input type="text" id="search-input" placeholder="Search merchant or category...">
-      </div>
-
-      <div class="month-selector">
-        <span class="nav-arrow btn-prev-m">‹</span>
-        <span class="current-month-txt">Oct 2026</span>
-        <span class="nav-arrow btn-next-m">›</span>
-      </div>
-
-      <div class="view-tabs">
-        <div class="view-tab active" data-tab="daily">Daily</div>
-        <div class="view-tab" data-tab="calendar">Calendar</div>
-        <div class="view-tab" data-tab="monthly">Monthly</div>
-        <div class="view-tab" data-tab="summary">Summary</div>
-      </div>
-
-      <div class="summary-header">
-        <div class="summary-box"><label>Income</label><span style="color:#2196f3;">£ 0.00</span></div>
-        <div class="summary-box"><label>Exp.</label><span class="exp-val total-exp-txt">£ 0.00</span></div>
-        <div class="summary-box"><label>Total</label><span class="net-total-txt">-£ 0.00</span></div>
-      </div>
-    </div>
-
-    <!-- Stats Screen Top Bar -->
-    <div id="screen-stats-top" class="page-top-segment" style="display:none;">
-      <div class="top-bar">
-        <h2>Stats</h2>
-        <div style="display:flex; gap:10px;">
-          <span class="icon-btn" id="btn-stats-sync" title="Sync">🔄</span>
-          <span class="icon-btn" onclick="logout()" title="Log Out">🚪</span>
-        </div>
-      </div>
-
-      <div class="month-selector">
-        <span class="nav-arrow btn-prev-m">‹</span>
-        <span class="current-month-txt">Oct 2026</span>
-        <span class="nav-arrow btn-next-m">›</span>
-      </div>
-
-      <div class="summary-header">
-        <div class="summary-box"><label>Exp.</label><span class="exp-val total-exp-txt">£ 0.00</span></div>
-      </div>
-    </div>
-  </div>
-
   <!-- Transactions Page Screen -->
   <div id="screen-trans" class="page-screen active">
+    <div class="top-bar">
+      <span class="icon-btn" id="btn-search">🔍</span>
+      <h2>Trans.</h2>
+      <div style="display:flex; gap:10px;">
+        <span class="icon-btn" id="btn-sync" title="Sync">🔄</span>
+        <span class="icon-btn" id="btn-logout" title="Log Out">🚪</span>
+      </div>
+    </div>
+
+    <div id="search-box" class="search-box">
+      <input type="text" id="search-input" placeholder="Search merchant or category...">
+    </div>
+
+    <div class="month-selector">
+      <span class="nav-arrow btn-prev-m">‹</span>
+      <span class="current-month-txt">Oct 2026</span>
+      <span class="nav-arrow btn-next-m">›</span>
+    </div>
+
+    <div class="view-tabs">
+      <div class="view-tab active" data-tab="daily">Daily</div>
+      <div class="view-tab" data-tab="calendar">Calendar</div>
+      <div class="view-tab" data-tab="monthly">Monthly</div>
+      <div class="view-tab" data-tab="summary">Summary</div>
+    </div>
+
+    <div class="summary-header">
+      <div class="summary-box"><label>Income</label><span style="color:#2196f3;">£ 0.00</span></div>
+      <div class="summary-box"><label>Exp.</label><span class="exp-val total-exp-txt">£ 0.00</span></div>
+      <div class="summary-box"><label>Total</label><span class="net-total-txt">-£ 0.00</span></div>
+    </div>
+
     <div id="panel-daily" class="view-panel active"><div id="transaction-container"></div></div>
     <div id="panel-calendar" class="view-panel"><div class="calendar-grid" id="calendar-container"></div></div>
     <div id="panel-monthly" class="view-panel"><div id="monthly-container"></div></div>
@@ -203,9 +171,28 @@
 
   <!-- Stats Page Screen -->
   <div id="screen-stats" class="page-screen">
+    <div class="top-bar">
+      <h2>Stats</h2>
+      <div style="display:flex; gap:10px;">
+        <span class="icon-btn" id="btn-stats-sync" title="Sync">🔄</span>
+        <span class="icon-btn" onclick="logout()" title="Log Out">🚪</span>
+      </div>
+    </div>
+
+    <div class="month-selector">
+      <span class="nav-arrow btn-prev-m">‹</span>
+      <span class="current-month-txt">Oct 2026</span>
+      <span class="nav-arrow btn-next-m">›</span>
+    </div>
+
+    <div class="summary-header">
+      <div class="summary-box"><label>Exp.</label><span class="exp-val total-exp-txt">£ 0.00</span></div>
+    </div>
+
     <div class="chart-container">
       <svg id="svgPie" class="pie-svg" viewBox="0 0 32 32"></svg>
     </div>
+
     <div id="stats-list-container"></div>
   </div>
 
@@ -244,10 +231,6 @@
       <input type="text" id="input-merchant" placeholder="Merchant (e.g. Tesco)" list="merchant-list">
       <datalist id="merchant-list"></datalist>
       <span id="btn-manage-merchants" style="font-size:12px; color:#ff5252; cursor:pointer; padding:2px 6px; margin-left:4px; font-weight:500;" title="Manage/Remove merchants">⚙️ Manage</span>
-    </div>
-    <div class="field-row" style="border-bottom:none; padding-top:10px;">
-      <label style="width:140px;">Repeat Monthly</label>
-      <input type="checkbox" id="input-recurring" style="width:20px; height:20px; accent-color:#ff5252; cursor:pointer;">
     </div>
   </div>
 
@@ -428,8 +411,6 @@
   document.getElementById('nav-trans').addEventListener('click', () => {
     document.getElementById('screen-trans').classList.add('active');
     document.getElementById('screen-stats').classList.remove('active');
-    document.getElementById('screen-trans-top').style.display = 'block';
-    document.getElementById('screen-stats-top').style.display = 'none';
     document.getElementById('nav-trans').classList.add('active');
     document.getElementById('nav-stats').classList.remove('active');
     renderAllViews();
@@ -438,8 +419,6 @@
   document.getElementById('nav-stats').addEventListener('click', () => {
     document.getElementById('screen-stats').classList.add('active');
     document.getElementById('screen-trans').classList.remove('active');
-    document.getElementById('screen-stats-top').style.display = 'block';
-    document.getElementById('screen-trans-top').style.display = 'none';
     document.getElementById('nav-stats').classList.add('active');
     document.getElementById('nav-trans').classList.remove('active');
     renderStats();
@@ -465,45 +444,11 @@
     }
   }
 
-  // Expand recurring items for viewing across months
-  function getExpandedExpenses() {
-    let expanded = [];
-    expenses.forEach(e => {
-      expanded.push(e);
-      if (e.recurring && e.date) {
-        let [origY, origM, origD] = e.date.split('-').map(Number);
-        let currY = currentDate.getFullYear();
-        let currM = currentDate.getMonth() + 1; // 1-12
-
-        // Generate recurring instances for months after the start date up to current viewed month
-        let startTotalMonths = origY * 12 + origM;
-        let viewTotalMonths = currY * 12 + currM;
-
-        for (let m = startTotalMonths + 1; m <= viewTotalMonths; m++) {
-          let genY = Math.floor((m - 1) / 12);
-          let genM = ((m - 1) % 12) + 1;
-          let lastDayOfGenMonth = new Date(genY, genM, 0).getDate();
-          let genD = Math.min(origD, lastDayOfGenMonth);
-
-          let genDateStr = `${genY}-${String(genM).padStart(2, '0')}-${String(genD).padStart(2, '0')}`;
-          
-          expanded.push({
-            ...e,
-            id: `${e.id}_rec_${genY}_${genM}`,
-            date: genDateStr,
-            isVirtualRecurring: true
-          });
-        }
-      }
-    });
-    return expanded;
-  }
-
   function filterByCurrentMonth() {
     const year = currentDate.getFullYear();
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
     const prefix = `${year}-${month}`;
-    return getExpandedExpenses().filter(e => e.date && e.date.startsWith(prefix));
+    return expenses.filter(e => e.date && e.date.startsWith(prefix));
   }
 
   function renderDaily(searchTerm = "") {
@@ -546,14 +491,12 @@
       `;
 
       grouped[dateStr].forEach(item => {
-        const clickAction = item.isVirtualRecurring ? `editExpense('${item.id.split('_rec_')[0]}')` : `editExpense('${item.id}')`;
-        const recBadge = item.recurring ? ` <span style="color:#2196f3; font-size:10px;" title="Recurring Monthly">🔄</span>` : '';
         groupHtml += `
-          <div class="trans-row" onclick="${clickAction}">
+          <div class="trans-row" onclick="editExpense('${item.id}')">
             <div class="trans-left">
               <span class="trans-category">${item.category}</span>
               <div class="trans-details">
-                <strong>${item.merchant}${recBadge}</strong>
+                <strong>${item.merchant}</strong>
                 <span>Credit Cards</span>
               </div>
             </div>
@@ -602,7 +545,7 @@
     container.innerHTML = '';
     const monthlyMap = {};
 
-    getExpandedExpenses().forEach(e => {
+    expenses.forEach(e => {
       if (e.date) {
         const monthKey = e.date.substring(0, 7);
         monthlyMap[monthKey] = (monthlyMap[monthKey] || 0) + parseFloat(e.amount || 0);
@@ -731,6 +674,7 @@
     merchantDatalist.innerHTML = uniqueMerchants.map(m => `<option value="${m}">`).join('');
   }
 
+  // Render Category Grid Popup (Sorted A to Z)
   function buildCategoryGrid() {
     const gridContainer = document.getElementById('cat-grid-container');
     gridContainer.innerHTML = '';
@@ -779,6 +723,7 @@
     document.getElementById('category-modal').style.display = 'none';
   });
 
+  // Render Merchant Manager List
   function buildMerchantManager() {
     const container = document.getElementById('merchant-manager-list');
     container.innerHTML = '';
@@ -830,7 +775,6 @@
       document.getElementById('input-amount').value = "";
       document.getElementById('input-merchant').value = "";
       document.getElementById('input-category').value = "Food";
-      document.getElementById('input-recurring').checked = false;
     }
   }
 
@@ -845,7 +789,6 @@
     document.getElementById('input-amount').value = item.amount;
     document.getElementById('input-merchant').value = item.merchant;
     document.getElementById('input-category').value = item.category || 'Food';
-    document.getElementById('input-recurring').checked = !!item.recurring;
   }
 
   document.getElementById('add-fab').addEventListener('click', () => openModal(false));
@@ -893,7 +836,6 @@
     let amount = 0;
     try { amount = parseFloat(eval(amountVal || '0')); } catch(e) { amount = 0; }
     const date = document.getElementById('input-date').value;
-    const recurring = document.getElementById('input-recurring').checked;
 
     if (!amount || amount <= 0) {
       alert("Please enter a valid amount.");
@@ -907,7 +849,6 @@
         item.amount = amount;
         item.category = category;
         item.date = date;
-        item.recurring = recurring;
       }
       saveLocal();
       closeModal();
@@ -916,11 +857,11 @@
         await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
           method: 'PATCH',
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ merchant, amount, category, date, recurring })
+          body: JSON.stringify({ merchant, amount, category, date })
         });
       } catch(e) {}
     } else {
-      const newObj = { id: Date.now().toString(), merchant, amount, category, date, currency: '£', recurring };
+      const newObj = { id: Date.now().toString(), merchant, amount, category, date, currency: '£' };
       expenses.unshift(newObj);
       saveLocal();
       closeModal();
@@ -929,7 +870,7 @@
         await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
           method: 'POST',
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ merchant, amount, category, date, currency: '£', recurring })
+          body: JSON.stringify({ merchant, amount, category, date, currency: '£' })
         });
       } catch(e) {}
     }
