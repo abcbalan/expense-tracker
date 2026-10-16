@@ -48,7 +48,7 @@
     .day-header strong { font-size: 16px; color: #111; margin-right: 4px; }
     .trans-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f8f8f8; cursor: pointer; }
     .trans-left { display: flex; gap: 12px; align-items: center; }
-    .trans-category { font-size: 13px; color: #888; width: 75px; }
+    .trans-category { font-size: 13px; color: #888; width: 75px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .trans-details strong { font-size: 15px; color: #222; display: block; }
     .trans-details span { font-size: 12px; color: #aaa; }
     .trans-amount { font-size: 16px; font-weight: 600; color: #ff5252; }
@@ -207,20 +207,12 @@
     <div class="field-row"><label>Amount</label><input type="text" id="input-amount" class="amount-input" placeholder="0.00"></div>
     <div class="field-row">
       <label>Category</label>
-      <select id="input-category">
-        <option value="Food">Food</option>
-        <option value="Household">Household</option>
-        <option value="Education">Education</option>
-        <option value="Car">Car</option>
-        <option value="Clothing">Clothing</option>
-        <option value="Health">Health</option>
-        <option value="Subscriptions">Subscriptions</option>
-        <option value="Other">Other</option>
-      </select>
+      <input type="text" id="input-category" placeholder="Category (e.g. Food)" list="category-list">
+      <datalist id="category-list"></datalist>
     </div>
     <div class="field-row">
       <label>Merchant</label>
-      <input type="text" id="input-merchant" placeholder="Merchant/Shop (e.g. Tesco)" list="merchant-list">
+      <input type="text" id="input-merchant" placeholder="Merchant (e.g. Tesco)" list="merchant-list">
       <datalist id="merchant-list"></datalist>
     </div>
   </div>
@@ -259,6 +251,8 @@
   let editingId = null;
   let currentDate = new Date(2026, 9, 1); // Oct 2026
 
+  const defaultCategories = ['Food', 'Household', 'Education', 'Car', 'Clothing', 'Health', 'Subscriptions', 'Other'];
+  
   const categoryColors = {
     'Food': '#ff6384',
     'Household': '#ff9f40',
@@ -321,13 +315,11 @@
   async function syncWithSupabase() {
     if (!accessToken) return;
     try {
-      // Decode the JWT access token to get the user's unique ID
       const base64Url = accessToken.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const payload = JSON.parse(window.atob(base64));
       const userId = payload.sub;
 
-      // Request ONLY rows belonging to this specific user ID
       const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${userId}&select=*&order=date.desc`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
       });
@@ -577,12 +569,14 @@
     const svg = document.getElementById('svgPie');
     svg.innerHTML = '';
 
+    const fallbackColors = ['#ff6384', '#ff9f40', '#ffcd56', '#4bc0c0', '#36a2eb', '#9966ff', '#c9cbcf', '#e7e9ed', '#2ecc71', '#e74c3c'];
+
     if (total > 0) {
       let accumulatedPercent = 0;
-      sortedCategories.forEach(cat => {
+      sortedCategories.forEach((cat, idx) => {
         const amt = catMap[cat];
         const pct = (amt / total) * 100;
-        const color = categoryColors[cat] || '#888';
+        const color = categoryColors[cat] || fallbackColors[idx % fallbackColors.length];
 
         const strokeDasharray = `${pct} ${100 - pct}`;
         const strokeDashoffset = -accumulatedPercent;
@@ -617,10 +611,10 @@
       return;
     }
 
-    sortedCategories.forEach(cat => {
+    sortedCategories.forEach((cat, idx) => {
       const amt = catMap[cat];
       const pct = total > 0 ? Math.round((amt / total) * 100) : 0;
-      const color = categoryColors[cat] || '#888';
+      const color = categoryColors[cat] || fallbackColors[idx % fallbackColors.length];
 
       listContainer.innerHTML += `
         <div class="stats-row">
@@ -635,9 +629,16 @@
   }
 
   function updateAutoSuggest() {
-    const datalist = document.getElementById('merchant-list');
+    // Populate Merchants Autocomplete
+    const merchantDatalist = document.getElementById('merchant-list');
     const uniqueMerchants = [...new Set(expenses.map(e => e.merchant).filter(Boolean))];
-    datalist.innerHTML = uniqueMerchants.map(m => `<option value="${m}">`).join('');
+    merchantDatalist.innerHTML = uniqueMerchants.map(m => `<option value="${m}">`).join('');
+
+    // Populate Categories Autocomplete (Defaults + Any Custom User Categories)
+    const categoryDatalist = document.getElementById('category-list');
+    const userCategories = expenses.map(e => e.category).filter(Boolean);
+    const allCategories = [...new Set([...defaultCategories, ...userCategories])];
+    categoryDatalist.innerHTML = allCategories.map(c => `<option value="${c}">`).join('');
   }
 
   function openModal(isEdit = false) {
@@ -649,6 +650,7 @@
       document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
       document.getElementById('input-amount').value = "";
       document.getElementById('input-merchant').value = "";
+      document.getElementById('input-category').value = "Food";
     }
   }
 
@@ -704,11 +706,11 @@
 
   document.getElementById('key-ok').addEventListener('click', async () => {
     if (!accessToken) return;
-    const merchant = document.getElementById('input-merchant').value || 'Expense';
+    const merchant = document.getElementById('input-merchant').value.trim() || 'Expense';
+    const category = document.getElementById('input-category').value.trim() || 'Other';
     const amountVal = document.getElementById('input-amount').value;
     let amount = 0;
     try { amount = parseFloat(eval(amountVal || '0')); } catch(e) { amount = 0; }
-    const category = document.getElementById('input-category').value;
     const date = document.getElementById('input-date').value;
 
     if (!amount || amount <= 0) {
