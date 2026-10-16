@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Trans.</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
     body { background-color: #f4f5f7; color: #333; margin: 0; padding: 0; user-select: none; }
@@ -27,7 +26,6 @@
     .summary-box span { font-size: 15px; font-weight: 600; }
     .exp-val { color: #ff5252; }
 
-    /* Screen Views */
     .page-screen { display: none; }
     .page-screen.active { display: block; }
     .view-panel { display: none; }
@@ -62,7 +60,8 @@
     .progress-fill { background: #ff5252; height: 100%; border-radius: 4px; }
 
     /* Stats Page Design */
-    .chart-container { width: 220px; height: 220px; margin: 20px auto; position: relative; }
+    .chart-container { width: 180px; height: 180px; margin: 20px auto; position: relative; }
+    .pie-svg { width: 100%; height: 100%; transform: rotate(-90deg); border-radius: 50%; }
     .stats-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
     .badge-percent { padding: 4px 8px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: bold; width: 42px; text-align: center; }
 
@@ -149,7 +148,7 @@
     </div>
 
     <div class="chart-container">
-      <canvas id="pieChart"></canvas>
+      <svg id="svgPie" class="pie-svg" viewBox="0 0 32 32"></svg>
     </div>
 
     <div id="stats-list-container"></div>
@@ -230,7 +229,6 @@
   const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
 
-  // Restore local storage entries safely
   let expenses = [];
   try {
     expenses = JSON.parse(localStorage.getItem('expenses_data')) || [];
@@ -240,7 +238,6 @@
 
   let editingId = null;
   let currentDate = new Date(2026, 9, 1); // Oct 2026
-  let chartInstance = null;
 
   const categoryColors = {
     'Food': '#ff6384',
@@ -313,6 +310,7 @@
     document.getElementById('screen-stats').classList.remove('active');
     document.getElementById('nav-trans').classList.add('active');
     document.getElementById('nav-stats').classList.remove('active');
+    renderAllViews();
   });
 
   document.getElementById('nav-stats').addEventListener('click', () => {
@@ -504,27 +502,40 @@
     });
 
     const sortedCategories = Object.keys(catMap).sort((a,b) => catMap[b] - catMap[a]);
-    const labels = sortedCategories;
-    const dataValues = sortedCategories.map(c => catMap[c]);
-    const colors = sortedCategories.map(c => categoryColors[c] || '#ccc');
+    const svg = document.getElementById('svgPie');
+    svg.innerHTML = '';
 
-    const ctx = document.getElementById('pieChart').getContext('2d');
-    if (chartInstance) chartInstance.destroy();
+    if (total > 0) {
+      let accumulatedPercent = 0;
+      sortedCategories.forEach(cat => {
+        const amt = catMap[cat];
+        const pct = (amt / total) * 100;
+        const color = categoryColors[cat] || '#888';
 
-    chartInstance = new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: labels,
-        datasets: [{
-          data: dataValues.length > 0 ? dataValues : [1],
-          backgroundColor: dataValues.length > 0 ? colors : ['#eee']
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } }
-      }
-    });
+        const strokeDasharray = `${pct} ${100 - pct}`;
+        const strokeDashoffset = -accumulatedPercent;
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', '16');
+        circle.setAttribute('cy', '16');
+        circle.setAttribute('r', '15.915');
+        circle.setAttribute('fill', 'transparent');
+        circle.setAttribute('stroke', color);
+        circle.setAttribute('stroke-width', '32');
+        circle.setAttribute('stroke-dasharray', strokeDasharray);
+        circle.setAttribute('stroke-dashoffset', strokeDashoffset);
+
+        svg.appendChild(circle);
+        accumulatedPercent += pct;
+      });
+    } else {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', '16');
+      circle.setAttribute('cy', '16');
+      circle.setAttribute('r', '15.915');
+      circle.setAttribute('fill', '#eee');
+      svg.appendChild(circle);
+    }
 
     const listContainer = document.getElementById('stats-list-container');
     listContainer.innerHTML = '';
