@@ -1,13 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Trans.</title>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f4f5f7; color: #333; margin: 0; padding: 0; user-select: none; height: 100vh; overflow: hidden; }
+    
+    .app-wrapper { max-width: 480px; margin: 0 auto; background: #fff; height: 100vh; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+
+    /* Login Screen */
+    #auth-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; max-width: 480px; margin: 0 auto; }
+    .auth-box { width: 100%; max-width: 320px; }
+    .auth-box h2 { font-size: 24px; margin-bottom: 20px; text-align: center; color: #111; }
+    .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+    .auth-btn { width: 100%; padding: 12px; background: #ff5252; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+    .auth-error { color: #ff5252; font-size: 14px; text-align: center; margin-top: 10px; }
+
+    /* Sticky Header Container */
+    .sticky-header { flex-shrink: 0; background: #fff; z-index: 90; }
+
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #fff; border-bottom: 1px solid #eee; }
+    .top-bar h2 { font-size: 18px; font-weight: 600; }
+    .icon-btn { cursor: pointer; font-size: 18px; padding: 4px; }
+
+    .month-selector { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; font-size: 16px; font-weight: 600; }
+    .nav-arrow { cursor: pointer; padding: 0 10px; font-size: 20px; color: #ff5252; }
+
+    .view-tabs { display: flex; background: #fff; border-bottom: 1px solid #e0e0e0; }
+    .view-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 14px; color: #777; cursor: pointer; }
+    .view-tab.active { color: #ff5252; font-weight: bold; border-bottom: 2px solid #ff5252; }
+    
+    .summary-header { display: flex; justify-content: space-around; background: #fafafa; padding: 12px 0; border-bottom: 1px solid #eee; text-align: center; }
+    .summary-box label { font-size: 12px; color: #777; display: block; margin-bottom: 2px; }
+    .summary-box span { font-size: 15px; font-weight: 600; }
+    .exp-val { color: #ff5252; }
+
+    /* Scrollable Content Container */
+    .scrollable-content { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+
+    .page-screen { display: none; }
+    .page-screen.active { display: block; }
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+
+    .search-box { display: none; padding: 10px 16px; background: #fafafa; border-bottom: 1px solid #eee; }
+    .search-box input { width: 100%; padding: 8px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; }
+
+    /* Daily List */
+    .day-group { margin-top: 10px; background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+    .day-header { display: flex; justify-content: space-between; padding: 10px 16px; background: #fcfcfc; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0; }
+    .day-header strong { font-size: 16px; color: #111; margin-right: 4px; }
+    .trans-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f8f8f8; cursor: pointer; }
+    .trans-left { display: flex; gap: 12px; align-items: center; }
+    .trans-category { font-size: 13px; color: #888; width: 85px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .trans-details strong { font-size: 15px; color: #222; display: block; }
+    .trans-amount { font-size: 16px; font-weight: 600; color: #ff5252; }
+
+    /* Calendar Grid */
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 10px; gap: 4px; background: #fff; }
+    .cal-day-name { text-align: center; font-size: 12px; font-weight: bold; color: #888; padding: 6px 0; }
+    .cal-cell { background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px; min-height: 52px; padding: 4px; font-size: 11px; }
+    .cal-cell.empty { background: transparent; border: none; }
+    .cal-date-num { font-weight: bold; color: #333; margin-bottom: 2px; }
+    .cal-spend { color: #ff5252; font-weight: 600; font-size: 10px; }
+
+    /* Summary Progress Bars */
+    .summary-item { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
+    .summary-label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .progress-bg { background: #eee; height: 8px; border-radius: 4px; overflow: hidden; }
+    .progress-fill { background: #ff5252; height: 100%; border-radius: 4px; }
+
+    /* Stats Page Design */
+    .chart-container { width: 180px; height: 180px; margin: 20px auto; position: relative; }
+    .pie-svg { width: 100%; height: 100%; transform: rotate(-90deg); border-radius: 50%; }
+    .stats-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
+    .badge-percent { padding: 4px 8px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: bold; width: 42px; text-align: center; }
+
+    /* Floating Add Button */
+    .fab { position: absolute; bottom: 75px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 95; }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+    .nav-item { text-align: center; color: #999; font-size: 11px; cursor: pointer; flex: 1; }
+    .nav-item.active { color: #ff5252; font-weight: bold; }
+    .nav-item span { display: block; font-size: 18px; margin-bottom: 2px; }
+
+    /* Modal Overlay */
+    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; display: none; flex-direction: column; z-index: 999; max-width: 480px; margin: 0 auto; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #eee; }
+    .form-fields { padding: 10px 20px; flex: 1; }
+    .field-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #eee; font-size: 15px; }
+    .field-row label { width: 90px; color: #777; font-weight: 500; }
+    .field-row input, .field-row select { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
+    .field-row input.amount-input { color: #ff5252; font-size: 22px; font-weight: bold; }
+    
+    /* Category Grid Modal */
+    #category-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; flex-direction: column; justify-content: flex-end; max-width: 480px; margin: 0 auto; }
+    .cat-sheet { background: #fff; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; flex-direction: column; max-height: 70vh; }
+    .cat-sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #111; color: #fff; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #e0e0e0; padding: 1px; overflow-y: auto; }
+    .cat-tile { background: #fff; padding: 20px 10px; text-align: center; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 75px; color: #333; }
+    .cat-tile:active { background: #f0f0f0; }
+    .cat-tile.add-tile { color: #ff5252; font-weight: bold; }
+
+    .keypad-header { background: #111; color: #fff; display: flex; justify-content: space-between; padding: 10px 16px; font-size: 14px; }
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); background: #e5e5e8; gap: 1px; }
+    .key-btn { background: #fff; border: none; padding: 18px 0; font-size: 20px; font-weight: 500; cursor: pointer; text-align: center; }
+    .key-btn:active { background: #ddd; }
+    .key-btn.ok-btn { background: #ff5252; color: #fff; grid-row: span 2; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; }
+    .delete-action-btn { background: #dc2626; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 8px; margin: 15px 20px; cursor: pointer; display: none; }
+  </style>
+</head>
+<body>
+
+<!-- Secure Login Screen -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <h2>Trans. Login</h2>
+    <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
+    <input type="password" id="auth-password" class="auth-input" placeholder="Password">
+    <button class="auth-btn" id="btn-login">Log In</button>
+    <div id="auth-error" class="auth-error"></div>
+  </div>
+</div>
+
+<div class="app-wrapper">
+  
+  <!-- Sticky Header Container -->
+  <div class="sticky-header">
+    <div id="screen-trans-top" class="page-top-segment active">
+      <div class="top-bar">
+        <span class="icon-btn" id="btn-search">🔍</span>
+        <h2>Trans.</h2>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="icon-btn" id="btn-export-excel" title="Export to Excel / CSV">📤</span>
+          <span class="icon-btn" id="btn-sync" title="Sync">🔄</span>
+          <span class="icon-btn" id="btn-logout" title="Log Out">🚪</span>
+        </div>
+      </div>
+
+      <div id="search-box" class="search-box">
+        <input type="text" id="search-input" placeholder="Search merchant or category...">
+      </div>
+
+      <div class="month-selector">
+        <span class="nav-arrow btn-prev-m">‹</span>
+        <span class="current-month-txt">Oct 2026</span>
+        <span class="nav-arrow btn-next-m">›</span>
+      </div>
+
+      <div class="view-tabs">
+        <div class="view-tab active" data-tab="daily">Daily</div>
+        <div class="view-tab" data-tab="calendar">Calendar</div>
+        <div class="view-tab" data-tab="monthly">Monthly</div>
+        <div class="view-tab" data-tab="summary">Summary</div>
+      </div>
+
+      <div class="summary-header">
+        <div class="summary-box"><label>Income</label><span style="color:#2196f3;">£ 0.00</span></div>
+        <div class="summary-box"><label>Exp.</label><span class="exp-val total-exp-txt">£ 0.00</span></div>
+        <div class="summary-box"><label>Total</label><span class="net-total-txt">-£ 0.00</span></div>
+      </div>
+    </div>
+
+    <div id="screen-stats-top" class="page-top-segment" style="display:none;">
+      <div class="top-bar">
+        <h2>Stats</h2>
+        <div style="display:flex; gap:10px;">
+          <span class="icon-btn" id="btn-stats-sync" title="Sync">🔄</span>
+          <span class="icon-btn" onclick="logout()" title="Log Out">🚪</span>
+        </div>
+      </div>
+
+      <div class="month-selector">
+        <span class="nav-arrow btn-prev-m">‹</span>
+        <span class="current-month-txt">Oct 2026</span>
+        <span class="nav-arrow btn-next-m">›</span>
+      </div>
+
+      <div class="summary-header">
+        <div class="summary-box"><label>Exp.</label><span class="exp-val total-exp-txt">£ 0.00</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content Area -->
+  <div class="scrollable-content">
+    <!-- Transactions Page Screen -->
+    <div id="screen-trans" class="page-screen active">
+      <div id="panel-daily" class="view-panel active"><div id="transaction-container"></div></div>
+      <div id="panel-calendar" class="view-panel"><div class="calendar-grid" id="calendar-container"></div></div>
+      <div id="panel-monthly" class="view-panel"><div id="monthly-container"></div></div>
+      <div id="panel-summary" class="view-panel"><div id="summary-container"></div></div>
+    </div>
+
+    <!-- Stats Page Screen -->
+    <div id="screen-stats" class="page-screen">
+      <div class="chart-container">
+        <svg id="svgPie" class="pie-svg" viewBox="0 0 32 32"></svg>
+      </div>
+      <div id="stats-list-container"></div>
+    </div>
+  </div>
+
+  <button id="add-fab" class="fab">+</button>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-trans">
+      <span>📋</span>
+      Trans.
+    </div>
+    <div class="nav-item" id="nav-stats">
+      <span>📊</span>
+      Stats
+    </div>
+  </div>
+</div>
+
+<!-- Modal Form -->
+<div class="modal" id="entry-modal">
+  <div class="modal-header">
+    <span id="close-modal-top" style="font-size: 16px; cursor: pointer; color: #ff5252; font-weight: bold;">‹ Back</span>
+    <h3 id="modal-title" style="font-size: 16px;">Expense</h3>
+    <span id="close-modal-x" style="cursor: pointer; font-size: 18px;">✕</span>
+  </div>
+
+  <div class="form-fields">
+    <div class="field-row"><label>Date</label><input type="date" id="input-date"></div>
+    <div class="field-row"><label>Amount</label><input type="text" id="input-amount" class="amount-input" placeholder="0.00"></div>
+    <div class="field-row" id="category-picker-trigger" style="cursor:pointer;">
+      <label>Category</label>
+      <input type="text" id="input-category" value="Food" readonly style="cursor:pointer;">
+    </div>
+    <div class="field-row">
+      <label>Merchant</label>
+      <input type="text" id="input-merchant" placeholder="Merchant (e.g. Tesco)" list="merchant-list">
+      <datalist id="merchant-list"></datalist>
+      <span id="btn-clear-merchant" style="font-size:12px; color:#ff5252; cursor:pointer; padding:2px 6px; margin-left:4px;" title="Remove current typed merchant from future suggestions">🗑️ Clean</span>
+    </div>
+    <div class="field-row">
+      <label>Repeat</label>
+      <select id="input-repeat">
+        <option value="none">None</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+      </select>
+    </div>
+  </div>
+
+  <button id="delete-btn" class="delete-action-btn">Delete Transaction</button>
+
+  <div class="keypad-header"><span>Keypad Entry</span></div>
+  <div class="keypad">
+    <button class="key-btn" data-key="+">+</button>
+    <button class="key-btn" data-key="-">-</button>
+    <button class="key-btn" data-key="*">×</button>
+    <button class="key-btn" data-key="/">÷</button>
+    <button class="key-btn" data-key="7">7</button>
+    <button class="key-btn" data-key="8">8</button>
+    <button class="key-btn" data-key="9">9</button>
+    <button class="key-btn" data-key="=">=</button>
+    <button class="key-btn" data-key="4">4</button>
+    <button class="key-btn" data-key="5">5</button>
+    <button class="key-btn" data-key="6">6</button>
+    <button class="key-btn" data-key=".">.</button>
+    <button class="key-btn" data-key="1">1</button>
+    <button class="key-btn" data-key="2">2</button>
+    <button class="key-btn" data-key="3">3</button>
+    <button class="key-btn" id="key-backspace">⌫</button>
+    <button class="key-btn" style="grid-column: span 2;" data-key="0">0</button>
+    <button class="key-btn ok-btn" id="key-ok" style="grid-column: span 2;">OK</button>
+  </div>
+</div>
+
+<!-- Category Grid Popup Modal -->
+<div id="category-modal">
+  <div class="cat-sheet">
+    <div class="cat-sheet-header">
+      <span>Category</span>
+      <span id="close-cat-modal" style="cursor:pointer; font-size:20px;">✕</span>
+    </div>
+    <div class="cat-grid" id="cat-grid-container"></div>
+  </div>
+</div>
+
 <script>
   const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
 
   let expenses = [];
   let accessToken = localStorage.getItem('sb_access_token') || null;
-  let currentUserEmail = (localStorage.getItem('sb_user_email') || '').toLowerCase().trim();
-  let currentUserId = null;
   let editingId = null;
-  let currentDate = new Date();
+  let currentDate = new Date(2026, 9, 1); // Oct 2026
 
   const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other', 'Clothing', 'Car', 'Rent', 'Phone', 'Toys', 'Council Tax', 'Donation'];
   let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
@@ -22,23 +309,8 @@
     'Phone': '#d35400', 'Toys': '#f1c40f', 'Council Tax': '#e67e22', 'Donation': '#16a085'
   };
 
-  function parseJwt(token) {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      return JSON.parse(window.atob(base64));
-    } catch (e) {
-      return null;
-    }
-  }
-
-  if (accessToken) {
-    const payload = parseJwt(accessToken);
-    if (payload && payload.sub) currentUserId = payload.sub;
-  }
-
   async function login() {
-    const emailInput = document.getElementById('auth-email').value.trim();
+    const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value.trim();
     const errEl = document.getElementById('auth-error');
     errEl.innerText = "";
@@ -47,21 +319,14 @@
       const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
         method: 'POST',
         headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailInput, password })
+        body: JSON.stringify({ email, password })
       });
       const data = await res.json();
       if (res.ok && data.access_token) {
         accessToken = data.access_token;
-        currentUserEmail = emailInput.toLowerCase().trim();
         localStorage.setItem('sb_access_token', accessToken);
-        localStorage.setItem('sb_user_email', currentUserEmail);
-        
-        const payload = parseJwt(accessToken);
-        if (payload && payload.sub) currentUserId = payload.sub;
-
         document.getElementById('auth-screen').style.display = 'none';
-        loadLocalForUser();
-        await syncWithSupabase();
+        syncWithSupabase();
       } else {
         errEl.innerText = data.error_description || data.msg || "Invalid login credentials.";
       }
@@ -72,11 +337,9 @@
 
   function logout() {
     accessToken = null;
-    currentUserEmail = null;
-    currentUserId = null;
-    expenses = [];
     localStorage.removeItem('sb_access_token');
-    localStorage.removeItem('sb_user_email');
+    localStorage.removeItem('expenses_data');
+    expenses = [];
     document.getElementById('auth-screen').style.display = 'flex';
   }
 
@@ -84,175 +347,38 @@
   document.getElementById('auth-password').addEventListener('keypress', (e) => { if(e.key === 'Enter') login(); });
   document.getElementById('btn-logout').addEventListener('click', logout);
 
-  if (accessToken && currentUserId) {
+  if (accessToken) {
     document.getElementById('auth-screen').style.display = 'none';
-    loadLocalForUser();
-    syncWithSupabase();
   }
 
-  function loadLocalForUser() {
-    if (!currentUserEmail) return;
-    const stored = localStorage.getItem(`expenses_data_${currentUserEmail}`);
-    expenses = stored ? JSON.parse(stored) : [];
-    updateMonthHeader();
-    updateAutoSuggest();
-  }
-
-  async function saveLocalAndSupabase(item) {
-    if (!currentUserEmail || !currentUserId) return;
-    item.user_id = currentUserId;
-
-    const index = expenses.findIndex(e => e.id === item.id);
-    if (index >= 0) {
-      expenses[index] = item;
-    } else {
-      expenses.unshift(item);
-    }
-    localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
+  function saveLocal() {
+    localStorage.setItem('expenses_data', JSON.stringify(expenses));
     renderAllViews();
     updateAutoSuggest();
-
-    // Push to Supabase
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'resolution=merge-duplicates'
-        },
-        body: JSON.stringify(item)
-      });
-      if (!res.ok) {
-        const errData = await res.json();
-        console.error("Supabase Save Error:", errData);
-      }
-    } catch (e) {
-      console.error("Cloud save network failure", e);
-    }
   }
 
   async function syncWithSupabase() {
-    if (!accessToken || !currentUserId) return;
+    if (!accessToken) return;
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${currentUserId}&select=*&order=date.desc`, {
+      const base64Url = accessToken.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(window.atob(base64));
+      const userId = payload.sub;
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${userId}&select=*&order=date.desc`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
       });
       if (res.ok) {
-        const cloudData = await res.json();
-        if (Array.isArray(cloudData)) {
-          // Merge local and cloud data so local entries are not erased
-          const map = new Map();
-          expenses.forEach(e => map.set(e.id, e));
-          cloudData.forEach(e => map.set(e.id, e));
-          expenses = Array.from(map.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
-
-          localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
-          updateMonthHeader();
-          updateAutoSuggest();
-
-          // Push any local entries that were missing from cloud up to Supabase
-          for (let item of expenses) {
-            item.user_id = currentUserId;
-            await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
-              method: 'POST',
-              headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-                'Prefer': 'resolution=merge-duplicates'
-              },
-              body: JSON.stringify(item)
-            });
-          }
+        const data = await res.json();
+        if (data) {
+          expenses = data;
+          saveLocal();
         }
       } else if (res.status === 401 || res.status === 403) {
         logout();
       }
-    } catch (e) {
-      console.error("Sync error", e);
-    }
+    } catch (e) {}
   }
-
-  // --- Excel / CSV Import Functionality ---
-  document.getElementById('import-file-input').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async function(evt) {
-      try {
-        const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-        if (rows.length < 2) {
-          alert("The file appears to be empty.");
-          return;
-        }
-
-        let importedCount = 0;
-        for (let i = 1; i < rows.length; i++) {
-          const r = rows[i];
-          if (!r || r.length === 0) continue;
-          
-          let dateStr = r[0] ? String(r[0]).trim() : new Date().toISOString().split('T')[0];
-          if (!isNaN(dateStr) && Number(dateStr) > 30000) {
-            const d = new Date((dateStr - (25567 + 2)) * 86400 * 1000);
-            dateStr = d.toISOString().split('T')[0];
-          }
-
-          const category = r[1] ? String(r[1]).trim() : 'Other';
-          const merchant = r[2] ? String(r[2]).replace(/['"]+/g, '').trim() : 'Imported';
-          const amount = r[3] !== undefined ? parseFloat(r[3]) || 0 : 0;
-          const currency = r[4] ? String(r[4]).trim() : '£';
-
-          if (amount > 0) {
-            const newItem = {
-              id: 'imp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-              user_id: currentUserId,
-              date: dateStr.substring(0, 10),
-              category: category,
-              merchant: merchant,
-              amount: amount,
-              currency: currency,
-              repeat: 'none'
-            };
-            expenses.unshift(newItem);
-            importedCount++;
-          }
-        }
-
-        if (importedCount > 0) {
-          localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
-          updateMonthHeader();
-          for (let item of expenses.slice(0, importedCount)) {
-            await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
-              method: 'POST',
-              headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-                'Prefer': 'resolution=merge-duplicates'
-              },
-              body: JSON.stringify(item)
-            });
-          }
-          alert(`Successfully imported ${importedCount} records!`);
-        } else {
-          alert("No valid expense rows found to import.");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Failed to parse the file. Please ensure it's a valid Excel or CSV file.");
-      }
-      e.target.value = '';
-    };
-    reader.readAsArrayBuffer(file);
-  });
 
   // --- Export to CSV / Excel Functionality ---
   document.getElementById('btn-export-excel').addEventListener('click', () => {
@@ -270,7 +396,7 @@
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `expenses_export_${currentUserEmail || 'user'}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `expenses_export_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -300,13 +426,13 @@
     renderDaily(e.target.value.toLowerCase());
   });
 
-  document.getElementById('btn-sync').addEventListener('click', async () => {
-    await syncWithSupabase();
+  document.getElementById('btn-sync').addEventListener('click', () => {
+    syncWithSupabase();
     alert("Synced with Supabase database!");
   });
 
-  document.getElementById('btn-stats-sync').addEventListener('click', async () => {
-    await syncWithSupabase();
+  document.getElementById('btn-stats-sync').addEventListener('click', () => {
+    syncWithSupabase();
     alert("Synced with Supabase database!");
   });
 
@@ -350,11 +476,72 @@
     }
   }
 
+  function getExpandedExpenses() {
+    let expanded = [];
+    let currY = currentDate.getFullYear();
+    let currM = currentDate.getMonth() + 1;
+    let viewTotalMonths = currY * 12 + currM;
+
+    expenses.forEach(e => {
+      expanded.push(e);
+      if (e.repeat && e.repeat !== 'none' && e.date) {
+        let [origY, origM, origD] = e.date.split('-').map(Number);
+        let startTotalMonths = origY * 12 + origM;
+
+        let maxGenMonths = viewTotalMonths;
+        if (e.end_date) {
+          let [endY, endM] = e.end_date.split('-').map(Number);
+          let endTotalMonths = endY * 12 + endM;
+          if (endTotalMonths < maxGenMonths) {
+            maxGenMonths = endTotalMonths;
+          }
+        }
+
+        if (e.repeat === 'monthly') {
+          for (let m = startTotalMonths + 1; m <= maxGenMonths; m++) {
+            let genY = Math.floor((m - 1) / 12);
+            let genM = ((m - 1) % 12) + 1;
+            let lastDayOfGenMonth = new Date(genY, genM, 0).getDate();
+            let genD = Math.min(origD, lastDayOfGenMonth);
+
+            let genDateStr = `${genY}-${String(genM).padStart(2, '0')}-${String(genD).padStart(2, '0')}`;
+            expanded.push({
+              ...e,
+              id: `${e.id}_rec_${genY}_${genM}`,
+              date: genDateStr,
+              isVirtualRecurring: true
+            });
+          }
+        } else if (e.repeat === 'yearly') {
+          let maxGenY = currY;
+          if (e.end_date) {
+            let [endY] = e.end_date.split('-').map(Number);
+            if (endY < maxGenY) maxGenY = endY;
+          }
+          for (let genY = origY + 1; genY <= maxGenY; genY++) {
+            let lastDayOfGenMonth = new Date(genY, origM, 0).getDate();
+            let genD = Math.min(origD, lastDayOfGenMonth);
+            let genDateStr = `${genY}-${String(origM).padStart(2, '0')}-${String(genD).padStart(2, '0')}`;
+            if (genY <= currY || `${genY}-${String(origM).padStart(2, '0')}` <= `${currY}-${String(currM).padStart(2, '0')}`) {
+              expanded.push({
+                ...e,
+                id: `${e.id}_rec_${genY}`,
+                date: genDateStr,
+                isVirtualRecurring: true
+              });
+            }
+          }
+        }
+      }
+    });
+    return expanded;
+  }
+
   function filterByCurrentMonth() {
     const year = currentDate.getFullYear();
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
     const prefix = `${year}-${month}`;
-    return expenses.filter(e => e.date && e.date.startsWith(prefix));
+    return getExpandedExpenses().filter(e => e.date && e.date.startsWith(prefix));
   }
 
   function renderDaily(searchTerm = "") {
@@ -397,12 +584,14 @@
       `;
 
       grouped[dateStr].forEach(item => {
+        const clickAction = item.isVirtualRecurring ? `editExpense('${item.id.split('_rec_')[0]}')` : `editExpense('${item.id}')`;
+        const repBadge = (item.repeat && item.repeat !== 'none') ? ` <span style="color:#2196f3; font-size:10px;" title="Repeating">🔄</span>` : '';
         groupHtml += `
-          <div class="trans-row" onclick="editExpense('${item.id}')">
+          <div class="trans-row" onclick="${clickAction}">
             <div class="trans-left">
               <span class="trans-category">${item.category}</span>
               <div class="trans-details">
-                <strong>${item.merchant || ''}</strong>
+                <strong>${item.merchant}${repBadge}</strong>
               </div>
             </div>
             <div class="trans-amount">£ ${parseFloat(item.amount || 0).toFixed(2)}</div>
@@ -450,7 +639,7 @@
     container.innerHTML = '';
     const monthlyMap = {};
 
-    expenses.forEach(e => {
+    getExpandedExpenses().forEach(e => {
       if (e.date) {
         const monthKey = e.date.substring(0, 7);
         monthlyMap[monthKey] = (monthlyMap[monthKey] || 0) + parseFloat(e.amount || 0);
@@ -458,268 +647,334 @@
     });
 
     Object.keys(monthlyMap).sort().reverse().forEach(m => {
-      const [y, mm] = m.split('-');
-      const dObj = new Date(y, mm - 1, 1);
-      const mLabel = dObj.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
       container.innerHTML += `
-        <div class="trans-row" style="background:#fff; margin-top:6px;" onclick="jumpToMonth(${y}, ${mm-1})">
-          <div class="trans-left"><strong>${mLabel}</strong></div>
-          <div class="trans-amount">£ ${monthlyMap[m].toFixed(2)}</div>
+        <div class="day-group">
+          <div class="day-header">
+            <strong>${m}</strong>
+            <span style="color:#ff5252; font-weight:bold;">£ ${monthlyMap[m].toFixed(2)}</span>
+          </div>
         </div>
       `;
     });
   }
 
-  function jumpToMonth(y, m) {
-    currentDate = new Date(y, m, 1);
-    document.querySelectorAll('.view-tab')[0].click();
-    updateMonthHeader();
-  }
-
   function renderSummary() {
     const container = document.getElementById('summary-container');
     container.innerHTML = '';
-    const filtered = filterByCurrentMonth();
-    const catTotals = {};
-    let total = 0;
 
-    filtered.forEach(e => {
-      const cat = e.category || 'Other';
+    const monthlyExpenses = filterByCurrentMonth();
+    let total = monthlyExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+    const catMap = {};
+
+    monthlyExpenses.forEach(e => {
       const amt = parseFloat(e.amount || 0);
-      catTotals[cat] = (catTotals[cat] || 0) + amt;
-      total += amt;
+      catMap[e.category] = (catMap[e.category] || 0) + amt;
     });
 
-    if (total === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No summary data for this month.</div>';
-      return;
-    }
-
-    Object.keys(catTotals).sort((a,b) => catTotals[b] - catTotals[a]).forEach(cat => {
-      const amt = catTotals[cat];
-      const pct = ((amt / total) * 100).toFixed(1);
+    Object.keys(catMap).forEach(cat => {
+      const amt = catMap[cat];
+      const pct = total > 0 ? ((amt / total) * 100).toFixed(1) : 0;
       container.innerHTML += `
         <div class="summary-item">
-          <div class="summary-label"><span>${cat}</span><span>£ ${amt.toFixed(2)} (${pct}%)</span></div>
-          <div class="progress-bg"><div class="progress-fill" style="width: ${pct}%; background:${categoryColors[cat] || '#ff5252'};"></div></div>
+          <div class="summary-label">
+            <span>${cat}</span>
+            <span style="color:#ff5252;">£ ${amt.toFixed(2)} (${pct}%)</span>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-fill" style="width: ${pct}%;"></div>
+          </div>
         </div>
       `;
     });
   }
 
   function renderStats() {
-    const listContainer = document.getElementById('stats-list-container');
-    listContainer.innerHTML = '';
-    const filtered = filterByCurrentMonth();
-    const catTotals = {};
-    let total = 0;
+    const monthlyExpenses = filterByCurrentMonth();
+    let total = monthlyExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
 
-    filtered.forEach(e => {
-      const cat = e.category || 'Other';
+    const catMap = {};
+    monthlyExpenses.forEach(e => {
       const amt = parseFloat(e.amount || 0);
-      catTotals[cat] = (catTotals[cat] || 0) + amt;
-      total += amt;
+      catMap[e.category] = (catMap[e.category] || 0) + amt;
     });
 
+    const sortedCategories = Object.keys(catMap).sort((a,b) => catMap[b] - catMap[a]);
     const svg = document.getElementById('svgPie');
     svg.innerHTML = '';
 
-    if (total === 0) {
-      listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No stats available for this month.</div>';
+    const fallbackColors = ['#ff6384', '#ff9f40', '#ffcd56', '#4bc0c0', '#36a2eb', '#9966ff', '#c9cbcf', '#e7e9ed', '#2ecc71', '#e74c3c'];
+
+    if (total > 0) {
+      let accumulatedPercent = 0;
+      sortedCategories.forEach((cat, idx) => {
+        const amt = catMap[cat];
+        const pct = (amt / total) * 100;
+        const color = categoryColors[cat] || fallbackColors[idx % fallbackColors.length];
+
+        const strokeDasharray = `${pct} ${100 - pct}`;
+        const strokeDashoffset = -accumulatedPercent;
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', '16');
+        circle.setAttribute('cy', '16');
+        circle.setAttribute('r', '15.915');
+        circle.setAttribute('fill', 'transparent');
+        circle.setAttribute('stroke', color);
+        circle.setAttribute('stroke-width', '32');
+        circle.setAttribute('stroke-dasharray', strokeDasharray);
+        circle.setAttribute('stroke-dashoffset', strokeDashoffset);
+
+        svg.appendChild(circle);
+        accumulatedPercent += pct;
+      });
+    } else {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', '16');
+      circle.setAttribute('cy', '16');
+      circle.setAttribute('r', '15.915');
+      circle.setAttribute('fill', '#eee');
+      svg.appendChild(circle);
+    }
+
+    const listContainer = document.getElementById('stats-list-container');
+    listContainer.innerHTML = '';
+
+    if (sortedCategories.length === 0) {
+      listContainer.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">No data for stats this month.</div>';
       return;
     }
 
-    let cumulativePercent = 0;
-    Object.keys(catTotals).sort((a,b) => catTotals[b] - catTotals[a]).forEach(cat => {
-      const amt = catTotals[cat];
-      const pct = (amt / total) * 100;
-      const color = categoryColors[cat] || '#ff5252';
-
-      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      circle.setAttribute("cx", "16");
-      circle.setAttribute("cy", "16");
-      circle.setAttribute("r", "16");
-      circle.setAttribute("fill", "transparent");
-      circle.setAttribute("stroke", color);
-      circle.setAttribute("stroke-width", "32");
-      circle.setAttribute("stroke-dasharray", `${pct} 100`);
-      circle.setAttribute("stroke-dashoffset", -cumulativePercent);
-      svg.appendChild(circle);
-
-      cumulativePercent += pct;
+    sortedCategories.forEach((cat, idx) => {
+      const amt = catMap[cat];
+      const pct = total > 0 ? Math.round((amt / total) * 100) : 0;
+      const color = categoryColors[cat] || fallbackColors[idx % fallbackColors.length];
 
       listContainer.innerHTML += `
         <div class="stats-row">
           <div style="display:flex; align-items:center; gap:12px;">
-            <div class="badge-percent" style="background:${color};">${pct.toFixed(0)}%</div>
-            <strong>${cat}</strong>
+            <div class="badge-percent" style="background-color: ${color};">${pct}%</div>
+            <strong style="font-size:15px;">${cat}</strong>
           </div>
-          <div class="trans-amount">£ ${amt.toFixed(2)}</div>
+          <div style="font-size:15px; font-weight:600;">£ ${amt.toFixed(2)}</div>
         </div>
       `;
     });
   }
 
   function updateAutoSuggest() {
-    const list = document.getElementById('merchant-list');
-    list.innerHTML = '';
-    const merchants = [...new Set(expenses.map(e => e.merchant).filter(Boolean))];
-    merchants.forEach(m => {
-      if (!hiddenMerchants.includes(m)) {
-        list.innerHTML += `<option value="${m}">`;
-      }
+    const merchantDatalist = document.getElementById('merchant-list');
+    const uniqueMerchants = [...new Set(expenses.map(e => e.merchant).filter(Boolean))]
+      .filter(m => !hiddenMerchants.includes(m));
+    merchantDatalist.innerHTML = uniqueMerchants.map(m => `<option value="${m}">`).join('');
+  }
+
+  function buildCategoryGrid() {
+    const gridContainer = document.getElementById('cat-grid-container');
+    gridContainer.innerHTML = '';
+
+    const usedCategories = expenses.map(e => e.category).filter(Boolean);
+    let allCategories = [...new Set([...baseCategories, ...customCategories, ...usedCategories])];
+
+    allCategories.sort((a, b) => a.localeCompare(b));
+
+    allCategories.forEach(cat => {
+      const tile = document.createElement('div');
+      tile.className = 'cat-tile';
+      tile.innerText = cat;
+      tile.onclick = () => {
+        document.getElementById('input-category').value = cat;
+        document.getElementById('category-modal').style.display = 'none';
+      };
+      gridContainer.appendChild(tile);
     });
+
+    const addTile = document.createElement('div');
+    addTile.className = 'cat-tile add-tile';
+    addTile.innerText = '+ Add New';
+    addTile.onclick = () => {
+      const newCat = prompt("Enter new category name:");
+      if (newCat && newCat.trim() !== "") {
+        const trimmed = newCat.trim();
+        if (!customCategories.includes(trimmed) && !baseCategories.includes(trimmed)) {
+          customCategories.push(trimmed);
+          localStorage.setItem('custom_categories', JSON.stringify(customCategories));
+        }
+        buildCategoryGrid();
+        document.getElementById('input-category').value = trimmed;
+        document.getElementById('category-modal').style.display = 'none';
+      }
+    };
+    gridContainer.appendChild(addTile);
   }
 
-  const modal = document.getElementById('entry-modal');
-  const catModal = document.getElementById('category-modal');
-
-  function openModal(isEdit = false) {
-    modal.style.display = 'flex';
-    document.getElementById('delete-btn').style.display = isEdit ? 'block' : 'none';
-  }
-
-  function closeModal() {
-    modal.style.display = 'none';
-    editingId = null;
-  }
-
-  document.getElementById('add-fab').addEventListener('click', () => {
-    editingId = null;
-    document.getElementById('modal-title').innerText = 'Expense';
-    document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('input-amount').value = '';
-    document.getElementById('input-category').value = 'Food';
-    document.getElementById('input-merchant').value = '';
-    document.getElementById('input-repeat').value = 'none';
-    openModal(false);
+  document.getElementById('category-picker-trigger').addEventListener('click', () => {
+    buildCategoryGrid();
+    document.getElementById('category-modal').style.display = 'flex';
   });
 
+  document.getElementById('close-cat-modal').addEventListener('click', () => {
+    document.getElementById('category-modal').style.display = 'none';
+  });
+
+  document.getElementById('btn-clear-merchant').addEventListener('click', () => {
+    const merchantVal = document.getElementById('input-merchant').value.trim();
+    if (!merchantVal) {
+      alert("Please type or select a merchant name to remove from suggestions.");
+      return;
+    }
+    if (confirm(`Remove "${merchantVal}" from future merchant suggestions?`)) {
+      if (!hiddenMerchants.includes(merchantVal)) {
+        hiddenMerchants.push(merchantVal);
+        localStorage.setItem('hidden_merchants', JSON.stringify(hiddenMerchants));
+      }
+      updateAutoSuggest();
+      document.getElementById('input-merchant').value = "";
+      alert(`"${merchantVal}" has been removed from future suggestions.`);
+    }
+  });
+
+  function openModal(isEdit = false) {
+    updateAutoSuggest();
+    document.getElementById('entry-modal').style.display = 'flex';
+    document.getElementById('delete-btn').style.display = isEdit ? 'block' : 'none';
+    document.getElementById('modal-title').innerText = isEdit ? 'Edit Expense' : 'Expense';
+    if (!isEdit) {
+      editingId = null;
+      document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('input-amount').value = "";
+      document.getElementById('input-merchant').value = "";
+      document.getElementById('input-category').value = "Food";
+      document.getElementById('input-repeat').value = "none";
+    }
+  }
+
+  function closeModal() { document.getElementById('entry-modal').style.display = 'none'; }
+
+  function editExpense(id) {
+    const item = expenses.find(e => e.id == id);
+    if (!item) return;
+    editingId = id;
+    openModal(true);
+    document.getElementById('input-date').value = item.date;
+    document.getElementById('input-amount').value = item.amount;
+    document.getElementById('input-merchant').value = item.merchant;
+    document.getElementById('input-category').value = item.category || 'Food';
+    document.getElementById('input-repeat').value = item.repeat || 'none';
+  }
+
+  document.getElementById('add-fab').addEventListener('click', () => openModal(false));
   document.getElementById('close-modal-top').addEventListener('click', closeModal);
   document.getElementById('close-modal-x').addEventListener('click', closeModal);
 
-  window.editExpense = function(id) {
-    const item = expenses.find(e => e.id === id);
-    if (!item) return;
-    editingId = id;
-    document.getElementById('modal-title').innerText = 'Edit Expense';
-    document.getElementById('input-date').value = item.date;
-    document.getElementById('input-amount').value = item.amount;
-    document.getElementById('input-category').value = item.category;
-    document.getElementById('input-merchant').value = item.merchant || '';
-    document.getElementById('input-repeat').value = item.repeat || 'none';
-    openModal(true);
-  };
+  document.querySelectorAll('.key-btn[data-key]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.getAttribute('data-key');
+      const input = document.getElementById('input-amount');
+      if (['+', '-', '*', '/'].includes(val)) {
+        input.value += " " + val + " ";
+      } else if (val === '=') {
+        try { input.value = eval(input.value).toString(); } catch (e) { input.value = "0"; }
+      } else {
+        input.value += val;
+      }
+    });
+  });
+
+  document.getElementById('key-backspace').addEventListener('click', () => {
+    const input = document.getElementById('input-amount');
+    input.value = input.value.trim().slice(0, -1);
+  });
 
   document.getElementById('delete-btn').addEventListener('click', async () => {
-    if (editingId && confirm("Delete this transaction?")) {
-      await deleteFromLocalAndSupabase(editingId);
-      closeModal();
-    }
-  });
+    if (!editingId || !accessToken) return;
+    
+    const item = expenses.find(e => e.id == editingId);
+    if (item && item.repeat && item.repeat !== 'none') {
+      let action = confirm(`Stop repeating "${item.merchant}" from ${currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} onward?\n\n- Click [OK] to stop future repetitions (keeps past history safe).\n- Click [Cancel] to delete all history entirely.`);
+      if (action) {
+        let prevM = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+        item.end_date = `${prevM.getFullYear()}-${String(prevM.getMonth() + 1).padStart(2, '0')}-01`;
+        saveLocal();
+        closeModal();
 
-  document.getElementById('category-picker-trigger').addEventListener('click', () => {
-    const grid = document.getElementById('cat-grid-container');
-    grid.innerHTML = '';
-    const allCats = [...baseCategories, ...customCategories];
-    allCats.forEach(c => {
-      grid.innerHTML += `<div class="cat-tile" onclick="selectCategory('${c}')"><span>📁</span>${c}</div>`;
-    });
-    grid.innerHTML += `<div class="cat-tile add-tile" onclick="addNewCategory()"><span>➕</span>Add</div>`;
-    catModal.style.display = 'flex';
-  });
-
-  document.getElementById('close-cat-modal').addEventListener('click', () => { catModal.style.display = 'none'; });
-
-  window.selectCategory = function(c) {
-    document.getElementById('input-category').value = c;
-    catModal.style.display = 'none';
-  };
-
-  window.addNewCategory = function() {
-    const name = prompt("Enter new category name:");
-    if (name && name.trim()) {
-      const c = name.trim();
-      if (!baseCategories.includes(c) && !customCategories.includes(c)) {
-        customCategories.push(c);
-        localStorage.setItem('custom_categories', JSON.stringify(customCategories));
-      }
-      selectCategory(c);
-    }
-  };
-
-  document.querySelectorAll('.key-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const key = btn.getAttribute('data-key');
-      const input = document.getElementById('input-amount');
-      if (key === null) {
-        if (btn.id === 'key-backspace') {
-          input.value = input.value.slice(0, -1);
-        } else if (btn.id === 'key-ok') {
-          saveEntry();
-        }
+        try {
+          await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
+            method: 'PATCH',
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ end_date: item.end_date })
+          });
+        } catch (e) {}
         return;
       }
-
-      if (['+', '-', '*', '/'].includes(key)) {
-        input.value += ` ${key} `;
-      } else if (key === '=') {
-        try {
-          input.value = eval(input.value.replace(/×/g, '*').replace(/÷/g, '/')) || '';
-        } catch(e) {
-          input.value = '';
-        }
-      } else {
-        input.value += key;
-      }
-    });
-  });
-
-  async function saveEntry() {
-    const date = document.getElementById('input-date').value;
-    const rawAmount = document.getElementById('input-amount').value;
-    let amount = 0;
-    try {
-      amount = eval(rawAmount.replace(/×/g, '*').replace(/÷/g, '/')) || 0;
-    } catch(e) {
-      amount = parseFloat(rawAmount) || 0;
     }
 
-    if (!date || amount <= 0) {
-      alert("Please enter a valid date and amount.");
+    expenses = expenses.filter(e => e.id != editingId);
+    saveLocal();
+    closeModal();
+
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
+        method: 'DELETE',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
+      });
+    } catch (e) {}
+  });
+
+  document.getElementById('key-ok').addEventListener('click', async () => {
+    if (!accessToken) return;
+    const merchant = document.getElementById('input-merchant').value.trim() || 'Expense';
+    const category = document.getElementById('input-category').value || 'Other';
+    const amountVal = document.getElementById('input-amount').value;
+    let amount = 0;
+    try { amount = parseFloat(eval(amountVal || '0')); } catch(e) { amount = 0; }
+    const date = document.getElementById('input-date').value;
+    const repeat = document.getElementById('input-repeat').value;
+
+    if (!amount || amount <= 0) {
+      alert("Please enter a valid amount.");
       return;
     }
 
-    const category = document.getElementById('input-category').value;
-    const merchant = document.getElementById('input-merchant').value.trim();
-    const repeat = document.getElementById('input-repeat').value;
+    if (editingId) {
+      const item = expenses.find(e => e.id == editingId);
+      if (item) {
+        item.merchant = merchant;
+        item.amount = amount;
+        item.category = category;
+        item.date = date;
+        item.repeat = repeat;
+      }
+      saveLocal();
+      closeModal();
 
-    const item = {
-      id: editingId || 'exp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-      user_id: currentUserId,
-      date: date,
-      category: category,
-      merchant: merchant,
-      amount: amount,
-      currency: '£',
-      repeat: repeat
-    };
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
+          method: 'PATCH',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ merchant, amount, category, date, repeat })
+        });
+      } catch(e) {}
+    } else {
+      const newObj = { id: Date.now().toString(), merchant, amount, category, date, currency: '£', repeat };
+      expenses.unshift(newObj);
+      saveLocal();
+      closeModal();
 
-    await saveLocalAndSupabase(item);
-    closeModal();
-  }
-
-  document.getElementById('btn-clear-merchant').addEventListener('click', () => {
-    const m = document.getElementById('input-merchant').value.trim();
-    if (m && confirm(`Hide "${m}" from future suggestions?`)) {
-      hiddenMerchants.push(m);
-      localStorage.setItem('hidden_merchants', JSON.stringify(hiddenMerchants));
-      updateAutoSuggest();
-      document.getElementById('input-merchant').value = '';
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ merchant, amount, category, date, currency: '£', repeat })
+        });
+      } catch(e) {}
     }
   });
 
-  if (accessToken && currentUserId) {
+  if (accessToken) {
+    document.getElementById('auth-screen').style.display = 'none';
+    updateMonthHeader();
     syncWithSupabase();
   }
 </script>
+</body>
+</html>
