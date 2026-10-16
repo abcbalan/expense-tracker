@@ -8,13 +8,15 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
     body { background-color: #f4f5f7; color: #333; margin: 0; padding: 0; user-select: none; }
     
-    /* Center container for desktop view */
     .app-wrapper { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; position: relative; padding-bottom: 75px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
 
     .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #fff; border-bottom: 1px solid #eee; }
     .top-bar h2 { font-size: 18px; font-weight: 600; }
+    .icon-btn { cursor: pointer; font-size: 18px; padding: 4px; }
+
     .month-selector { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; font-size: 16px; font-weight: 600; }
-    
+    .nav-arrow { cursor: pointer; padding: 0 10px; font-size: 20px; color: #ff5252; }
+
     .view-tabs { display: flex; background: #fff; border-bottom: 1px solid #e0e0e0; }
     .view-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 14px; color: #777; cursor: pointer; }
     .view-tab.active { color: #ff5252; font-weight: bold; border-bottom: 2px solid #ff5252; }
@@ -27,6 +29,10 @@
     /* Views */
     .view-panel { display: none; }
     .view-panel.active { display: block; }
+
+    /* Search Bar */
+    .search-box { display: none; padding: 10px 16px; background: #fafafa; border-bottom: 1px solid #eee; }
+    .search-box input { width: 100%; padding: 8px 12px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; }
 
     /* Daily List */
     .day-group { margin-top: 10px; background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
@@ -52,10 +58,9 @@
     .progress-bg { background: #eee; height: 8px; border-radius: 4px; overflow: hidden; }
     .progress-fill { background: #ff5252; height: 100%; border-radius: 4px; }
 
-    /* Floating Add Button aligned inside the app-wrapper */
     .fab { position: absolute; bottom: 25px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 99; }
 
-    /* Modal Form Overlay */
+    /* Modal Overlay */
     .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; display: none; flex-direction: column; z-index: 999; max-width: 480px; margin: 0 auto; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #eee; }
     .form-fields { padding: 10px 20px; flex: 1; }
@@ -75,22 +80,26 @@
 
 <div class="app-wrapper">
   <div class="top-bar">
-    <span>🔍</span>
+    <span class="icon-btn" id="btn-search">🔍</span>
     <h2>Trans.</h2>
-    <span onclick="syncWithSupabase()" style="cursor:pointer;" title="Sync Now">🔄</span>
+    <span class="icon-btn" id="btn-sync">🔄</span>
+  </div>
+
+  <div id="search-box" class="search-box">
+    <input type="text" id="search-input" placeholder="Search merchant or category...">
   </div>
 
   <div class="month-selector">
-    <span>‹</span>
+    <span class="nav-arrow" id="btn-prev-month">‹</span>
     <span id="current-month">Oct 2026</span>
-    <span>›</span>
+    <span class="nav-arrow" id="btn-next-month">›</span>
   </div>
 
   <div class="view-tabs">
-    <div class="view-tab active" onclick="switchTab('daily', this)">Daily</div>
-    <div class="view-tab" onclick="switchTab('calendar', this)">Calendar</div>
-    <div class="view-tab" onclick="switchTab('monthly', this)">Monthly</div>
-    <div class="view-tab" onclick="switchTab('summary', this)">Summary</div>
+    <div class="view-tab active" data-tab="daily">Daily</div>
+    <div class="view-tab" data-tab="calendar">Calendar</div>
+    <div class="view-tab" data-tab="monthly">Monthly</div>
+    <div class="view-tab" data-tab="summary">Summary</div>
   </div>
 
   <div class="summary-header">
@@ -99,22 +108,18 @@
     <div class="summary-box"><label>Total</label><span id="net-total">-£ 0.00</span></div>
   </div>
 
-  <!-- Daily View Panel -->
   <div id="panel-daily" class="view-panel active">
     <div id="transaction-container"></div>
   </div>
 
-  <!-- Calendar View Panel -->
   <div id="panel-calendar" class="view-panel">
     <div class="calendar-grid" id="calendar-container"></div>
   </div>
 
-  <!-- Monthly View Panel -->
   <div id="panel-monthly" class="view-panel">
     <div id="monthly-container"></div>
   </div>
 
-  <!-- Summary View Panel -->
   <div id="panel-summary" class="view-panel">
     <div id="summary-container"></div>
   </div>
@@ -122,7 +127,7 @@
   <button id="add-fab" class="fab">+</button>
 </div>
 
-<!-- Add / Edit Modal -->
+<!-- Modal Form -->
 <div class="modal" id="entry-modal">
   <div class="modal-header">
     <span id="close-modal-top" style="font-size: 16px; cursor: pointer; color: #ff5252; font-weight: bold;">‹ Back</span>
@@ -181,6 +186,7 @@
 
   let expenses = JSON.parse(localStorage.getItem('expenses_data') || '[]');
   let editingId = null;
+  let currentDate = new Date(2026, 9, 1); // Oct 2026
 
   function saveLocal() {
     localStorage.setItem('expenses_data', JSON.stringify(expenses));
@@ -203,12 +209,46 @@
     } catch (e) {}
   }
 
-  function switchTab(tabName, el) {
-    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById(`panel-${tabName}`).classList.add('active');
+  function updateMonthHeader() {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    document.getElementById('current-month').innerText = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    renderAllViews();
   }
+
+  document.getElementById('btn-prev-month').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    updateMonthHeader();
+  });
+
+  document.getElementById('btn-next-month').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    updateMonthHeader();
+  });
+
+  document.getElementById('btn-search').addEventListener('click', () => {
+    const box = document.getElementById('search-box');
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+  });
+
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    renderDaily(term);
+  });
+
+  document.getElementById('btn-sync').addEventListener('click', () => {
+    syncWithSupabase();
+    alert("Synced with Supabase database!");
+  });
+
+  document.querySelectorAll('.view-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-tab');
+      document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(`panel-${target}`).classList.add('active');
+    });
+  });
 
   function renderAllViews() {
     renderDaily();
@@ -217,27 +257,37 @@
     renderSummary();
   }
 
-  function renderDaily() {
+  function filterByCurrentMonth() {
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const prefix = `${year}-${month}`;
+    return expenses.filter(e => e.date && e.date.startsWith(prefix));
+  }
+
+  function renderDaily(searchTerm = "") {
     const container = document.getElementById('transaction-container');
     container.innerHTML = '';
 
-    let totalExp = 0;
-    const grouped = {};
+    let filtered = filterByCurrentMonth();
+    if (searchTerm) {
+      filtered = filtered.filter(e => e.merchant.toLowerCase().includes(searchTerm) || e.category.toLowerCase().includes(searchTerm));
+    }
 
-    expenses.forEach(item => {
-      totalExp += parseFloat(item.amount);
+    let totalExp = filtered.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+    document.getElementById('total-exp').innerText = '£ ' + totalExp.toFixed(2);
+    document.getElementById('net-total').innerText = '-£ ' + totalExp.toFixed(2);
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions recorded for this month.<br>Tap + to add one.</div>';
+      return;
+    }
+
+    const grouped = {};
+    filtered.forEach(item => {
       const dateKey = item.date;
       if (!grouped[dateKey]) grouped[dateKey] = [];
       grouped[dateKey].push(item);
     });
-
-    document.getElementById('total-exp').innerText = '£ ' + totalExp.toFixed(2);
-    document.getElementById('net-total').innerText = '-£ ' + totalExp.toFixed(2);
-
-    if (expenses.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions recorded.<br>Tap + to add one.</div>';
-      return;
-    }
 
     Object.keys(grouped).forEach(dateStr => {
       const dateObj = new Date(dateStr);
@@ -279,13 +329,17 @@
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     days.forEach(d => cal.innerHTML += `<div class="cal-day-name">${d}</div>`);
 
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
     const dateMap = {};
-    expenses.forEach(e => {
+    filterByCurrentMonth().forEach(e => {
       const d = parseInt(e.date.split('-')[2]);
       dateMap[d] = (dateMap[d] || 0) + parseFloat(e.amount);
     });
 
-    for (let i = 1; i <= 31; i++) {
+    for (let i = 1; i <= daysInMonth; i++) {
       const spend = dateMap[i] ? `£${dateMap[i].toFixed(0)}` : '';
       cal.innerHTML += `
         <div class="cal-cell">
@@ -322,12 +376,12 @@
     const container = document.getElementById('summary-container');
     container.innerHTML = '';
 
-    let total = 0;
+    const monthlyExpenses = filterByCurrentMonth();
+    let total = monthlyExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
     const catMap = {};
 
-    expenses.forEach(e => {
+    monthlyExpenses.forEach(e => {
       const amt = parseFloat(e.amount);
-      total += amt;
       catMap[e.category] = (catMap[e.category] || 0) + amt;
     });
 
@@ -463,8 +517,7 @@
     }
   });
 
-  renderAllViews();
-  updateAutoSuggest();
+  updateMonthHeader();
   syncWithSupabase();
 </script>
 </body>
