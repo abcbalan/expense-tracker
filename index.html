@@ -8,63 +8,88 @@
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 20px;
+      font-size: 16px;
       margin: 0;
-      padding: 16px;
+      padding: 12px;
       background-color: #f4f4f9;
       color: #333;
     }
     .container {
-      max-width: 500px;
+      max-width: 480px;
       margin: 0 auto;
       background: #fff;
-      padding: 20px;
+      padding: 16px;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    h1 { font-size: 28px; margin-bottom: 20px; text-align: center; }
-    label { font-weight: bold; font-size: 22px; display: block; margin-top: 15px; }
+    h1 { font-size: 22px; margin-bottom: 15px; text-align: center; }
+    label { font-weight: 600; font-size: 15px; display: block; margin-top: 10px; }
     input, select, button {
       width: 100%;
-      padding: 14px;
-      font-size: 20px;
-      margin-top: 8px;
-      border-radius: 8px;
-      border: 2px solid #ccc;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 4px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
       box-sizing: border-box;
     }
-    input[type="checkbox"] { width: 24px; height: 24px; }
-    .checkbox-group { display: flex; align-items: center; gap: 10px; margin-top: 15px; }
-    .checkbox-group label { margin-top: 0; }
+    input[type="checkbox"] { width: 18px; height: 18px; }
+    .checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    .checkbox-group label { margin-top: 0; font-weight: normal; }
     button.submit-btn {
       background-color: #2563eb;
       color: white;
       font-weight: bold;
       border: none;
-      margin-top: 20px;
+      margin-top: 15px;
       cursor: pointer;
     }
-    .expense-card {
-      background: #f9fafb;
-      border: 2px solid #e5e7eb;
+    
+    /* View Tabs for Daily/Weekly/Monthly/Yearly */
+    .tabs { display: flex; gap: 4px; margin-top: 20px; border-bottom: 2px solid #eee; }
+    .tab-btn {
+      flex: 1;
+      padding: 8px 4px;
+      font-size: 14px;
+      background: #f0f0f0;
+      border: none;
+      border-radius: 6px 6px 0 0;
+      cursor: pointer;
+    }
+    .tab-btn.active { background: #2563eb; color: white; font-weight: bold; }
+    
+    .total-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 10px;
       border-radius: 8px;
-      padding: 15px;
-      margin-top: 12px;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #1e3a8a;
+    }
+
+    .expense-card {
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .expense-amount { font-size: 24px; font-weight: bold; color: #111827; }
+    .expense-amount { font-size: 18px; font-weight: bold; color: #111827; }
     .delete-btn {
       background: none;
       border: none;
       color: #dc2626;
-      font-weight: bold;
-      font-size: 16px;
+      font-size: 13px;
       cursor: pointer;
       width: auto;
       padding: 0;
-      margin-top: 5px;
+      margin-top: 2px;
     }
   </style>
 </head>
@@ -109,40 +134,81 @@
       <button type="submit" class="submit-btn">Save Expense</button>
     </form>
 
-    <h2 style="margin-top: 30px;">Recent Entries</h2>
+    <!-- Reading Views Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="setFilter('all', this)">All</button>
+      <button class="tab-btn" onclick="setFilter('daily', this)">Daily</button>
+      <button class="tab-btn" onclick="setFilter('weekly', this)">Weekly</button>
+      <button class="tab-btn" onclick="setFilter('monthly', this)">Monthly</button>
+      <button class="tab-btn" onclick="setFilter('yearly', this)">Yearly</button>
+    </div>
+
+    <div id="total-banner" class="total-banner">Total: £0.00</div>
     <div id="expense-list"></div>
   </div>
 
   <script>
-    // Paste your Supabase URL & Key below
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ'; // Ensure your key stays here!
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let expenses = [];
+    let currentFilter = 'all';
 
     async function loadExpenses() {
       const { data, error } = await supabase.from('expenses').select('*').order('date', { ascending: false });
-      if (!error && data) {
+      if (error) {
+        alert("Error saving/loading: " + error.message);
+      } else if (data) {
         expenses = data;
         renderList();
         updateAutoSuggest();
       }
     }
 
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderList();
+    }
+
+    function filterExpenses() {
+      const now = new Date();
+      return expenses.filter(item => {
+        const itemDate = new Date(item.date);
+        if (currentFilter === 'daily') {
+          return itemDate.toDateString() === now.toDateString();
+        } else if (currentFilter === 'weekly') {
+          const diffDays = (now - itemDate) / (1000 * 3600 * 24);
+          return diffDays <= 7;
+        } else if (currentFilter === 'monthly') {
+          return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
+        } else if (currentFilter === 'yearly') {
+          return itemDate.getFullYear() === now.getFullYear();
+        }
+        return true;
+      });
+    }
+
     function renderList() {
       const listEl = document.getElementById('expense-list');
+      const bannerEl = document.getElementById('total-banner');
       const currency = document.getElementById('currency').value;
-      listEl.innerHTML = '';
+      const filtered = filterExpenses();
 
-      expenses.forEach(item => {
+      let total = filtered.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+      bannerEl.innerText = `Total: ${currency}${total.toFixed(2)}`;
+
+      listEl.innerHTML = '';
+      filtered.forEach(item => {
         const div = document.createElement('div');
         div.className = 'expense-card';
         div.innerHTML = `
           <div>
             <strong>${item.merchant}</strong>
-            <div style="font-size: 16px; color: #666;">${item.category} • ${item.date}</div>
-            ${item.is_recurring ? '<span style="font-size: 14px; background:#dbeafe; color:#1e40af; padding: 2px 6px; border-radius: 4px;">Monthly</span>' : ''}
+            <div style="font-size: 13px; color: #666;">${item.category} • ${item.date}</div>
+            ${item.is_recurring ? '<span style="font-size: 11px; background:#dbeafe; color:#1e40af; padding: 2px 4px; border-radius: 4px;">Monthly</span>' : ''}
           </div>
           <div style="text-align: right;">
             <div class="expense-amount">${item.currency || currency}${parseFloat(item.amount).toFixed(2)}</div>
@@ -172,20 +238,23 @@
       const is_recurring = document.getElementById('recurring').checked;
       const currency = document.getElementById('currency').value;
 
-      await supabase.from('expenses').insert([{
+      const { error } = await supabase.from('expenses').insert([{
         merchant, amount, category, is_recurring, currency,
         date: new Date().toISOString().split('T')[0]
       }]);
 
-      document.getElementById('merchant').value = '';
-      document.getElementById('amount').value = '';
-      document.getElementById('recurring').checked = false;
-      loadExpenses();
+      if (error) {
+        alert("Failed to save: " + error.message);
+      } else {
+        document.getElementById('merchant').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('recurring').checked = false;
+        loadExpenses();
+      }
     });
 
     document.getElementById('currency').addEventListener('change', renderList);
 
-    // Initial load
     loadExpenses();
   </script>
 </body>
