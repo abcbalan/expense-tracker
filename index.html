@@ -16,6 +16,7 @@
     #auth-screen h2 { margin-bottom: 20px; color: #10b981; }
     .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
     .auth-btn { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    .auth-btn:disabled { background: #a7f3d0; cursor: not-allowed; }
     .auth-error { color: #ef4444; font-size: 14px; margin-top: 10px; text-align: center; }
 
     /* Top Bar */
@@ -207,7 +208,7 @@
           </div>
           <div class="form-group" style="flex:1;">
             <label>Category</label>
-            <input type="text" id="input-category" class="form-control" readonly style="background:#fff; cursor:pointer;" value="Food" id="category-picker-trigger">
+            <input type="text" id="input-category" class="form-control" readonly style="background:#fff; cursor:pointer;" value="Food">
           </div>
         </div>
 
@@ -313,7 +314,17 @@
       const emailInput = document.getElementById('auth-email').value.trim();
       const password = document.getElementById('auth-password').value.trim();
       const errEl = document.getElementById('auth-error');
+      const btnLogin = document.getElementById('btn-login');
+      
       errEl.innerText = "";
+      
+      if (!emailInput || !password) {
+        errEl.innerText = "Please enter email and password.";
+        return;
+      }
+
+      btnLogin.innerText = "Signing in...";
+      btnLogin.disabled = true;
 
       try {
         const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
@@ -322,6 +333,10 @@
           body: JSON.stringify({ email: emailInput, password })
         });
         const data = await res.json();
+        
+        btnLogin.innerText = "Sign In";
+        btnLogin.disabled = false;
+
         if (res.ok && data.access_token) {
           accessToken = data.access_token;
           currentUserEmail = emailInput.toLowerCase().trim();
@@ -335,10 +350,13 @@
           loadLocalForUser();
           await syncWithSupabase();
         } else {
-          errEl.innerText = data.error_description || data.msg || "Invalid login credentials.";
+          errEl.innerText = data.error_description || data.msg || data.message || "Invalid login credentials.";
         }
       } catch (e) {
+        btnLogin.innerText = "Sign In";
+        btnLogin.disabled = false;
         errEl.innerText = "Connection error during login.";
+        console.error("Login Error:", e);
       }
     }
 
@@ -443,7 +461,7 @@
             updateMonthHeader();
             updateAutoSuggest();
 
-            // Push any local entries missing from cloud
+            // Push any missing local items to the cloud
             for (let item of expenses) {
               item.user_id = currentUserId;
               await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
@@ -774,3 +792,243 @@
       let total = 0;
 
       filtered.forEach(e => {
+        const cat = e.category || 'Other';
+        const amt = parseFloat(e.amount || 0);
+        catTotals[cat] = (catTotals[cat] || 0) + amt;
+        total += amt;
+      });
+
+      if (total === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No summary data for this month.</div>';
+        return;
+      }
+
+      Object.keys(catTotals).sort((a,b) => catTotals[b] - catTotals[a]).forEach(cat => {
+        const amt = catTotals[cat];
+        const pct = ((amt / total) * 100).toFixed(1);
+        container.innerHTML += `
+          <div class="summary-item">
+            <div class="summary-label"><span>${cat}</span><span>£ ${amt.toFixed(2)} (${pct}%)</span></div>
+            <div class="progress-bg"><div class="progress-fill" style="width: ${pct}%; background:${categoryColors[cat] || '#10b981'};"></div></div>
+          </div>
+        `;
+      });
+    }
+
+    function renderStats() {
+      const listContainer = document.getElementById('stats-list-container');
+      listContainer.innerHTML = '';
+      const filtered = filterByCurrentMonth();
+      const catTotals = {};
+      let total = 0;
+
+      filtered.forEach(e => {
+        const cat = e.category || 'Other';
+        const amt = parseFloat(e.amount || 0);
+        catTotals[cat] = (catTotals[cat] || 0) + amt;
+        total += amt;
+      });
+
+      const svg = document.getElementById('svgPie');
+      svg.innerHTML = '';
+
+      if (total === 0) {
+        listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No stats available for this month.</div>';
+        return;
+      }
+
+      let cumulativePercent = 0;
+      Object.keys(catTotals).sort((a,b) => catTotals[b] - catTotals[a]).forEach(cat => {
+        const amt = catTotals[cat];
+        const pct = (amt / total) * 100;
+        const color = categoryColors[cat] || '#10b981';
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", "16");
+        circle.setAttribute("cy", "16");
+        circle.setAttribute("r", "16");
+        circle.setAttribute("fill", "transparent");
+        circle.setAttribute("stroke", color);
+        circle.setAttribute("stroke-width", "32");
+        circle.setAttribute("stroke-dasharray", `${pct} 100`);
+        circle.setAttribute("stroke-dashoffset", -cumulativePercent);
+        svg.appendChild(circle);
+
+        cumulativePercent += pct;
+
+        listContainer.innerHTML += `
+          <div class="stats-row">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div class="badge-percent" style="background:${color};">${pct.toFixed(0)}%</div>
+              <strong>${cat}</strong>
+            </div>
+            <div class="trans-amount">£ ${amt.toFixed(2)}</div>
+          </div>
+        `;
+      });
+    }
+
+    function updateAutoSuggest() {
+      const list = document.getElementById('merchant-list');
+      list.innerHTML = '';
+      const merchants = [...new Set(expenses.map(e => e.merchant).filter(Boolean))];
+      merchants.forEach(m => {
+        if (!hiddenMerchants.includes(m)) {
+          list.innerHTML += `<option value="${m}">`;
+        }
+      });
+    }
+
+    const modal = document.getElementById('entry-modal');
+    const catModal = document.getElementById('category-modal');
+
+    function openModal(isEdit = false) {
+      modal.style.display = 'flex';
+      document.getElementById('delete-btn').style.display = isEdit ? 'block' : 'none';
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+      editingId = null;
+    }
+
+    document.getElementById('add-fab').addEventListener('click', () => {
+      editingId = null;
+      document.getElementById('modal-title').innerText = 'Expense';
+      document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('input-amount').value = '';
+      document.getElementById('input-category').value = 'Food';
+      document.getElementById('input-merchant').value = '';
+      document.getElementById('input-repeat').value = 'none';
+      openModal(false);
+    });
+
+    document.getElementById('close-modal-top').addEventListener('click', closeModal);
+
+    window.editExpense = function(id) {
+      const item = expenses.find(e => e.id === id);
+      if (!item) return;
+      editingId = id;
+      document.getElementById('modal-title').innerText = 'Edit Expense';
+      document.getElementById('input-date').value = item.date;
+      document.getElementById('input-amount').value = item.amount;
+      document.getElementById('input-category').value = item.category;
+      document.getElementById('input-merchant').value = item.merchant || '';
+      document.getElementById('input-repeat').value = item.repeat || 'none';
+      openModal(true);
+    };
+
+    document.getElementById('delete-btn').addEventListener('click', async () => {
+      if (editingId && confirm("Delete this transaction?")) {
+        await deleteFromLocalAndSupabase(editingId);
+        closeModal();
+      }
+    });
+
+    document.getElementById('input-category').addEventListener('click', () => {
+      const grid = document.getElementById('cat-grid-container');
+      grid.innerHTML = '';
+      const allCats = [...baseCategories, ...customCategories];
+      allCats.forEach(c => {
+        grid.innerHTML += `<div class="cat-tile" onclick="selectCategory('${c}')"><span>📁</span>${c}</div>`;
+      });
+      grid.innerHTML += `<div class="cat-tile add-tile" onclick="addNewCategory()"><span>➕</span>Add</div>`;
+      catModal.style.display = 'flex';
+    });
+
+    document.getElementById('close-cat-modal').addEventListener('click', () => { catModal.style.display = 'none'; });
+
+    window.selectCategory = function(c) {
+      document.getElementById('input-category').value = c;
+      catModal.style.display = 'none';
+    };
+
+    window.addNewCategory = function() {
+      const name = prompt("Enter new category name:");
+      if (name && name.trim()) {
+        const c = name.trim();
+        if (!baseCategories.includes(c) && !customCategories.includes(c)) {
+          customCategories.push(c);
+          localStorage.setItem('custom_categories', JSON.stringify(customCategories));
+        }
+        selectCategory(c);
+      }
+    };
+
+    document.querySelectorAll('.key-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-key');
+        const input = document.getElementById('input-amount');
+        if (key === null) {
+          if (btn.id === 'key-backspace') {
+            input.value = input.value.slice(0, -1);
+          } else if (btn.id === 'key-ok') {
+            saveEntry();
+          }
+          return;
+        }
+
+        if (['+', '-', '*', '/'].includes(key)) {
+          input.value += ` ${key} `;
+        } else if (key === '=') {
+          try {
+            input.value = eval(input.value.replace(/×/g, '*').replace(/÷/g, '/')) || '';
+          } catch(e) {
+            input.value = '';
+          }
+        } else {
+          input.value += key;
+        }
+      });
+    });
+
+    async function saveEntry() {
+      const date = document.getElementById('input-date').value;
+      const rawAmount = document.getElementById('input-amount').value;
+      let amount = 0;
+      try {
+        amount = eval(rawAmount.replace(/×/g, '*').replace(/÷/g, '/')) || 0;
+      } catch(e) {
+        amount = parseFloat(rawAmount) || 0;
+      }
+
+      if (!date || amount <= 0) {
+        alert("Please enter a valid date and amount.");
+        return;
+      }
+
+      const category = document.getElementById('input-category').value;
+      const merchant = document.getElementById('input-merchant').value.trim();
+      const repeat = document.getElementById('input-repeat').value;
+
+      const item = {
+        id: editingId || 'exp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        user_id: currentUserId,
+        date: date,
+        category: category,
+        merchant: merchant,
+        amount: amount,
+        currency: '£',
+        repeat: repeat
+      };
+
+      await saveLocalAndSupabase(item);
+      closeModal();
+    }
+
+    document.getElementById('btn-clear-merchant').addEventListener('click', () => {
+      const m = document.getElementById('input-merchant').value.trim();
+      if (m && confirm(`Hide "${m}" from future suggestions?`)) {
+        hiddenMerchants.push(m);
+        localStorage.setItem('hidden_merchants', JSON.stringify(hiddenMerchants));
+        updateAutoSuggest();
+        document.getElementById('input-merchant').value = '';
+      }
+    });
+
+    if (accessToken && currentUserId) {
+      syncWithSupabase();
+    }
+  </script>
+</body>
+</html>
