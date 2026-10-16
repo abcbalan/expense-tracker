@@ -403,7 +403,8 @@
       });
       if (res.ok) {
         const data = await res.json();
-        if (data) {
+        // Only update local if remote actually has records, preventing empty remote syncs from wiping local entries
+        if (data && data.length > 0) {
           expenses = data;
           saveLocal();
         }
