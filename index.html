@@ -48,7 +48,7 @@
     .day-header strong { font-size: 16px; color: #111; margin-right: 4px; }
     .trans-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f8f8f8; cursor: pointer; }
     .trans-left { display: flex; gap: 12px; align-items: center; }
-    .trans-category { font-size: 13px; color: #888; width: 75px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .trans-category { font-size: 13px; color: #888; width: 85px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .trans-details strong { font-size: 15px; color: #222; display: block; }
     .trans-details span { font-size: 12px; color: #aaa; }
     .trans-amount { font-size: 16px; font-weight: 600; color: #ff5252; }
@@ -207,8 +207,7 @@
     <div class="field-row"><label>Amount</label><input type="text" id="input-amount" class="amount-input" placeholder="0.00"></div>
     <div class="field-row">
       <label>Category</label>
-      <input type="text" id="input-category" placeholder="Category (e.g. Food)" list="category-list">
-      <datalist id="category-list"></datalist>
+      <select id="input-category"></select>
     </div>
     <div class="field-row">
       <label>Merchant</label>
@@ -251,17 +250,16 @@
   let editingId = null;
   let currentDate = new Date(2026, 9, 1); // Oct 2026
 
-  const defaultCategories = ['Food', 'Household', 'Education', 'Car', 'Clothing', 'Health', 'Subscriptions', 'Other'];
+  const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other', 'Clothing', 'Car', 'Rent', 'Phone', 'Toys', 'Council Tax'];
+  let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
   
   const categoryColors = {
-    'Food': '#ff6384',
-    'Household': '#ff9f40',
-    'Education': '#ffcd56',
-    'Car': '#4bc0c0',
-    'Clothing': '#36a2eb',
-    'Health': '#9966ff',
-    'Subscriptions': '#c9cbcf',
-    'Other': '#e7e9ed'
+    'Food': '#ff6384', 'Social Life': '#ff9f40', 'Self-development': '#ffcd56',
+    'Transportation': '#4bc0c0', 'Culture': '#36a2eb', 'Household': '#9966ff',
+    'Apparel': '#c9cbcf', 'Beauty': '#e7e9ed', 'Health': '#2ecc71',
+    'Education': '#e74c3c', 'Gift': '#3498db', 'Other': '#95a5a6',
+    'Clothing': '#9b59b6', 'Car': '#1abc9c', 'Rent': '#f39c12',
+    'Phone': '#d35400', 'Toys': '#f1c40f', 'Council Tax': '#e67e22'
   };
 
   async function login() {
@@ -634,14 +632,43 @@
     const uniqueMerchants = [...new Set(expenses.map(e => e.merchant).filter(Boolean))];
     merchantDatalist.innerHTML = uniqueMerchants.map(m => `<option value="${m}">`).join('');
 
-    // Populate Categories Autocomplete (Defaults + Any Custom User Categories)
-    const categoryDatalist = document.getElementById('category-list');
-    const userCategories = expenses.map(e => e.category).filter(Boolean);
-    const allCategories = [...new Set([...defaultCategories, ...userCategories])];
-    categoryDatalist.innerHTML = allCategories.map(c => `<option value="${c}">`).join('');
+    // Populate Category Dropdown (Base + Custom + "+ Add New Category")
+    const catSelect = document.getElementById('input-category');
+    const currentVal = catSelect.value;
+    
+    // Combine base categories, user custom categories, and any unique categories from past entries
+    const usedCategories = expenses.map(e => e.category).filter(Boolean);
+    const allCategories = [...new Set([...baseCategories, ...customCategories, ...usedCategories])];
+
+    let html = allCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+    html += `<option value="__ADD_NEW__" style="font-weight:bold; color:#ff5252;">+ Add New Category...</option>`;
+    
+    catSelect.innerHTML = html;
+    if (currentVal && allCategories.includes(currentVal)) {
+      catSelect.value = currentVal;
+    }
   }
 
+  // Handle Category "+ Add New Category" Selection
+  document.getElementById('input-category').addEventListener('change', (e) => {
+    if (e.target.value === '__ADD_NEW__') {
+      const newCat = prompt("Enter new category name:");
+      if (newCat && newCat.trim() !== "") {
+        const trimmed = newCat.trim();
+        if (!customCategories.includes(trimmed)) {
+          customCategories.push(trimmed);
+          localStorage.setItem('custom_categories', JSON.stringify(customCategories));
+        }
+        updateAutoSuggest();
+        e.target.value = trimmed;
+      } else {
+        e.target.value = baseCategories[0];
+      }
+    }
+  });
+
   function openModal(isEdit = false) {
+    updateAutoSuggest();
     document.getElementById('entry-modal').style.display = 'flex';
     document.getElementById('delete-btn').style.display = isEdit ? 'block' : 'none';
     document.getElementById('modal-title').innerText = isEdit ? 'Edit Expense' : 'Expense';
@@ -660,11 +687,11 @@
     const item = expenses.find(e => e.id == id);
     if (!item) return;
     editingId = id;
+    openModal(true);
     document.getElementById('input-date').value = item.date;
     document.getElementById('input-amount').value = item.amount;
     document.getElementById('input-merchant').value = item.merchant;
     document.getElementById('input-category').value = item.category || 'Food';
-    openModal(true);
   }
 
   document.getElementById('add-fab').addEventListener('click', () => openModal(false));
@@ -707,7 +734,7 @@
   document.getElementById('key-ok').addEventListener('click', async () => {
     if (!accessToken) return;
     const merchant = document.getElementById('input-merchant').value.trim() || 'Expense';
-    const category = document.getElementById('input-category').value.trim() || 'Other';
+    const category = document.getElementById('input-category').value || 'Other';
     const amountVal = document.getElementById('input-amount').value;
     let amount = 0;
     try { amount = parseFloat(eval(amountVal || '0')); } catch(e) { amount = 0; }
