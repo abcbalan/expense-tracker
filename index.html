@@ -56,7 +56,6 @@
     .trans-left { display: flex; gap: 12px; align-items: center; }
     .trans-category { font-size: 13px; color: #888; width: 85px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .trans-details strong { font-size: 15px; color: #222; display: block; }
-    .trans-details span { font-size: 12px; color: #aaa; }
     .trans-amount { font-size: 16px; font-weight: 600; color: #ff5252; }
 
     /* Calendar Grid */
@@ -113,6 +112,8 @@
     .key-btn.ok-btn { background: #ff5252; color: #fff; grid-row: span 2; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; }
     .delete-action-btn { background: #dc2626; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 8px; margin: 15px 20px; cursor: pointer; display: none; }
   </style>
+  <!-- Include SheetJS library for direct Excel/CSV parsing in browser -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -120,7 +121,7 @@
 <div id="auth-screen">
   <div class="auth-box">
     <h2>Trans. Login</h2>
-    <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
+    <input type="email" id="auth-email" class="auth-input" placeholder="Email address" value="abcbalan@gmail.com">
     <input type="password" id="auth-password" class="auth-input" placeholder="Password">
     <button class="auth-btn" id="btn-login">Log In</button>
     <div id="auth-error" class="auth-error"></div>
@@ -135,7 +136,10 @@
       <div class="top-bar">
         <span class="icon-btn" id="btn-search">🔍</span>
         <h2>Trans.</h2>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <!-- Hidden file input for Excel import -->
+          <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" style="display:none;" />
+          <span class="icon-btn" id="btn-import-excel" title="Import Excel File">📥</span>
           <span class="icon-btn" id="btn-sync" title="Sync">🔄</span>
           <span class="icon-btn" id="btn-logout" title="Log Out">🚪</span>
         </div>
@@ -370,7 +374,7 @@
       });
       if (res.ok) {
         const data = await res.json();
-        if (data) {
+        if (data && data.length > 0) {
           expenses = data;
           saveLocal();
         }
@@ -379,6 +383,78 @@
       }
     } catch (e) {}
   }
+
+  // --- Excel / CSV Import Functionality ---
+  document.getElementById('btn-import-excel').addEventListener('click', () => {
+    document.getElementById('excel-file-input').click();
+  });
+
+  document.getElementById('excel-file-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(evt) {
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet);
+
+        if (!rows || rows.length === 0) {
+          alert("The Excel file appears to be empty.");
+          return;
+        }
+
+        if (!confirm(`Found ${rows.length} records in your Excel file. Import them into your account?`)) {
+          return;
+        }
+
+        let importedCount = 0;
+        for (let row of rows) {
+          let rawDate = row['Period'] || row['date'] || row['Date'] || new Date().toISOString();
+          let dateStr = new Date(rawDate).toISOString().split('T')[0];
+          let category = row['Category'] || row['category'] || 'Other';
+          let merchant = row['Note'] || row['Description'] || row['merchant'] || 'Expense';
+          let amount = parseFloat(row['Amount'] || row['GBP'] || 0);
+          let currency = row['Currency'] || '£';
+          let repeat = 'none';
+
+          if (amount > 0) {
+            const newObj = {
+              id: 'imp_' + Math.random().toString(36).substring(2, 9) + Date.now(),
+              merchant: String(merchant),
+              amount: amount,
+              category: String(category),
+              date: dateStr,
+              currency: currency,
+              repeat: repeat
+            };
+            expenses.push(newObj);
+            importedCount++;
+
+            if (accessToken && accessToken !== 'demo-token') {
+              try {
+                await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
+                  method: 'POST',
+                  headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ merchant: newObj.merchant, amount: newObj.amount, category: newObj.category, date: newObj.date, currency: newObj.currency, repeat: newObj.repeat })
+                });
+              } catch (err) {}
+            }
+          }
+        }
+
+        saveLocal();
+        alert(`Successfully imported ${importedCount} transactions!`);
+      } catch (err) {
+        console.error(err);
+        alert("Failed to parse the Excel file. Please ensure it has valid columns (Period, Category, Note, Amount).");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
 
   function updateMonthHeader() {
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -454,7 +530,6 @@
     }
   }
 
-  // Generate expanded instances for recurring transactions with support for end_date (stopping future repetitions without deleting past entries)
   function getExpandedExpenses() {
     let expanded = [];
     let currY = currentDate.getFullYear();
@@ -467,7 +542,6 @@
         let [origY, origM, origD] = e.date.split('-').map(Number);
         let startTotalMonths = origY * 12 + origM;
 
-        // Determine upper limit for recurrence generation
         let maxGenMonths = viewTotalMonths;
         if (e.end_date) {
           let [endY, endM] = e.end_date.split('-').map(Number);
@@ -538,7 +612,7 @@
     document.querySelectorAll('.net-total-txt').forEach(el => el.innerText = '-£ ' + totalExp.toFixed(2));
 
     if (filtered.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions recorded for this month.<br>Tap + to add one.</div>';
+      container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions recorded for this month.<br>Tap + to add one or use 📥 to import Excel.</div>';
       return;
     }
 
@@ -572,7 +646,6 @@
               <span class="trans-category">${item.category}</span>
               <div class="trans-details">
                 <strong>${item.merchant}${repBadge}</strong>
-                //<span>Credit Cards</span>
               </div>
             </div>
             <div class="trans-amount">£ ${parseFloat(item.amount || 0).toFixed(2)}</div>
@@ -871,10 +944,8 @@
     
     const item = expenses.find(e => e.id == editingId);
     if (item && item.repeat && item.repeat !== 'none') {
-      // If it's a repeating entry and user wants to stop it from current viewed month onward without losing past entries:
-      let action = confirm(`Stop repeating "${item.merchant}" from ${currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} onward?\n\n- Click [OK] to stop future repetitions (keeps Oct-Jan history).\n- Click [Cancel] to delete all history entirely.`);
+      let action = confirm(`Stop repeating "${item.merchant}" from ${currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} onward?\n\n- Click [OK] to stop future repetitions (keeps past history safe).\n- Click [Cancel] to delete all history entirely.`);
       if (action) {
-        // Set end_date to the month prior to current viewed month
         let prevM = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
         item.end_date = `${prevM.getFullYear()}-${String(prevM.getMonth() + 1).padStart(2, '0')}-01`;
         saveLocal();
