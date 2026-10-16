@@ -11,7 +11,7 @@
     .app-wrapper { max-width: 480px; margin: 0 auto; background: #fff; height: 100vh; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
 
     /* Login Screen */
-    #auth-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+    #auth-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; max-width: 480px; margin: 0 auto; }
     .auth-box { width: 100%; max-width: 320px; }
     .auth-box h2 { font-size: 24px; margin-bottom: 20px; text-align: center; color: #111; }
     .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
@@ -80,10 +80,10 @@
     .badge-percent { padding: 4px 8px; border-radius: 6px; color: #fff; font-size: 12px; font-weight: bold; width: 42px; text-align: center; }
 
     /* Floating Add Button */
-    .fab { position: absolute; bottom: 75px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; z-index: 50; }
+    .fab { position: absolute; bottom: 75px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 95; }
 
     /* Bottom Navigation Bar */
-    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-around; align-items: center; }
+    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: #fff; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-around; align-items: center; z-index: 100; }
     .nav-item { text-align: center; color: #999; font-size: 11px; cursor: pointer; flex: 1; }
     .nav-item.active { color: #ff5252; font-weight: bold; }
     .nav-item span { display: block; font-size: 18px; margin-bottom: 2px; }
@@ -102,7 +102,7 @@
     .cat-sheet { background: #fff; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; flex-direction: column; max-height: 70vh; }
     .cat-sheet-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #111; color: #fff; border-top-left-radius: 12px; border-top-right-radius: 12px; }
     .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #e0e0e0; padding: 1px; overflow-y: auto; }
-    .cat-tile { background: #fff; padding: 20px 10px; text-align: center; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70px; }
+    .cat-tile { background: #fff; padding: 20px 10px; text-align: center; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 75px; color: #333; }
     .cat-tile:active { background: #f0f0f0; }
     .cat-tile.add-tile { color: #ff5252; font-weight: bold; }
 
@@ -239,7 +239,7 @@
       <label>Merchant</label>
       <input type="text" id="input-merchant" placeholder="Merchant (e.g. Tesco)" list="merchant-list">
       <datalist id="merchant-list"></datalist>
-      <span id="btn-clear-merchant" style="font-size:12px; color:#ff5252; cursor:pointer; padding:2px 6px; margin-left:4px;" title="Remove current typed merchant from future suggestions">🗑️</span>
+      <span id="btn-clear-merchant" style="font-size:12px; color:#ff5252; cursor:pointer; padding:2px 6px; margin-left:4px;" title="Remove current typed merchant from future suggestions">🗑️ Clean</span>
     </div>
     <div class="field-row">
       <label>Repeat</label>
@@ -309,33 +309,18 @@
     'Phone': '#d35400', 'Toys': '#f1c40f', 'Council Tax': '#e67e22', 'Donation': '#16a085'
   };
 
-  function showAuthError(message) {
-    const errEl = document.getElementById('auth-error');
-    if (errEl) errEl.innerText = message;
-  }
-
   async function login() {
     const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value.trim();
     const errEl = document.getElementById('auth-error');
     errEl.innerText = "";
 
-    if (!email || !password) {
-      errEl.innerText = "Please enter your email and password.";
-      return;
-    }
-
     try {
       const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
         method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-
       const data = await res.json();
       if (res.ok && data.access_token) {
         accessToken = data.access_token;
@@ -343,11 +328,10 @@
         document.getElementById('auth-screen').style.display = 'none';
         syncWithSupabase();
       } else {
-        const message = data.error_description || data.msg || data.error || 'Invalid login credentials.';
-        errEl.innerText = message;
+        errEl.innerText = data.error_description || data.msg || "Invalid login credentials.";
       }
     } catch (e) {
-      errEl.innerText = 'Connection error during login. Please check your credentials.';
+      errEl.innerText = "Connection error during login.";
     }
   }
 
@@ -357,7 +341,6 @@
     localStorage.removeItem('expenses_data');
     expenses = [];
     document.getElementById('auth-screen').style.display = 'flex';
-    showAuthError('');
   }
 
   document.getElementById('btn-login').addEventListener('click', login);
@@ -376,7 +359,6 @@
 
   async function syncWithSupabase() {
     if (!accessToken) return;
-
     try {
       const base64Url = accessToken.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -395,13 +377,11 @@
       } else if (res.status === 401 || res.status === 403) {
         logout();
       }
-    } catch (e) {
-      console.error('Sync failed:', e);
-    }
+    } catch (e) {}
   }
 
   function updateMonthHeader() {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const txt = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
     document.querySelectorAll('.current-month-txt').forEach(el => el.innerText = txt);
     renderAllViews();
@@ -426,12 +406,12 @@
 
   document.getElementById('btn-sync').addEventListener('click', () => {
     syncWithSupabase();
-    alert('Synced with Supabase database!');
+    alert("Synced with Supabase database!");
   });
 
   document.getElementById('btn-stats-sync').addEventListener('click', () => {
     syncWithSupabase();
-    alert('Synced with Supabase database!');
+    alert("Synced with Supabase database!");
   });
 
   document.getElementById('nav-trans').addEventListener('click', () => {
@@ -891,8 +871,10 @@
     
     const item = expenses.find(e => e.id == editingId);
     if (item && item.repeat && item.repeat !== 'none') {
-      let action = confirm(`Stop repeating "${item.merchant}" from ${currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} onward?\n\n- Click [OK] to stop future repetitions (keeps past history safe).\n- Click [Cancel] to delete all history entirely.`);
+      // If it's a repeating entry and user wants to stop it from current viewed month onward without losing past entries:
+      let action = confirm(`Stop repeating "${item.merchant}" from ${currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} onward?\n\n- Click [OK] to stop future repetitions (keeps Oct-Jan history).\n- Click [Cancel] to delete all history entirely.`);
       if (action) {
+        // Set end_date to the month prior to current viewed month
         let prevM = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
         item.end_date = `${prevM.getFullYear()}-${String(prevM.getMonth() + 1).padStart(2, '0')}-01`;
         saveLocal();
