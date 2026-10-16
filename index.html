@@ -300,7 +300,7 @@
   let currentUserEmail = (localStorage.getItem('sb_user_email') || '').toLowerCase().trim();
   let currentUserId = null;
   let editingId = null;
-  let currentDate = new Date(); // Current real date
+  let currentDate = new Date();
 
   const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other', 'Clothing', 'Car', 'Rent', 'Phone', 'Toys', 'Council Tax', 'Donation'];
   let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
@@ -394,11 +394,8 @@
 
   async function saveLocalAndSupabase(item) {
     if (!currentUserEmail || !currentUserId) return;
-    
-    // Ensure user_id is attached
     item.user_id = currentUserId;
 
-    // Update local array
     const index = expenses.findIndex(e => e.id === item.id);
     if (index >= 0) {
       expenses[index] = item;
@@ -409,7 +406,6 @@
     renderAllViews();
     updateAutoSuggest();
 
-    // Upsert to Supabase
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
         method: 'POST',
@@ -453,9 +449,30 @@
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
       });
       if (res.ok) {
-        const data = await res.json();
-        if (data) {
-          expenses = data;
+        const cloudData = await res.json();
+        if (Array.isArray(cloudData)) {
+          if (cloudData.length > 0) {
+            // Merge cloud data with local data by ID to keep everything synchronized and prevent data loss
+            const map = new Map();
+            expenses.forEach(e => map.set(e.id, e));
+            cloudData.forEach(e => map.set(e.id, e));
+            expenses = Array.from(map.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
+          } else if (expenses.length > 0) {
+            // If cloud has nothing yet, push existing local items up to Supabase!
+            for (let item of expenses) {
+              item.user_id = currentUserId;
+              await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
+                method: 'POST',
+                headers: {
+                  'apikey': SUPABASE_KEY,
+                  'Authorization': `Bearer ${accessToken}`,
+                  'Content-Type': 'application/json',
+                  'Prefer': 'resolution=merge-duplicates'
+                },
+                body: JSON.stringify(item)
+              });
+            }
+          }
           localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
           updateMonthHeader();
           updateAutoSuggest();
@@ -488,13 +505,11 @@
         }
 
         let importedCount = 0;
-        // Basic parser handling standard rows [Date, Category, Merchant/Note, Amount, Currency]
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
           if (!r || r.length === 0) continue;
           
           let dateStr = r[0] ? String(r[0]).trim() : new Date().toISOString().split('T')[0];
-          // Handle excel numeric serial dates if any
           if (!isNaN(dateStr) && Number(dateStr) > 30000) {
             const d = new Date((dateStr - (25567 + 2)) * 86400 * 1000);
             dateStr = d.toISOString().split('T')[0];
@@ -524,7 +539,6 @@
         if (importedCount > 0) {
           localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
           updateMonthHeader();
-          // Sync all imported items to Supabase in background
           for (let item of expenses.slice(0, importedCount)) {
             await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
               method: 'POST',
@@ -831,7 +845,6 @@
       const pct = (amt / total) * 100;
       const color = categoryColors[cat] || '#ff5252';
 
-      // Draw SVG slice
       const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       circle.setAttribute("cx", "16");
       circle.setAttribute("cy", "16");
@@ -868,7 +881,6 @@
     });
   }
 
-  // Modal Handling
   const modal = document.getElementById('entry-modal');
   const catModal = document.getElementById('category-modal');
 
@@ -916,7 +928,6 @@
     }
   });
 
-  // Category Selector Modal
   document.getElementById('category-picker-trigger').addEventListener('click', () => {
     const grid = document.getElementById('cat-grid-container');
     grid.innerHTML = '';
@@ -947,7 +958,6 @@
     }
   };
 
-  // Keypad Logic
   document.querySelectorAll('.key-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.getAttribute('data-key');
