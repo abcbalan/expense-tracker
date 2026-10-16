@@ -47,7 +47,7 @@
   <div class="top-bar">
     <span>🔍</span>
     <h2>Trans.</h2>
-    <span onclick="fetchExpenses()" style="cursor:pointer;" title="Refresh Data">🔄</span>
+    <span onclick="syncWithSupabase()" style="cursor:pointer;" title="Sync Now">🔄</span>
   </div>
 
   <div class="month-selector">
@@ -129,29 +129,31 @@
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
 
-    let expenses = [];
+    let expenses = JSON.parse(localStorage.getItem('expenses_data') || '[]');
     let editingId = null;
 
-    async function fetchExpenses() {
+    // Save locally immediately
+    function saveLocal() {
+      localStorage.setItem('expenses_data', JSON.stringify(expenses));
+      renderTransactions();
+      updateAutoSuggest();
+    }
+
+    async function syncWithSupabase() {
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?select=*&order=date.desc`, {
-          headers: { 
-            'apikey': SUPABASE_KEY, 
-            'Authorization': `Bearer ${SUPABASE_KEY}` 
-          }
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
         });
 
         if (res.ok) {
           const data = await res.json();
-          expenses = data || [];
-          renderTransactions();
-          updateAutoSuggest();
-        } else {
-          const errText = await res.text();
-          alert("Database Load Failed: " + errText);
+          if (data && data.length > 0) {
+            expenses = data;
+            saveLocal();
+          }
         }
       } catch (e) {
-        alert("Network Error: " + e.message);
+        console.log("Supabase offline or pending permission update");
       }
     }
 
@@ -267,22 +269,16 @@
 
     document.getElementById('delete-btn').addEventListener('click', async () => {
       if (!editingId) return;
-      
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
-        method: 'DELETE',
-        headers: { 
-          'apikey': SUPABASE_KEY, 
-          'Authorization': `Bearer ${SUPABASE_KEY}` 
-        }
-      });
+      expenses = expenses.filter(e => e.id != editingId);
+      saveLocal();
+      closeModal();
 
-      if (res.ok) {
-        closeModal();
-        fetchExpenses();
-      } else {
-        const errText = await res.text();
-        alert("Delete Failed: " + errText);
-      }
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
+          method: 'DELETE',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        });
+      } catch (e) {}
     });
 
     document.getElementById('key-ok').addEventListener('click', async () => {
@@ -299,49 +295,49 @@
       }
 
       if (editingId) {
-        // Update
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
-          method: 'PATCH',
-          headers: { 
-            'apikey': SUPABASE_KEY, 
-            'Authorization': `Bearer ${SUPABASE_KEY}`, 
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({ merchant, amount, category, date })
-        });
-
-        if (res.ok) {
-          closeModal();
-          fetchExpenses();
-        } else {
-          const errText = await res.text();
-          alert("Update Failed: " + errText);
+        // Edit existing locally
+        const item = expenses.find(e => e.id == editingId);
+        if (item) {
+          item.merchant = merchant;
+          item.amount = amount;
+          item.category = category;
+          item.date = date;
         }
+        saveLocal();
+        closeModal();
+
+        // Push to Supabase
+        try {
+          await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
+            method: 'PATCH',
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merchant, amount, category, date })
+          });
+        } catch(e) {}
       } else {
-        // Insert
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
-          method: 'POST',
-          headers: { 
-            'apikey': SUPABASE_KEY, 
-            'Authorization': `Bearer ${SUPABASE_KEY}`, 
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({ merchant, amount, category, date, currency: '£' })
-        });
+        // Save new locally
+        const newObj = { id: Date.now().toString(), merchant, amount, category, date, currency: '£' };
+        expenses.unshift(newObj);
+        saveLocal();
+        closeModal();
 
-        if (res.ok) {
-          closeModal();
-          fetchExpenses();
-        } else {
-          const errText = await res.text();
-          alert("Save Failed: " + errText);
-        }
+        // Push to Supabase
+        try {
+          await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merchant, amount, category, date, currency: '£' })
+          });
+        } catch(e) {}
       }
     });
 
-    fetchExpenses();
+    // Render local entries immediately on screen load
+    renderTransactions();
+    updateAutoSuggest();
+
+    // Sync online database records in background
+    syncWithSupabase();
   </script>
 </body>
 </html>
