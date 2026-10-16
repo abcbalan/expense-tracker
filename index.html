@@ -112,8 +112,6 @@
     .key-btn.ok-btn { background: #ff5252; color: #fff; grid-row: span 2; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; }
     .delete-action-btn { background: #dc2626; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 8px; margin: 15px 20px; cursor: pointer; display: none; }
   </style>
-  <!-- Include SheetJS library for direct Excel/CSV parsing in browser -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -121,7 +119,7 @@
 <div id="auth-screen">
   <div class="auth-box">
     <h2>Trans. Login</h2>
-    <input type="email" id="auth-email" class="auth-input" placeholder="Email address" value="abcbalan@gmail.com">
+    <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
     <input type="password" id="auth-password" class="auth-input" placeholder="Password">
     <button class="auth-btn" id="btn-login">Log In</button>
     <div id="auth-error" class="auth-error"></div>
@@ -137,9 +135,7 @@
         <span class="icon-btn" id="btn-search">🔍</span>
         <h2>Trans.</h2>
         <div style="display:flex; gap:8px; align-items:center;">
-          <!-- Hidden file input for Excel import -->
-          <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" style="display:none;" />
-          <span class="icon-btn" id="btn-import-excel" title="Import Excel File">📥</span>
+          <span class="icon-btn" id="btn-export-excel" title="Export to Excel / CSV">📤</span>
           <span class="icon-btn" id="btn-sync" title="Sync">🔄</span>
           <span class="icon-btn" id="btn-logout" title="Log Out">🚪</span>
         </div>
@@ -374,7 +370,7 @@
       });
       if (res.ok) {
         const data = await res.json();
-        if (data && data.length > 0) {
+        if (data) {
           expenses = data;
           saveLocal();
         }
@@ -384,76 +380,26 @@
     } catch (e) {}
   }
 
-  // --- Excel / CSV Import Functionality ---
-  document.getElementById('btn-import-excel').addEventListener('click', () => {
-    document.getElementById('excel-file-input').click();
-  });
+  // --- Export to CSV / Excel Functionality ---
+  document.getElementById('btn-export-excel').addEventListener('click', () => {
+    if (!expenses || expenses.length === 0) {
+      alert("No records available to export.");
+      return;
+    }
 
-  document.getElementById('excel-file-input').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    let csvContent = "data:text/csv;charset=utf-8,Period,Category,Note,Amount,Currency\r\n";
+    expenses.forEach(e => {
+      let row = [e.date, e.category, `"${(e.merchant || '').replace(/"/g, '""')}"`, e.amount, e.currency || '£'];
+      csvContent += row.join(",") + "\r\n";
+    });
 
-    const reader = new FileReader();
-    reader.onload = async function(evt) {
-      try {
-        const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        const rows = XLSX.utils.sheet_to_json(worksheet);
-
-        if (!rows || rows.length === 0) {
-          alert("The Excel file appears to be empty.");
-          return;
-        }
-
-        if (!confirm(`Found ${rows.length} records in your Excel file. Import them into your account?`)) {
-          return;
-        }
-
-        let importedCount = 0;
-        for (let row of rows) {
-          let rawDate = row['Period'] || row['date'] || row['Date'] || new Date().toISOString();
-          let dateStr = new Date(rawDate).toISOString().split('T')[0];
-          let category = row['Category'] || row['category'] || 'Other';
-          let merchant = row['Note'] || row['Description'] || row['merchant'] || 'Expense';
-          let amount = parseFloat(row['Amount'] || row['GBP'] || 0);
-          let currency = row['Currency'] || '£';
-          let repeat = 'none';
-
-          if (amount > 0) {
-            const newObj = {
-              id: 'imp_' + Math.random().toString(36).substring(2, 9) + Date.now(),
-              merchant: String(merchant),
-              amount: amount,
-              category: String(category),
-              date: dateStr,
-              currency: currency,
-              repeat: repeat
-            };
-            expenses.push(newObj);
-            importedCount++;
-
-            if (accessToken && accessToken !== 'demo-token') {
-              try {
-                await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
-                  method: 'POST',
-                  headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ merchant: newObj.merchant, amount: newObj.amount, category: newObj.category, date: newObj.date, currency: newObj.currency, repeat: newObj.repeat })
-                });
-              } catch (err) {}
-            }
-          }
-        }
-
-        saveLocal();
-        alert(`Successfully imported ${importedCount} transactions!`);
-      } catch (err) {
-        console.error(err);
-        alert("Failed to parse the Excel file. Please ensure it has valid columns (Period, Category, Note, Amount).");
-      }
-    };
-    reader.readAsArrayBuffer(file);
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `expenses_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   });
 
   function updateMonthHeader() {
@@ -612,7 +558,7 @@
     document.querySelectorAll('.net-total-txt').forEach(el => el.innerText = '-£ ' + totalExp.toFixed(2));
 
     if (filtered.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions recorded for this month.<br>Tap + to add one or use 📥 to import Excel.</div>';
+      container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions recorded for this month.<br>Tap + to add one.</div>';
       return;
     }
 
