@@ -3,862 +3,345 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Trans. - Money Manager</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brand: '#FF5252',
-            brandDark: '#E03E3E',
-            incomeBlue: '#2196F3',
-          },
-          fontFamily: {
-            sans: ['Inter', '-apple-system', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
+  <title>Trans.</title>
   <style>
-    * {
-      -webkit-tap-highlight-color: transparent;
-      box-sizing: border-box;
-    }
-    body {
-      touch-action: manipulation;
-    }
-    input, select, textarea {
-      user-select: text;
-    }
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    .btn-active:active {
-      transform: scale(0.95);
-      opacity: 0.85;
-    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f4f5f7; color: #333; max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 75px; user-select: none; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #fff; border-bottom: 1px solid #eee; }
+    .top-bar h2 { font-size: 18px; font-weight: 600; }
+    .month-selector { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; font-size: 16px; font-weight: 600; }
+    .view-tabs { display: flex; background: #fff; border-bottom: 1px solid #e0e0e0; }
+    .view-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 14px; color: #777; cursor: pointer; }
+    .view-tab.active { color: #ff5252; font-weight: bold; border-bottom: 2px solid #ff5252; }
+    .summary-header { display: flex; justify-content: space-around; background: #fafafa; padding: 12px 0; border-bottom: 1px solid #eee; text-align: center; }
+    .summary-box label { font-size: 12px; color: #777; display: block; margin-bottom: 2px; }
+    .summary-box span { font-size: 15px; font-weight: 600; }
+    .exp-val { color: #ff5252; }
+    .day-group { margin-top: 10px; background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+    .day-header { display: flex; justify-content: space-between; padding: 10px 16px; background: #fcfcfc; font-size: 13px; color: #666; border-bottom: 1px solid #f0f0f0; }
+    .day-header strong { font-size: 16px; color: #111; margin-right: 4px; }
+    .trans-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f8f8f8; cursor: pointer; }
+    .trans-left { display: flex; gap: 12px; align-items: center; }
+    .trans-category { font-size: 13px; color: #888; width: 75px; }
+    .trans-details strong { font-size: 15px; color: #222; display: block; }
+    .trans-details span { font-size: 12px; color: #aaa; }
+    .trans-amount { font-size: 16px; font-weight: 600; color: #ff5252; }
+    .fab { position: fixed; bottom: 25px; right: 20px; width: 60px; height: 60px; background: #ff5252; color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 12px rgba(255,82,82,0.5); cursor: pointer; border: none; z-index: 99; }
+    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; display: none; flex-direction: column; z-index: 999; max-width: 480px; margin: 0 auto; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #eee; }
+    .form-fields { padding: 10px 20px; flex: 1; }
+    .field-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #eee; font-size: 15px; }
+    .field-row label { width: 90px; color: #777; font-weight: 500; }
+    .field-row input, .field-row select { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
+    .field-row input.amount-input { color: #ff5252; font-size: 22px; font-weight: bold; }
+    .keypad-header { background: #111; color: #fff; display: flex; justify-content: space-between; padding: 10px 16px; font-size: 14px; }
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); background: #e5e5e8; gap: 1px; }
+    .key-btn { background: #fff; border: none; padding: 18px 0; font-size: 20px; font-weight: 500; cursor: pointer; text-align: center; }
+    .key-btn:active { background: #ddd; }
+    .key-btn.ok-btn { background: #ff5252; color: #fff; grid-row: span 2; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; }
+    .delete-action-btn { background: #dc2626; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 8px; margin: 15px 20px; cursor: pointer; display: none; }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex justify-center items-center p-0 md:p-4">
+<body>
 
-  <!-- Application Mobile Frame -->
-  <div id="app-root" class="w-full max-w-md h-screen md:h-[840px] bg-white flex flex-col relative shadow-2xl overflow-hidden md:rounded-2xl border border-gray-200">
+  <div class="top-bar">
+    <span>🔍</span>
+    <h2>Trans.</h2>
+    <span>⚙️</span>
+  </div>
 
-    <!-- 1. TOP HEADER BAR -->
-    <header class="flex justify-between items-center px-4 py-3 bg-white border-b border-gray-200 sticky top-0 z-10 select-none">
-      <button id="search-btn" class="p-2 text-gray-700 hover:text-gray-900 rounded-full btn-active focus:outline-none" aria-label="Search" onclick="toggleSearch()">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-      </button>
-      <h1 id="top-title" class="text-lg font-bold tracking-tight text-gray-900">Trans.</h1>
-      <div class="flex items-center space-x-1">
-        <button id="refresh-btn" class="p-2 text-gray-700 hover:text-gray-900 rounded-full btn-active focus:outline-none" title="Refresh Data" onclick="fetchExpenses()">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-        </button>
-      </div>
-    </header>
+  <div class="month-selector">
+    <span>‹</span>
+    <span id="current-month">Oct 2026</span>
+    <span>›</span>
+  </div>
 
-    <!-- SEARCH BAR OVERLAY -->
-    <div id="search-bar" class="hidden px-4 py-2 bg-gray-50 border-b border-gray-200">
-      <input type="text" id="search-input" placeholder="Search merchant or category..." class="w-full px-3 py-1.5 text-xs bg-white border border-gray-300 rounded-lg outline-none focus:border-brand" oninput="renderCurrentView()">
+  <div class="view-tabs">
+    <div class="view-tab active">Daily</div>
+    <div class="view-tab">Calendar</div>
+    <div class="view-tab">Monthly</div>
+    <div class="view-tab">Summary</div>
+  </div>
+
+  <div class="summary-header">
+    <div class="summary-box"><label>Income</label><span style="color:#2196f3;">£ 0.00</span></div>
+    <div class="summary-box"><label>Exp.</label><span class="exp-val" id="total-exp">£ 0.00</span></div>
+    <div class="summary-box"><label>Total</label><span id="net-total">-£ 0.00</span></div>
+  </div>
+
+  <div id="transaction-container"></div>
+  <button id="add-fab" class="fab">+</button>
+
+  <!-- Add / Edit Modal -->
+  <div class="modal" id="entry-modal">
+    <div class="modal-header">
+      <span id="close-modal-top" style="font-size: 16px; cursor: pointer; color: #ff5252; font-weight: bold;">‹ Back</span>
+      <h3 id="modal-title" style="font-size: 16px;">Expense</h3>
+      <span id="close-modal-x" style="cursor: pointer; font-size: 18px;">✕</span>
     </div>
 
-    <!-- 2. MONTH SELECTOR & SUB-NAV (VISIBLE ON TRANS TAB) -->
-    <div id="trans-subnav-container">
-      <div class="flex justify-between items-center px-6 py-2 bg-white text-gray-800 text-sm font-semibold border-b border-gray-100 select-none">
-        <button id="prev-month" class="p-1.5 text-gray-500 hover:text-gray-900 btn-active focus:outline-none">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
-        </button>
-        <span id="current-month-display" class="tracking-wide text-base font-semibold">Oct 2026</span>
-        <button id="next-month" class="p-1.5 text-gray-500 hover:text-gray-900 btn-active focus:outline-none">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
-        </button>
+    <div class="form-fields">
+      <div class="field-row"><label>Date</label><input type="date" id="input-date"></div>
+      <div class="field-row"><label>Amount</label><input type="text" id="input-amount" class="amount-input" placeholder="0.00"></div>
+      <div class="field-row">
+        <label>Category</label>
+        <select id="input-category">
+          <option value="Food">Food</option>
+          <option value="Car">Car</option>
+          <option value="Household">Household</option>
+          <option value="Subscriptions">Subscriptions</option>
+          <option value="Other">Other</option>
+        </select>
       </div>
-
-      <!-- 3. TOP VIEW MODE TABS -->
-      <nav class="flex bg-white border-b border-gray-200 text-xs font-medium text-gray-500 select-none">
-        <button class="view-tab flex-1 py-2.5 text-center border-b-2 border-brand text-brand font-bold transition-all" data-tab="daily">Daily</button>
-        <button class="view-tab flex-1 py-2.5 text-center border-b-2 border-transparent hover:text-gray-700 transition-all" data-tab="calendar">Calendar</button>
-        <button class="view-tab flex-1 py-2.5 text-center border-b-2 border-transparent hover:text-gray-700 transition-all" data-tab="monthly">Monthly</button>
-        <button class="view-tab flex-1 py-2.5 text-center border-b-2 border-transparent hover:text-gray-700 transition-all" data-tab="summary">Summary</button>
-      </nav>
-
-      <!-- 4. SUMMARY HEADER BANNER -->
-      <section class="grid grid-cols-3 bg-gray-50 py-2.5 px-2 text-center border-b border-gray-200 select-none">
-        <div class="flex flex-col">
-          <span class="text-[11px] text-gray-500 font-medium">Income</span>
-          <span id="header-income" class="text-xs sm:text-sm font-semibold text-incomeBlue">£0.00</span>
-        </div>
-        <div class="flex flex-col border-x border-gray-200">
-          <span class="text-[11px] text-gray-500 font-medium">Exp.</span>
-          <span id="header-expense" class="text-xs sm:text-sm font-semibold text-brand">£0.00</span>
-        </div>
-        <div class="flex flex-col">
-          <span class="text-[11px] text-gray-500 font-medium">Total</span>
-          <span id="header-total" class="text-xs sm:text-sm font-semibold text-gray-800">£0.00</span>
-        </div>
-      </section>
+      <div class="field-row">
+        <label>Merchant</label>
+        <input type="text" id="input-merchant" placeholder="Merchant/Shop (e.g. Tesco)" list="merchant-list">
+        <datalist id="merchant-list"></datalist>
+      </div>
     </div>
 
-    <!-- 5. MAIN CONTENT CONTAINER -->
-    <main id="main-content" class="flex-1 overflow-y-auto bg-gray-100 no-scrollbar pb-24">
-      <div id="view-container" class="w-full"></div>
-    </main>
+    <button id="delete-btn" class="delete-action-btn">Delete Transaction</button>
 
-    <!-- 6. FLOATING ADD ACTION BUTTON (FAB) -->
-    <button id="add-fab-btn" type="button" class="absolute bottom-16 right-5 w-14 h-14 bg-brand text-white rounded-full shadow-xl hover:bg-brandDark flex items-center justify-center text-3xl font-light btn-active transition-transform z-30 focus:outline-none cursor-pointer">
-      +
-    </button>
-
-    <!-- 7. BOTTOM NAVBAR -->
-    <footer class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center py-2 z-20 select-none">
-      <button class="nav-bottom flex flex-col items-center text-brand font-medium" data-nav="trans">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-        <span class="text-[10px] font-bold mt-0.5">Trans.</span>
-      </button>
-      <button class="nav-bottom flex flex-col items-center text-gray-400 hover:text-gray-600" data-nav="stats">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-        <span class="text-[10px] font-bold mt-0.5">Stats</span>
-      </button>
-      <button class="nav-bottom flex flex-col items-center text-gray-400 hover:text-gray-600" data-nav="accounts">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-        <span class="text-[10px] font-bold mt-0.5">Accounts</span>
-      </button>
-      <button class="nav-bottom flex flex-col items-center text-gray-400 hover:text-gray-600" data-nav="more">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
-        <span class="text-[10px] font-bold mt-0.5">More</span>
-      </button>
-    </footer>
-
-    <!-- 8. ADD ENTRY MODAL WITH CALCULATOR -->
-    <div id="entry-modal" class="absolute inset-0 bg-white z-50 flex flex-col hidden transition-all duration-200">
-      
-      <!-- Modal Header -->
-      <div class="flex justify-between items-center px-4 py-3 border-b border-gray-200 bg-white">
-        <button id="modal-cancel-btn" type="button" class="text-brand font-semibold text-sm flex items-center btn-active">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
-          Cancel
-        </button>
-        <h2 id="modal-title" class="text-base font-bold text-gray-900">Add Transaction</h2>
-        <button id="modal-close-x" type="button" class="text-gray-400 hover:text-gray-600 btn-active p-1">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-
-      <!-- Type Switcher (Income / Expense) -->
-      <div class="px-6 py-2.5 bg-white border-b border-gray-100">
-        <div class="flex rounded-lg border border-brand overflow-hidden text-xs font-semibold">
-          <button type="button" class="type-tab flex-1 py-2 text-center text-brand bg-white" data-type="Income">Income</button>
-          <button type="button" class="type-tab flex-1 py-2 text-center text-white bg-brand font-bold" data-type="Expense">Expense</button>
-        </div>
-      </div>
-
-      <!-- Input Form Fields -->
-      <div class="flex-1 overflow-y-auto px-4 py-2 space-y-3 bg-white no-scrollbar text-sm">
-        
-        <div class="flex items-center border-b border-gray-200 py-2">
-          <label class="w-24 text-gray-400 font-medium">Date</label>
-          <input type="date" id="field-date" class="flex-1 bg-transparent font-medium text-gray-800 outline-none">
-        </div>
-
-        <div class="flex items-center border-b border-brand/40 py-2">
-          <label class="w-24 text-gray-400 font-medium">Amount</label>
-          <div class="flex flex-1 items-center space-x-1">
-            <span id="field-currency-symbol" class="bg-gray-100 text-gray-700 rounded px-2 py-0.5 text-xs font-bold">£</span>
-            <input type="text" id="field-amount" readonly placeholder="0.00" class="flex-1 bg-transparent text-xl font-bold text-brand outline-none cursor-pointer">
-          </div>
-        </div>
-
-        <div class="flex items-center border-b border-gray-200 py-2">
-          <label class="w-24 text-gray-400 font-medium">Merchant</label>
-          <input type="text" id="field-merchant" placeholder="Shop or business name" list="merchant-list-options" class="flex-1 bg-transparent font-medium text-gray-800 outline-none">
-          <datalist id="merchant-list-options"></datalist>
-        </div>
-
-        <div class="flex items-center border-b border-gray-200 py-2">
-          <label class="w-24 text-gray-400 font-medium">Category</label>
-          <select id="field-category" class="flex-1 bg-transparent font-medium text-gray-800 outline-none cursor-pointer">
-            <option value="Food">Food</option>
-            <option value="Car">Car</option>
-            <option value="Household">Household</option>
-            <option value="Subscriptions">Subscriptions</option>
-            <option value="Shopping">Shopping</option>
-            <option value="Bills">Bills</option>
-            <option value="Salary">Salary</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <div class="flex items-center border-b border-gray-200 py-2">
-          <label class="w-24 text-gray-400 font-medium">Account</label>
-          <select id="field-account" class="flex-1 bg-transparent font-medium text-gray-800 outline-none cursor-pointer">
-            <option value="Credit Cards">Credit Cards</option>
-            <option value="Debit Card">Debit Card</option>
-            <option value="Cash">Cash</option>
-          </select>
-        </div>
-
-      </div>
-
-      <!-- Calculator Display -->
-      <div class="bg-gray-800 text-white text-xs px-4 py-2 flex justify-between items-center font-medium select-none">
-        <span>Keypad Display</span>
-        <span id="calc-preview-expr" class="text-gray-300 font-mono text-sm"></span>
-      </div>
-
-      <!-- Keypad -->
-      <div class="grid grid-cols-4 bg-gray-200 gap-px text-gray-800 text-lg font-medium select-none">
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="+">+</button>
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="-">-</button>
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="*">×</button>
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="/">÷</button>
-
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="7">7</button>
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="8">8</button>
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="9">9</button>
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 font-bold" data-key="=">=</button>
-
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="4">4</button>
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="5">5</button>
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="6">6</button>
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key=".">.</button>
-
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="1">1</button>
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="2">2</button>
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200" data-key="3">3</button>
-        <button type="button" id="keypad-backspace" class="bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 text-gray-600">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path></svg>
-        </button>
-
-        <button type="button" class="keypad-btn bg-white py-3 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 col-span-2" data-key="0">0</button>
-        <button type="button" id="keypad-ok-btn" class="bg-brand text-white font-bold py-3 flex items-center justify-center hover:bg-brandDark active:opacity-90 col-span-2 text-base tracking-wider cursor-pointer">
-          SAVE
-        </button>
-      </div>
-
+    <div class="keypad-header"><span>Keypad Entry</span></div>
+    <div class="keypad">
+      <button class="key-btn" data-key="+">+</button>
+      <button class="key-btn" data-key="-">-</button>
+      <button class="key-btn" data-key="*">×</button>
+      <button class="key-btn" data-key="/">÷</button>
+      <button class="key-btn" data-key="7">7</button>
+      <button class="key-btn" data-key="8">8</button>
+      <button class="key-btn" data-key="9">9</button>
+      <button class="key-btn" data-key="=">=</button>
+      <button class="key-btn" data-key="4">4</button>
+      <button class="key-btn" data-key="5">5</button>
+      <button class="key-btn" data-key="6">6</button>
+      <button class="key-btn" data-key=".">.</button>
+      <button class="key-btn" data-key="1">1</button>
+      <button class="key-btn" data-key="2">2</button>
+      <button class="key-btn" data-key="3">3</button>
+      <button class="key-btn" id="key-backspace">⌫</button>
+      <button class="key-btn" style="grid-column: span 2;" data-key="0">0</button>
+      <button class="key-btn ok-btn" id="key-ok" style="grid-column: span 2;">OK</button>
     </div>
-
   </div>
 
   <script>
-    // SUPABASE REST CONFIGURATION
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
 
-    // APP STATE
-    let expensesList = JSON.parse(localStorage.getItem('mm_expenses') || '[]');
-    let userCurrency = localStorage.getItem('mm_currency') || '£';
-    let currentCalcExpr = "";
-    let selectedType = "Expense";
-    let activeBottomNav = "trans"; // 'trans', 'stats', 'accounts', 'more'
-    let activeTransTab = "daily";  // 'daily', 'calendar', 'monthly', 'summary'
-    let currentDateCursor = new Date(2026, 9, 1); // Oct 2026
+    let expenses = [];
+    let editingId = null;
 
-    // DOM ELEMENTS
-    const viewContainer = document.getElementById('view-container');
-    const transSubnavContainer = document.getElementById('trans-subnav-container');
-    const topTitle = document.getElementById('top-title');
-    const addFabBtn = document.getElementById('add-fab-btn');
-    const entryModal = document.getElementById('entry-modal');
-    const modalCancelBtn = document.getElementById('modal-cancel-btn');
-    const modalCloseX = document.getElementById('modal-close-x');
-    const fieldAmount = document.getElementById('field-amount');
-    const fieldDate = document.getElementById('field-date');
-    const fieldCategory = document.getElementById('field-category');
-    const fieldMerchant = document.getElementById('field-merchant');
-    const fieldAccount = document.getElementById('field-account');
-    const fieldCurrencySymbol = document.getElementById('field-currency-symbol');
-    const calcPreviewExpr = document.getElementById('calc-preview-expr');
-    const keypadOkBtn = document.getElementById('keypad-ok-btn');
-    const keypadBackspace = document.getElementById('keypad-backspace');
+    // Local Storage backup ensuring data NEVER disappears on refresh
+    function loadLocal() {
+      const saved = localStorage.getItem('expenses_data');
+      if (saved) {
+        expenses = JSON.parse(saved);
+        renderTransactions();
+        updateAutoSuggest();
+      }
+    }
 
-    // Header Summary Elements
-    const headerIncome = document.getElementById('header-income');
-    const headerExpense = document.getElementById('header-expense');
-    const headerTotal = document.getElementById('header-total');
-    const currentMonthDisplay = document.getElementById('current-month-display');
-
-    // --- DATA STORAGE & REST SYNC ---
-    function saveLocalExpenses() {
-      localStorage.setItem('mm_expenses', JSON.stringify(expensesList));
+    function saveLocal() {
+      localStorage.setItem('expenses_data', JSON.stringify(expenses));
     }
 
     async function fetchExpenses() {
+      loadLocal(); // Load local data first instantly
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?select=*&order=date.desc`, {
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
         });
         if (res.ok) {
-          const remoteData = await res.json();
-          if (Array.isArray(remoteData) && remoteData.length > 0) {
-            expensesList = remoteData;
-            saveLocalExpenses();
+          const data = await res.json();
+          if (data && data.length > 0) {
+            expenses = data;
+            saveLocal();
+            renderTransactions();
+            updateAutoSuggest();
           }
         }
-      } catch (err) {
-        console.warn("Supabase fetch fallback to local storage:", err);
-      }
-      renderCurrentView();
-      updateMerchantSuggestions();
+      } catch (e) { console.log('Offline/Supabase sync standby'); }
     }
 
-    async function createExpense(entry) {
-      entry.id = entry.id || 'loc_' + Date.now();
-      expensesList.unshift(entry);
-      saveLocalExpenses();
-      renderCurrentView();
-      showToast("Transaction saved!");
+    function renderTransactions() {
+      const container = document.getElementById('transaction-container');
+      container.innerHTML = '';
 
-      try {
-        await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(entry)
+      let totalExp = 0;
+      const grouped = {};
+
+      expenses.forEach(item => {
+        totalExp += parseFloat(item.amount);
+        const dateKey = item.date;
+        if (!grouped[dateKey]) grouped[dateKey] = [];
+        grouped[dateKey].push(item);
+      });
+
+      document.getElementById('total-exp').innerText = '£ ' + totalExp.toFixed(2);
+      document.getElementById('net-total').innerText = '-£ ' + totalExp.toFixed(2);
+
+      if (expenses.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">No transactions recorded.<br>Tap + to add one.</div>';
+        return;
+      }
+
+      Object.keys(grouped).forEach(dateStr => {
+        const dateObj = new Date(dateStr);
+        const dayNum = dateObj.getDate();
+        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+        let dayTotal = grouped[dateStr].reduce((sum, item) => sum + parseFloat(item.amount), 0);
+
+        let groupHtml = `
+          <div class="day-group">
+            <div class="day-header">
+              <div><strong>${dayNum}</strong> <span style="background:#888;color:#fff;padding:1px 4px;border-radius:3px;font-size:10px;">${dayName}</span></div>
+              <div style="color: #ff5252; font-weight: 600;">£ ${dayTotal.toFixed(2)}</div>
+            </div>
+        `;
+
+        grouped[dateStr].forEach(item => {
+          groupHtml += `
+            <div class="trans-row" onclick="editExpense('${item.id}')">
+              <div class="trans-left">
+                <span class="trans-category">${item.category}</span>
+                <div class="trans-details">
+                  <strong>${item.merchant}</strong>
+                  <span>Credit Cards</span>
+                </div>
+              </div>
+              <div class="trans-amount">£ ${parseFloat(item.amount).toFixed(2)}</div>
+            </div>
+          `;
         });
-      } catch (err) {
-        console.warn("Supabase sync issue (saved locally):", err);
+
+        groupHtml += `</div>`;
+        container.innerHTML += groupHtml;
+      });
+    }
+
+    function updateAutoSuggest() {
+      const datalist = document.getElementById('merchant-list');
+      const uniqueMerchants = [...new Set(expenses.map(e => e.merchant))];
+      datalist.innerHTML = uniqueMerchants.map(m => `<option value="${m}">`).join('');
+    }
+
+    function openModal(isEdit = false) {
+      document.getElementById('entry-modal').style.display = 'flex';
+      document.getElementById('delete-btn').style.display = isEdit ? 'block' : 'none';
+      document.getElementById('modal-title').innerText = isEdit ? 'Edit Expense' : 'Expense';
+      if (!isEdit) {
+        editingId = null;
+        document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('input-amount').value = "";
+        document.getElementById('input-merchant').value = "";
       }
     }
 
-    async function deleteExpense(id) {
-      expensesList = expensesList.filter(e => e.id !== id);
-      saveLocalExpenses();
-      renderCurrentView();
-      showToast("Transaction deleted");
+    function closeModal() { document.getElementById('entry-modal').style.display = 'none'; }
 
+    function editExpense(id) {
+      const item = expenses.find(e => e.id == id);
+      if (!item) return;
+      editingId = id;
+      document.getElementById('input-date').value = item.date;
+      document.getElementById('input-amount').value = item.amount;
+      document.getElementById('input-merchant').value = item.merchant;
+      document.getElementById('input-category').value = item.category || 'Food';
+      openModal(true);
+    }
+
+    document.getElementById('add-fab').addEventListener('click', () => openModal(false));
+    document.getElementById('close-modal-top').addEventListener('click', closeModal);
+    document.getElementById('close-modal-x').addEventListener('click', closeModal);
+
+    document.querySelectorAll('.key-btn[data-key]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-key');
+        const input = document.getElementById('input-amount');
+        if (['+', '-', '*', '/'].includes(val)) {
+          input.value += " " + val + " ";
+        } else if (val === '=') {
+          try { input.value = eval(input.value).toString(); } catch (e) { input.value = "0"; }
+        } else {
+          input.value += val;
+        }
+      });
+    });
+
+    document.getElementById('key-backspace').addEventListener('click', () => {
+      const input = document.getElementById('input-amount');
+      input.value = input.value.trim().slice(0, -1);
+    });
+
+    document.getElementById('delete-btn').addEventListener('click', async () => {
+      if (!editingId) return;
+      expenses = expenses.filter(e => e.id != editingId);
+      saveLocal();
+      renderTransactions();
+      
       try {
-        await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${id}`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
           method: 'DELETE',
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
         });
-      } catch (err) {}
-    }
-
-    // --- MAIN RENDER CONTROLLER ---
-    function renderCurrentView() {
-      fieldCurrencySymbol.textContent = userCurrency;
-
-      if (activeBottomNav === 'trans') {
-        transSubnavContainer.classList.remove('hidden');
-        topTitle.textContent = 'Trans.';
-        addFabBtn.classList.remove('hidden');
-        updateMonthDisplay();
-
-        if (activeTransTab === 'daily') renderDailyView();
-        else if (activeTransTab === 'calendar') renderCalendarView();
-        else if (activeTransTab === 'monthly') renderMonthlyView();
-        else if (activeTransTab === 'summary') renderSummaryView();
-      } else {
-        transSubnavContainer.classList.add('hidden');
-        if (activeBottomNav === 'stats') {
-          topTitle.textContent = 'Stats';
-          addFabBtn.classList.add('hidden');
-          renderStatsView();
-        } else if (activeBottomNav === 'accounts') {
-          topTitle.textContent = 'Accounts';
-          addFabBtn.classList.remove('hidden');
-          renderAccountsView();
-        } else if (activeBottomNav === 'more') {
-          topTitle.textContent = 'More Options';
-          addFabBtn.classList.add('hidden');
-          renderMoreView();
-        }
-      }
-    }
-
-    function getFilteredMonthExpenses() {
-      const year = currentDateCursor.getFullYear();
-      const month = currentDateCursor.getMonth();
-      const query = (document.getElementById('search-input')?.value || '').toLowerCase();
-
-      return expensesList.filter(item => {
-        const d = new Date(item.date);
-        const matchMonth = (d.getFullYear() === year && d.getMonth() === month);
-        if (!matchMonth) return false;
-
-        if (query) {
-          const merchant = (item.merchant || '').toLowerCase();
-          const category = (item.category || '').toLowerCase();
-          return merchant.includes(query) || category.includes(query);
-        }
-        return true;
-      });
-    }
-
-    function updateMonthDisplay() {
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      currentMonthDisplay.textContent = `${monthNames[currentDateCursor.getMonth()]} ${currentDateCursor.getFullYear()}`;
-    }
-
-    // --- TRANS VIEWS ---
-    function renderDailyView() {
-      const items = getFilteredMonthExpenses();
-      viewContainer.innerHTML = '';
-
-      let income = 0, expense = 0;
-      items.forEach(i => {
-        const a = parseFloat(i.amount) || 0;
-        if (i.type === 'Income') income += a;
-        else expense += Math.abs(a);
-      });
-      updateHeaderSummary(income, expense);
-
-      if (items.length === 0) {
-        viewContainer.innerHTML = `
-          <div class="flex flex-col items-center justify-center py-20 px-4 text-center select-none">
-            <div class="w-16 h-16 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center mb-3">
-              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            <p class="text-sm font-semibold text-gray-600">No transactions recorded</p>
-            <p class="text-xs text-gray-400 mt-1">Tap the red plus (+) button below to add your first expense.</p>
-          </div>`;
-        return;
-      }
-
-      const grouped = {};
-      items.forEach(item => {
-        const d = item.date || 'Undated';
-        if (!grouped[d]) grouped[d] = [];
-        grouped[d].push(item);
-      });
-
-      Object.keys(grouped).sort().reverse().forEach(dateStr => {
-        const dateObj = new Date(dateStr);
-        const dayNum = isNaN(dateObj.getDate()) ? '--' : dateObj.getDate();
-        const dayName = isNaN(dateObj.getDay()) ? '' : dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-        const dayTotal = grouped[dateStr].reduce((acc, curr) => acc + (curr.type === 'Income' ? -parseFloat(curr.amount) : parseFloat(curr.amount)), 0);
-
-        const groupDiv = document.createElement('div');
-        groupDiv.className = "bg-white mb-2 border-y border-gray-200 shadow-sm";
-
-        let html = `
-          <div class="flex justify-between items-center px-4 py-2 bg-gray-50 border-b border-gray-100 text-xs">
-            <div class="flex items-center space-x-1.5">
-              <span class="text-base font-bold text-gray-900">${dayNum}</span>
-              <span class="bg-gray-400 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">${dayName}</span>
-            </div>
-            <span class="font-bold text-brand text-xs">${userCurrency}${dayTotal.toFixed(2)}</span>
-          </div>`;
-
-        grouped[dateStr].forEach(entry => {
-          const isInc = entry.type === 'Income';
-          const amtVal = Math.abs(parseFloat(entry.amount) || 0).toFixed(2);
-          html += `
-            <div class="flex justify-between items-center px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50">
-              <div class="flex items-center space-x-3">
-                <span class="text-xs font-semibold px-2 py-1 bg-gray-100 rounded text-gray-600">${escapeHtml(entry.category || 'Other')}</span>
-                <div class="flex flex-col">
-                  <span class="text-sm font-semibold text-gray-900">${escapeHtml(entry.merchant || 'General')}</span>
-                  <span class="text-[11px] text-gray-400">${escapeHtml(entry.account || 'Card')}</span>
-                </div>
-              </div>
-              <div class="flex items-center space-x-2">
-                <span class="text-sm font-bold ${isInc ? 'text-incomeBlue' : 'text-brand'}">
-                  ${isInc ? '+' : '-'}${userCurrency}${amtVal}
-                </span>
-                <button onclick="deleteExpense('${entry.id}')" class="text-gray-300 hover:text-red-500 p-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
-              </div>
-            </div>`;
-        });
-        groupDiv.innerHTML = html;
-        viewContainer.appendChild(groupDiv);
-      });
-    }
-
-    function renderCalendarView() {
-      const year = currentDateCursor.getFullYear();
-      const month = currentDateCursor.getMonth();
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      const items = getFilteredMonthExpenses();
-      const dailyTotals = {};
-      items.forEach(item => {
-        const day = new Date(item.date).getDate();
-        const amt = parseFloat(item.amount) || 0;
-        dailyTotals[day] = (dailyTotals[day] || 0) + (item.type === 'Expense' ? amt : -amt);
-      });
-
-      let gridHtml = `<div class="bg-white m-3 p-3 rounded-xl shadow-sm border border-gray-200">
-        <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-400 mb-2">
-          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
-        </div>
-        <div class="grid grid-cols-7 gap-1 text-center">`;
-
-      for (let i = 0; i < firstDay; i++) {
-        gridHtml += `<div class="h-12 bg-gray-50/50 rounded"></div>`;
-      }
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const tot = dailyTotals[d];
-        gridHtml += `
-          <div class="h-12 border border-gray-100 rounded p-0.5 flex flex-col justify-between items-center text-[10px]">
-            <span class="font-bold text-gray-700">${d}</span>
-            ${tot ? `<span class="text-[9px] font-bold text-brand leading-none">${userCurrency}${Math.round(tot)}</span>` : ''}
-          </div>`;
-      }
-
-      gridHtml += `</div></div>`;
-      viewContainer.innerHTML = gridHtml;
-    }
-
-    function renderMonthlyView() {
-      const monthlyTotals = {};
-      expensesList.forEach(item => {
-        const mKey = item.date ? item.date.substring(0, 7) : 'Unknown';
-        if (!monthlyTotals[mKey]) monthlyTotals[mKey] = { inc: 0, exp: 0 };
-        const amt = parseFloat(item.amount) || 0;
-        if (item.type === 'Income') monthlyTotals[mKey].inc += amt;
-        else monthlyTotals[mKey].exp += Math.abs(amt);
-      });
-
-      let html = `<div class="p-3 space-y-2">`;
-      Object.keys(monthlyTotals).sort().reverse().forEach(m => {
-        const data = monthlyTotals[m];
-        html += `
-          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center text-xs">
-            <div>
-              <div class="font-bold text-gray-800 text-sm">${m}</div>
-              <div class="text-gray-400 mt-0.5">Income: <span class="text-incomeBlue font-semibold">${userCurrency}${data.inc.toFixed(2)}</span></div>
-            </div>
-            <div class="text-right">
-              <div class="font-bold text-brand text-sm">${userCurrency}${data.exp.toFixed(2)}</div>
-              <div class="text-gray-400 mt-0.5">Net: <span class="text-gray-700 font-semibold">${userCurrency}${(data.inc - data.exp).toFixed(2)}</span></div>
-            </div>
-          </div>`;
-      });
-      html += `</div>`;
-      viewContainer.innerHTML = html;
-    }
-
-    function renderSummaryView() {
-      const items = getFilteredMonthExpenses().filter(i => i.type === 'Expense');
-      const totalExp = items.reduce((acc, c) => acc + Math.abs(parseFloat(c.amount) || 0), 0);
-
-      const cats = {};
-      items.forEach(i => {
-        const c = i.category || 'Other';
-        cats[c] = (cats[c] || 0) + Math.abs(parseFloat(i.amount) || 0);
-      });
-
-      let html = `<div class="p-3 space-y-3">`;
-      Object.keys(cats).forEach(cat => {
-        const amt = cats[cat];
-        const pct = totalExp > 0 ? ((amt / totalExp) * 100).toFixed(1) : 0;
-        html += `
-          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 text-xs">
-            <div class="flex justify-between font-semibold text-gray-800 mb-1">
-              <span>${cat}</span>
-              <span>${userCurrency}${amt.toFixed(2)} (${pct}%)</span>
-            </div>
-            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-              <div class="bg-brand h-2 rounded-full" style="width: ${pct}%"></div>
-            </div>
-          </div>`;
-      });
-      html += `</div>`;
-      viewContainer.innerHTML = html;
-    }
-
-    // --- BOTTOM NAVIGATION VIEWS ---
-    function renderStatsView() {
-      const expItems = expensesList.filter(i => i.type === 'Expense');
-      const total = expItems.reduce((acc, c) => acc + Math.abs(parseFloat(c.amount) || 0), 0);
-
-      const cats = {};
-      expItems.forEach(i => {
-        const c = i.category || 'Other';
-        cats[c] = (cats[c] || 0) + Math.abs(parseFloat(i.amount) || 0);
-      });
-
-      let html = `
-        <div class="p-4 space-y-4">
-          <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center">
-            <span class="text-xs text-gray-400 uppercase font-bold tracking-wider">All-Time Expenses</span>
-            <div class="text-2xl font-bold text-brand mt-1">${userCurrency}${total.toFixed(2)}</div>
-          </div>
-          <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
-            <h3 class="font-bold text-gray-800 text-sm">Category Analysis</h3>`;
-
-      Object.keys(cats).forEach(cat => {
-        const amt = cats[cat];
-        const pct = total > 0 ? ((amt / total) * 100).toFixed(1) : 0;
-        html += `
-          <div class="text-xs space-y-1">
-            <div class="flex justify-between font-medium">
-              <span class="text-gray-700">${cat}</span>
-              <span class="font-bold text-gray-900">${userCurrency}${amt.toFixed(2)} (${pct}%)</span>
-            </div>
-            <div class="w-full bg-gray-100 h-2 rounded-full">
-              <div class="bg-brand h-2 rounded-full" style="width: ${pct}%"></div>
-            </div>
-          </div>`;
-      });
-
-      html += `</div></div>`;
-      viewContainer.innerHTML = html;
-    }
-
-    function renderAccountsView() {
-      const accounts = { "Credit Cards": 0, "Debit Card": 0, "Cash": 0 };
-      expensesList.forEach(i => {
-        const acc = accounts.hasOwnProperty(i.account) ? i.account : "Credit Cards";
-        const amt = parseFloat(i.amount) || 0;
-        if (i.type === 'Income') accounts[acc] += amt;
-        else accounts[acc] -= Math.abs(amt);
-      });
-
-      let html = `<div class="p-4 space-y-3">`;
-      Object.keys(accounts).forEach(acc => {
-        const val = accounts[acc];
-        html += `
-          <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center">
-            <div>
-              <h4 class="font-bold text-gray-800 text-sm">${acc}</h4>
-              <p class="text-xs text-gray-400">Account Balance</p>
-            </div>
-            <span class="text-base font-bold ${val >= 0 ? 'text-gray-900' : 'text-brand'}">
-              ${userCurrency}${val.toFixed(2)}
-            </span>
-          </div>`;
-      });
-      html += `</div>`;
-      viewContainer.innerHTML = html;
-    }
-
-    function renderMoreView() {
-      viewContainer.innerHTML = `
-        <div class="p-4 space-y-4 text-xs">
-          <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
-            <h3 class="font-bold text-gray-800 text-sm">Preferences</h3>
-            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-              <span class="text-gray-600 font-medium">Currency Symbol</span>
-              <select id="currency-select" class="bg-gray-100 font-bold px-2 py-1 rounded outline-none" onchange="changeCurrency(this.value)">
-                <option value="£" ${userCurrency==='£'?'selected':''}>£ GBP</option>
-                <option value="$" ${userCurrency==='$'?'selected':''}>$ USD</option>
-                <option value="€" ${userCurrency==='€'?'selected':''}>€ EUR</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
-            <h3 class="font-bold text-gray-800 text-sm">Data Management</h3>
-            <button onclick="exportCSV()" class="w-full py-2.5 bg-gray-100 hover:bg-gray-200 font-bold text-gray-700 rounded-lg text-center">Export CSV Data</button>
-            <button onclick="clearData()" class="w-full py-2.5 bg-red-50 hover:bg-red-100 font-bold text-brand rounded-lg text-center">Clear Local Storage Data</button>
-          </div>
-        </div>`;
-    }
-
-    function updateHeaderSummary(income, expense) {
-      headerIncome.textContent = `${userCurrency}${income.toFixed(2)}`;
-      headerExpense.textContent = `${userCurrency}${expense.toFixed(2)}`;
-      const net = income - expense;
-      headerTotal.textContent = `${net < 0 ? '-' : ''}${userCurrency}${Math.abs(net).toFixed(2)}`;
-    }
-
-    function changeCurrency(val) {
-      userCurrency = val;
-      localStorage.setItem('mm_currency', val);
-      renderCurrentView();
-      showToast("Currency updated");
-    }
-
-    function clearData() {
-      if (confirm("Are you sure you want to clear locally cached entries?")) {
-        expensesList = [];
-        localStorage.removeItem('mm_expenses');
-        renderCurrentView();
-        showToast("Local data cleared");
-      }
-    }
-
-    function exportCSV() {
-      if (!expensesList.length) {
-        showToast("No data to export");
-        return;
-      }
-      let csv = "Date,Merchant,Category,Account,Type,Amount\n";
-      expensesList.forEach(e => {
-        csv += `"${e.date}","${e.merchant}","${e.category}","${e.account}","${e.type}","${e.amount}"\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'expenses.csv';
-      a.click();
-    }
-
-    function updateMerchantSuggestions() {
-      const datalist = document.getElementById('merchant-list-options');
-      if (!datalist) return;
-      const merchants = [...new Set(expensesList.map(e => e.merchant).filter(Boolean))];
-      datalist.innerHTML = merchants.map(m => `<option value="${escapeHtml(m)}">`).join('');
-    }
-
-    function escapeHtml(str) {
-      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function toggleSearch() {
-      const s = document.getElementById('search-bar');
-      s.classList.toggle('hidden');
-    }
-
-    // --- MODAL & CALCULATOR HANDLERS ---
-    function openModal() {
-      currentCalcExpr = "";
-      fieldAmount.value = "";
-      calcPreviewExpr.textContent = "";
-      fieldDate.value = new Date().toISOString().split('T')[0];
-      fieldMerchant.value = "";
-      entryModal.classList.remove('hidden');
-    }
-
-    function closeModal() {
-      entryModal.classList.add('hidden');
-    }
-
-    addFabBtn.onclick = openModal;
-    modalCancelBtn.onclick = closeModal;
-    modalCloseX.onclick = closeModal;
-
-    document.querySelectorAll('.keypad-btn').forEach(btn => {
-      btn.onclick = () => handleKeypadInput(btn.getAttribute('data-key'));
-    });
-
-    function handleKeypadInput(key) {
-      if (['+', '-', '*', '/'].includes(key)) {
-        if (currentCalcExpr !== "" && !['+', '-', '*', '/'].includes(currentCalcExpr.slice(-1))) {
-          currentCalcExpr += key;
-        }
-      } else if (key === '=') {
-        evaluateCalcExpression();
-      } else {
-        currentCalcExpr += key;
-      }
-      calcPreviewExpr.textContent = currentCalcExpr;
-      fieldAmount.value = currentCalcExpr;
-    }
-
-    function evaluateCalcExpression() {
-      if (!currentCalcExpr) return;
-      try {
-        const sanitized = currentCalcExpr.replace(/[^0-9+\-*/.]/g, '');
-        const res = Function(`'use strict'; return (${sanitized})`)();
-        currentCalcExpr = isNaN(res) ? "" : String(parseFloat(res.toFixed(2)));
-        fieldAmount.value = currentCalcExpr;
-        calcPreviewExpr.textContent = currentCalcExpr;
-      } catch (e) {}
-    }
-
-    keypadBackspace.onclick = () => {
-      currentCalcExpr = currentCalcExpr.slice(0, -1);
-      calcPreviewExpr.textContent = currentCalcExpr;
-      fieldAmount.value = currentCalcExpr;
-    };
-
-    document.querySelectorAll('.type-tab').forEach(tab => {
-      tab.onclick = () => {
-        document.querySelectorAll('.type-tab').forEach(t => {
-          t.classList.remove('bg-brand', 'text-white', 'font-bold');
-          t.classList.add('bg-white', 'text-brand');
-        });
-        tab.classList.remove('bg-white', 'text-brand');
-        tab.classList.add('bg-brand', 'text-white', 'font-bold');
-        selectedType = tab.getAttribute('data-type');
-      };
-    });
-
-    keypadOkBtn.onclick = () => {
-      evaluateCalcExpression();
-      const numVal = parseFloat(currentCalcExpr);
-      if (isNaN(numVal) || numVal <= 0) {
-        showToast("Enter a valid amount");
-        return;
-      }
-
-      const newEntry = {
-        merchant: fieldMerchant.value.trim() || 'General',
-        amount: numVal,
-        category: fieldCategory.value,
-        account: fieldAccount.value,
-        date: fieldDate.value || new Date().toISOString().split('T')[0],
-        type: selectedType
-      };
+      } catch(e){}
 
       closeModal();
-      createExpense(newEntry);
-    };
-
-    // --- TAB SWITCHERS ---
-    document.querySelectorAll('.view-tab').forEach(tab => {
-      tab.onclick = () => {
-        document.querySelectorAll('.view-tab').forEach(t => {
-          t.classList.remove('border-brand', 'text-brand', 'font-bold');
-          t.classList.add('border-transparent', 'text-gray-500');
-        });
-        tab.classList.remove('border-transparent', 'text-gray-500');
-        tab.classList.add('border-brand', 'text-brand', 'font-bold');
-        activeTransTab = tab.getAttribute('data-tab');
-        renderCurrentView();
-      };
     });
 
-    document.querySelectorAll('.nav-bottom').forEach(nav => {
-      nav.onclick = () => {
-        document.querySelectorAll('.nav-bottom').forEach(n => {
-          n.classList.remove('text-brand');
-          n.classList.add('text-gray-400');
-        });
-        nav.classList.remove('text-gray-400');
-        nav.classList.add('text-brand');
-        activeBottomNav = nav.getAttribute('data-nav');
-        renderCurrentView();
-      };
+    document.getElementById('key-ok').addEventListener('click', async () => {
+      const merchant = document.getElementById('input-merchant').value || 'Expense';
+      const amountVal = document.getElementById('input-amount').value;
+      let amount = 0;
+      try { amount = parseFloat(eval(amountVal || '0')); } catch(e) { amount = 0; }
+      const category = document.getElementById('input-category').value;
+      const date = document.getElementById('input-date').value;
+
+      if (!amount || amount <= 0) {
+        alert("Please enter a valid amount.");
+        return;
+      }
+
+      if (editingId) {
+        // Update Existing
+        const item = expenses.find(e => e.id == editingId);
+        if (item) {
+          item.merchant = merchant;
+          item.amount = amount;
+          item.category = category;
+          item.date = date;
+        }
+        saveLocal();
+        renderTransactions();
+
+        try {
+          await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${editingId}`, {
+            method: 'PATCH',
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merchant, amount, category, date })
+          });
+        } catch(e){}
+      } else {
+        // Add New
+        const newEntry = { id: Date.now().toString(), merchant, amount, category, date, currency: '£' };
+        expenses.unshift(newEntry);
+        saveLocal();
+        renderTransactions();
+
+        try {
+          await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merchant, amount, category, date, currency: '£' })
+          });
+        } catch(e){}
+      }
+
+      closeModal();
     });
 
-    // Month Navigation Controls
-    document.getElementById('prev-month').onclick = () => {
-      currentDateCursor.setMonth(currentDateCursor.getMonth() - 1);
-      renderCurrentView();
-    };
-
-    document.getElementById('next-month').onclick = () => {
-      currentDateCursor.setMonth(currentDateCursor.getMonth() + 1);
-      renderCurrentView();
-    };
-
-    function showToast(msg) {
-      const toast = document.createElement('div');
-      toast.className = 'absolute top-4 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-4 py-2 rounded-full shadow-2xl z-50 transition-opacity duration-300';
-      toast.textContent = msg;
-      document.getElementById('app-root').appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-      }, 2000);
-    }
-
-    // INITIALIZATION
-    window.onload = () => {
-      renderCurrentView();
-      fetchExpenses();
-    };
+    fetchExpenses();
   </script>
 </body>
 </html>
