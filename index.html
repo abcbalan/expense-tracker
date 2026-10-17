@@ -82,7 +82,7 @@
       <h2>ExpenseTracker Login</h2>
       <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
       <input type="password" id="auth-password" class="auth-input" placeholder="Password">
-      <button id="btn-login" class="auth-btn">Sign In</button>
+      <button id="btn-login" class="auth-btn" onclick="login()">Sign In</button>
       <div id="auth-error" class="auth-error"></div>
     </div>
 
@@ -222,7 +222,7 @@
 
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_s[...' ;
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_s[...];'
 
     let expenses = [];
     let accessToken = localStorage.getItem('sb_access_token') || null;
@@ -279,51 +279,58 @@
     }
 
     async function login() {
-      const emailInput = document.getElementById('auth-email').value.trim();
-      const password = document.getElementById('auth-password').value.trim();
-      const errEl = document.getElementById('auth-error');
+      console.log('login clicked');
       const btnLogin = document.getElementById('btn-login');
-
-      errEl.innerText = "";
-      if (!emailInput || !password) {
-        errEl.innerText = "Please enter email and password.";
-        return;
-      }
-
-      btnLogin.innerText = "Signing in...";
-      btnLogin.disabled = true;
-
       try {
-        const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-          method: 'POST',
-          headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: emailInput, password })
-        });
-        const data = await res.json();
+        const emailInput = document.getElementById('auth-email').value.trim();
+        const password = document.getElementById('auth-password').value.trim();
+        const errEl = document.getElementById('auth-error');
 
-        btnLogin.innerText = "Sign In";
-        btnLogin.disabled = false;
-
-        if (res.ok && data.access_token) {
-          accessToken = data.access_token;
-          currentUserEmail = emailInput.toLowerCase().trim();
-
-          const payload = parseJwt(accessToken);
-          currentUserId = payload && payload.sub ? payload.sub : null;
-          saveAuthState();
-
-          document.getElementById('auth-screen').style.display = 'none';
-          await syncWithSupabase();
-          loadLocalForUser();
-          renderAllViews();
-        } else {
-          errEl.innerText = data.error_description || data.msg || data.message || "Invalid login credentials.";
+        errEl.innerText = "";
+        if (!emailInput || !password) {
+          errEl.innerText = "Please enter email and password.";
+          return;
         }
-      } catch (e) {
-        btnLogin.innerText = "Sign In";
-        btnLogin.disabled = false;
-        errEl.innerText = "Connection error during login.";
-        console.error('Login Error:', e);
+
+        btnLogin.innerText = "Signing in...";
+        btnLogin.disabled = true;
+
+        try {
+          const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailInput, password })
+          });
+          const data = await res.json();
+
+          btnLogin.innerText = "Sign In";
+          btnLogin.disabled = false;
+
+          if (res.ok && data.access_token) {
+            accessToken = data.access_token;
+            currentUserEmail = emailInput.toLowerCase().trim();
+
+            const payload = parseJwt(accessToken);
+            currentUserId = payload && payload.sub ? payload.sub : null;
+            saveAuthState();
+
+            document.getElementById('auth-screen').style.display = 'none';
+            await syncWithSupabase();
+            loadLocalForUser();
+            renderAllViews();
+          } else {
+            errEl.innerText = data.error_description || data.msg || data.message || "Invalid login credentials.";
+          }
+        } catch (e) {
+          btnLogin.innerText = "Sign In";
+          btnLogin.disabled = false;
+          errEl.innerText = "Connection error during login.";
+          console.error('Login Error:', e);
+        }
+      } catch (err) {
+        console.error('Unexpected login error', err);
+        try { btnLogin.disabled = false; btnLogin.innerText = 'Sign In'; } catch (e) {}
+        alert('Unexpected error during login: ' + (err && err.message ? err.message : err));
       }
     }
 
@@ -483,7 +490,7 @@
             }
 
             const category = r[1] ? String(r[1]).trim() : 'Other';
-            const merchant = r[2] ? String(r[2]).replace(/['"]+/g, '').trim() : 'Imported';
+            const merchant = r[2] ? String(r[2]).replace(/['\"]+/g, '').trim() : 'Imported';
             const amount = r[3] !== undefined ? parseFloat(r[3]) || 0 : 0;
             const currency = r[4] ? String(r[4]).trim() : '£';
 
