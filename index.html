@@ -9,7 +9,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
     .app-container { width: 100%; max-width: 480px; background: #fff; height: 100%; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    #auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; paddin[...]
+    #auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; }
     #auth-screen h2 { margin-bottom: 20px; color: #10b981; }
     .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
     .auth-btn { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
@@ -40,13 +40,13 @@
     .trans-category { font-size: 11px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; width: fit-content; color: #374151; font-weight: 500; }
     .trans-details strong { font-size: 14px; color: #111827; }
     .trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
-    .fab { position: absolute; bottom: 75px; right: 20px; width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center;[...]
-    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center;[...]
+    .fab { position: absolute; bottom: 75px; right: 20px; width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }
     .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
     .nav-item span:first-child { font-size: 20px; }
     .modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: flex-end; flex-direction: column; }
-    .modal-content { background: #fff; width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: aut[...]
+    .modal-content { background: #fff; width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 16px; font-weight: 600; }
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
@@ -179,7 +179,7 @@
           <label>Merchant / Note</label>
           <div style="display:flex; gap:6px;">
             <input type="text" id="input-merchant" class="form-control" list="merchant-list" placeholder="e.g. Tesco, Starbucks" style="flex:1;">
-            <button type="button" id="btn-clear-merchant" class="form-control" style="width:auto; background:#f3f4f6; border:1px solid #d1d5db; cursor:pointer;" title="Hide from suggestions">🚫[...]
+            <button type="button" id="btn-clear-merchant" class="form-control" style="width:auto; background:#f3f4f6; border:1px solid #d1d5db; cursor:pointer;" title="Hide from suggestions">🚫</button>
           </div>
           <datalist id="merchant-list"></datalist>
         </div>
@@ -222,7 +222,7 @@
 
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_s[...]'
+    const SUPABASE_KEY = 'REDACTED_FOR_SECURITY';
 
     let expenses = [];
     let accessToken = localStorage.getItem('sb_access_token') || null;
@@ -231,7 +231,7 @@
     let editingId = null;
     let currentDate = new Date();
 
-    const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other', 'Clothing', 'Car', 'Rent',[...]
+    const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other', 'Clothing', 'Car', 'Rent', 'Phone', 'Toys', 'Council Tax', 'Donation'];
     let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
 
@@ -279,7 +279,6 @@
     }
 
     async function login() {
-      console.log('login clicked');
       const btnLogin = document.getElementById('btn-login');
       try {
         const emailInput = document.getElementById('auth-email').value.trim();
