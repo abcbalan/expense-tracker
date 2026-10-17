@@ -4,50 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ExpenseTracker</title>
-  <!-- SheetJS for Excel / CSV parsing -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
     .app-container { width: 100%; max-width: 480px; background: #fff; height: 100%; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    
-    /* Auth Screen */
-    #auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; paddin[...] }
+    #auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; }
     #auth-screen h2 { margin-bottom: 20px; color: #10b981; }
     .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
     .auth-btn { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
     .auth-btn:disabled { background: #a7f3d0; cursor: not-allowed; }
     .auth-error { color: #ef4444; font-size: 14px; margin-top: 10px; text-align: center; }
-
-    /* Top Bar */
     .top-bar { background: #10b981; color: white; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
     .top-bar h1 { font-size: 18px; font-weight: 600; }
     .top-actions { display: flex; gap: 12px; align-items: center; }
     .icon-btn { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
-
-    /* Sub Header / Month Navigation */
     .month-nav { background: #059669; color: white; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500; }
     .month-nav button { background: none; border: none; color: white; font-size: 16px; cursor: pointer; padding: 0 8px; }
-
-    /* Summary Bar */
     .summary-bar { background: #ecfdf5; padding: 10px 16px; display: flex; justify-content: space-around; border-bottom: 1px solid #e5e7eb; font-size: 13px; text-align: center; }
     .summary-item-box div:first-child { color: #6b7280; font-size: 11px; }
     .summary-item-box div:last-child { font-weight: 600; color: #111827; margin-top: 2px; }
-
-    /* View Tabs */
     .view-tabs { display: flex; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
     .view-tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: 500; color: #4b5563; cursor: pointer; border-bottom: 2px solid transparent; }
     .view-tab.active { color: #10b981; border-bottom-color: #10b981; background: #fff; }
-
-    /* Main Screens & Panels */
     .main-screen { display: none; flex-direction: column; height: 100%; width: 100%; }
     .main-screen.active { display: flex; }
-
     .content-area { flex: 1; overflow-y: auto; background: #f9fafb; padding-bottom: 80px; }
     .view-panel { display: none; }
     .view-panel.active { display: block; }
-
-    /* Day Groups & Transactions */
     .day-group { margin-bottom: 12px; background: #fff; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
     .day-header { padding: 8px 16px; background: #f3f4f6; display: flex; justify-content: space-between; font-size: 12px; color: #4b5563; }
     .trans-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; cursor: pointer; }
@@ -56,63 +40,44 @@
     .trans-category { font-size: 11px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; width: fit-content; color: #374151; font-weight: 500; }
     .trans-details strong { font-size: 14px; color: #111827; }
     .trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
-
-    /* Floating Action Button */
-    .fab { position: absolute; bottom: 75px; right: 20px; width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: cen[...] }
-
-    /* Bottom Navigation Bar */
-    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: cen[...] }
+    .fab { position: absolute; bottom: 75px; right: 20px; width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 28px; font-weight: 300; box-shadow: 0 8px 20px rgba(16,185,129,.35); border: none; }
+    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }
     .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
     .nav-item span:first-child { font-size: 20px; }
-
-    /* Modal Styling */
     .modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: flex-end; flex-direction: column; }
-    .modal-content { background: #fff; width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y:[...] }
+    .modal-content { background: #fff; width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 16px; font-weight: 600; }
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
     .form-control { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; background: #fff; }
-
-    /* Keypad */
     .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
     .key-btn { padding: 14px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; text-align: center; color: #1f2937; }
     .key-btn:active { background: #e5e7eb; }
     .key-btn.ok { background: #10b981; color: white; grid-row: span 2; height: 100%; display: flex; align-items: center; justify-content: center; }
-
-    /* Calendar Grid */
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #e5e7eb; padding: 2px; }
     .cal-day-name { background: #f3f4f6; text-align: center; padding: 8px 0; font-size: 11px; font-weight: 600; color: #4b5563; }
     .cal-cell { background: #fff; min-height: 60px; padding: 4px; display: flex; flex-direction: column; justify-content: space-between; }
     .cal-cell.empty { background: #fafafa; }
     .cal-date-num { font-size: 11px; font-weight: 500; color: #374151; }
     .cal-spend { font-size: 10px; color: #ef4444; font-weight: 600; text-align: right; }
-
-    /* Summary Panel List */
     .summary-item { padding: 12px 16px; background: #fff; border-bottom: 1px solid #f3f4f6; }
     .summary-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
     .progress-bg { background: #f3f4f6; height: 6px; border-radius: 3px; overflow: hidden; }
     .progress-fill { height: 100%; border-radius: 3px; }
-
-    /* Stats Panel */
     .stats-container { padding: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; }
     .pie-chart { width: 160px; height: 160px; border-radius: 50%; margin: 16px 0; position: relative; }
     .stats-row { width: 100%; display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
     .badge-percent { padding: 2px 6px; border-radius: 4px; color: #fff; font-size: 11px; font-weight: 600; }
-
-    /* Category Picker Grid Modal */
     .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; max-height: 300px; overflow-y: auto; }
-    .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center;[...] }
+    .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; }
     .cat-tile:active { background: #e5e7eb; }
     .cat-tile span { font-size: 20px; }
     .cat-tile.add-tile { background: #ecfdf5; color: #10b981; font-weight: 600; }
   </style>
 </head>
 <body>
-
   <div class="app-container">
-    
-    <!-- Auth Screen -->
     <div id="auth-screen">
       <h2>ExpenseTracker Login</h2>
       <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
@@ -121,7 +86,6 @@
       <div id="auth-error" class="auth-error"></div>
     </div>
 
-    <!-- Screen 1: Transactions -->
     <div id="screen-trans" class="main-screen active">
       <div class="top-bar">
         <h1>ExpenseTracker</h1>
@@ -165,7 +129,6 @@
       </div>
     </div>
 
-    <!-- Screen 2: Stats / Charts -->
     <div id="screen-stats" class="main-screen">
       <div class="top-bar">
         <h1>Statistics</h1>
@@ -186,16 +149,13 @@
       </div>
     </div>
 
-    <!-- Floating Action Button -->
     <button class="fab" id="add-fab">+</button>
 
-    <!-- Bottom Navigation -->
     <div class="bottom-nav">
       <button class="nav-item active" id="nav-trans"><span>📝</span><span>Transaction</span></button>
       <button class="nav-item" id="nav-stats"><span>📊</span><span>Stats</span></button>
     </div>
 
-    <!-- Entry Modal -->
     <div class="modal" id="entry-modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -219,7 +179,7 @@
           <label>Merchant / Note</label>
           <div style="display:flex; gap:6px;">
             <input type="text" id="input-merchant" class="form-control" list="merchant-list" placeholder="e.g. Tesco, Starbucks" style="flex:1;">
-            <button type="button" id="btn-clear-merchant" class="form-control" style="width:auto; background:#f3f4f6; border:1px solid #d1d5db; cursor:pointer;" title="Hide from suggestions">🚫[...]
+            <button type="button" id="btn-clear-merchant" class="form-control" style="width:auto; background:#f3f4f6; border:1px solid #d1d5db; cursor:pointer;" title="Hide from suggestions">🚫</button>
           </div>
           <datalist id="merchant-list"></datalist>
         </div>
@@ -229,23 +189,19 @@
           <input type="text" id="input-amount" class="form-control" placeholder="0.00" readonly style="font-size:20px; font-weight:600; text-align:right;">
         </div>
 
-        <!-- Keypad -->
         <div class="keypad">
           <button class="key-btn" data-key="7">7</button>
           <button class="key-btn" data-key="8">8</button>
           <button class="key-btn" data-key="9">9</button>
           <button class="key-btn" data-key="+">+</button>
-          
           <button class="key-btn" data-key="4">4</button>
           <button class="key-btn" data-key="5">5</button>
           <button class="key-btn" data-key="6">6</button>
           <button class="key-btn" data-key="-">-</button>
-          
           <button class="key-btn" data-key="1">1</button>
           <button class="key-btn" data-key="2">2</button>
           <button class="key-btn" data-key="3">3</button>
           <button class="key-btn ok" id="key-ok" data-key="null">OK</button>
-          
           <button class="key-btn" data-key=".">.</button>
           <button class="key-btn" data-key="0">0</button>
           <button class="key-btn" id="key-backspace" data-key="null">⌫</button>
@@ -253,7 +209,6 @@
       </div>
     </div>
 
-    <!-- Category Picker Modal -->
     <div class="modal" id="category-modal" style="z-index: 150;">
       <div class="modal-content" style="height:60vh;">
         <div class="modal-header">
@@ -263,24 +218,23 @@
         <div class="cat-grid" id="cat-grid-container"></div>
       </div>
     </div>
-
   </div>
 
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_s[...]'
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_s[...' ;
 
     let expenses = [];
     let accessToken = localStorage.getItem('sb_access_token') || null;
     let currentUserEmail = (localStorage.getItem('sb_user_email') || '').toLowerCase().trim();
-    let currentUserId = null;
+    let currentUserId = localStorage.getItem('sb_user_id') || null;
     let editingId = null;
     let currentDate = new Date();
 
-    const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other', 'Clothing', 'Car', 'R[...]'
+    const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other', 'Clothing', 'Car', 'Rent', 'Phone', 'Toys', 'Council Tax', 'Donation'];
     let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
-    
+
     const categoryColors = {
       'Food': '#ff6384', 'Social Life': '#ff9f40', 'Self-development': '#ffcd56',
       'Transportation': '#4bc0c0', 'Culture': '#36a2eb', 'Household': '#9966ff',
@@ -300,9 +254,28 @@
       }
     }
 
+    function getUserStorageKey() {
+      if (currentUserId) return `expenses_data_${currentUserId}`;
+      if (currentUserEmail) return `expenses_data_${currentUserEmail}`;
+      return 'expenses_data_guest';
+    }
+
+    function saveAuthState() {
+      if (accessToken) localStorage.setItem('sb_access_token', accessToken);
+      if (currentUserEmail) localStorage.setItem('sb_user_email', currentUserEmail);
+      if (currentUserId) localStorage.setItem('sb_user_id', currentUserId);
+    }
+
+    function clearAuthState() {
+      localStorage.removeItem('sb_access_token');
+      localStorage.removeItem('sb_user_email');
+      localStorage.removeItem('sb_user_id');
+    }
+
     if (accessToken) {
       const payload = parseJwt(accessToken);
       if (payload && payload.sub) currentUserId = payload.sub;
+      if (currentUserId) saveAuthState();
     }
 
     async function login() {
@@ -310,9 +283,8 @@
       const password = document.getElementById('auth-password').value.trim();
       const errEl = document.getElementById('auth-error');
       const btnLogin = document.getElementById('btn-login');
-      
+
       errEl.innerText = "";
-      
       if (!emailInput || !password) {
         errEl.innerText = "Please enter email and password.";
         return;
@@ -328,23 +300,22 @@
           body: JSON.stringify({ email: emailInput, password })
         });
         const data = await res.json();
-        
+
         btnLogin.innerText = "Sign In";
         btnLogin.disabled = false;
 
         if (res.ok && data.access_token) {
           accessToken = data.access_token;
           currentUserEmail = emailInput.toLowerCase().trim();
-          localStorage.setItem('sb_access_token', accessToken);
-          localStorage.setItem('sb_user_email', currentUserEmail);
-          
+
           const payload = parseJwt(accessToken);
-          if (payload && payload.sub) currentUserId = payload.sub;
+          currentUserId = payload && payload.sub ? payload.sub : null;
+          saveAuthState();
 
           document.getElementById('auth-screen').style.display = 'none';
-          // Prefer authoritative server copy after login
           await syncWithSupabase();
           loadLocalForUser();
+          renderAllViews();
         } else {
           errEl.innerText = data.error_description || data.msg || data.message || "Invalid login credentials.";
         }
@@ -352,7 +323,7 @@
         btnLogin.innerText = "Sign In";
         btnLogin.disabled = false;
         errEl.innerText = "Connection error during login.";
-        console.error("Login Error:", e);
+        console.error('Login Error:', e);
       }
     }
 
@@ -361,25 +332,23 @@
       currentUserEmail = null;
       currentUserId = null;
       expenses = [];
-      localStorage.removeItem('sb_access_token');
-      localStorage.removeItem('sb_user_email');
+      clearAuthState();
       document.getElementById('auth-screen').style.display = 'flex';
     }
 
     document.getElementById('btn-login').addEventListener('click', login);
-    document.getElementById('auth-password').addEventListener('keypress', (e) => { if(e.key === 'Enter') login(); });
+    document.getElementById('auth-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
     document.getElementById('btn-logout').addEventListener('click', logout);
 
     if (accessToken && currentUserId) {
       document.getElementById('auth-screen').style.display = 'none';
       loadLocalForUser();
-      // start cloud sync; the server copy will become authoritative when it returns
       syncWithSupabase();
     }
 
     function loadLocalForUser() {
-      if (!currentUserEmail) return;
-      const stored = localStorage.getItem(`expenses_data_${currentUserEmail}`);
+      const storageKey = getUserStorageKey();
+      const stored = localStorage.getItem(storageKey);
       expenses = stored ? JSON.parse(stored) : [];
       updateMonthHeader();
       updateAutoSuggest();
@@ -390,12 +359,10 @@
       item.user_id = currentUserId;
 
       const index = expenses.findIndex(e => e.id === item.id);
-      if (index >= 0) {
-        expenses[index] = item;
-      } else {
-        expenses.unshift(item);
-      }
-      localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
+      if (index >= 0) expenses[index] = item;
+      else expenses.unshift(item);
+
+      localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       renderAllViews();
       updateAutoSuggest();
 
@@ -410,63 +377,82 @@
           },
           body: JSON.stringify(item)
         });
+
         if (!res.ok) {
           const errData = await res.json();
-          console.error("Supabase Save Error:", errData);
+          console.error('Supabase Save Error:', errData);
+        } else {
+          await syncWithSupabase();
         }
       } catch (e) {
-        console.error("Cloud save network failure", e);
+        console.error('Cloud save network failure', e);
       }
     }
 
     async function deleteFromLocalAndSupabase(id) {
       expenses = expenses.filter(e => e.id !== id);
-      localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
+      localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       renderAllViews();
       updateAutoSuggest();
 
       try {
-        await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${id}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?id=eq.${id}&user_id=eq.${currentUserId}`, {
           method: 'DELETE',
           headers: {
             'apikey': SUPABASE_KEY,
             'Authorization': `Bearer ${accessToken}`
           }
         });
+
+        if (!res.ok) {
+          console.error('Cloud delete failure', await res.text());
+        } else {
+          await syncWithSupabase();
+        }
       } catch (e) {
-        console.error("Cloud delete failure", e);
+        console.error('Cloud delete failure', e);
       }
     }
 
     async function syncWithSupabase() {
-      // Make the cloud copy authoritative when available.
       if (!accessToken || !currentUserId) return;
+
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/expenses?user_id=eq.${currentUserId}&select=*&order=date.desc`, {
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
         });
+
         if (res.ok) {
           const cloudData = await res.json();
           if (Array.isArray(cloudData)) {
-            // Use server data as authoritative. Overwrite local cache with the server copy.
-            expenses = cloudData.sort((a, b) => new Date(b.date) - new Date(a.date));
-            // Persist authoritative copy locally so other browsers/devices load the same data after login
-            if (currentUserEmail) {
-              localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
-            }
+            expenses = cloudData
+              .map(item => ({ ...item, user_id: currentUserId }))
+              .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
             updateMonthHeader();
             updateAutoSuggest();
+            return;
           }
-        } else if (res.status === 401 || res.status === 403) {
-          // token invalid -> force logout
+        }
+
+        if (res.status === 401 || res.status === 403) {
           logout();
+          return;
+        }
+
+        const localKey = getUserStorageKey();
+        const localStored = localStorage.getItem(localKey);
+        if (localStored) {
+          expenses = JSON.parse(localStored);
+          updateMonthHeader();
+          updateAutoSuggest();
         }
       } catch (e) {
-        console.error("Sync error", e);
+        console.error('Sync error', e);
       }
     }
 
-    // --- Import / Export ---
     document.getElementById('import-file-input').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -481,7 +467,7 @@
           const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
           if (rows.length < 2) {
-            alert("The file appears to be empty.");
+            alert('The file appears to be empty.');
             return;
           }
 
@@ -489,7 +475,7 @@
           for (let i = 1; i < rows.length; i++) {
             const r = rows[i];
             if (!r || r.length === 0) continue;
-            
+
             let dateStr = r[0] ? String(r[0]).trim() : new Date().toISOString().split('T')[0];
             if (!isNaN(dateStr) && Number(dateStr) > 30000) {
               const d = new Date((dateStr - (25567 + 2)) * 86400 * 1000);
@@ -518,8 +504,9 @@
           }
 
           if (importedCount > 0) {
-            localStorage.setItem(`expenses_data_${currentUserEmail}`, JSON.stringify(expenses));
+            localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
             updateMonthHeader();
+
             for (let item of expenses.slice(0, importedCount)) {
               await fetch(`${SUPABASE_URL}/rest/v1/expenses`, {
                 method: 'POST',
@@ -532,13 +519,15 @@
                 body: JSON.stringify(item)
               });
             }
+
+            await syncWithSupabase();
             alert(`Successfully imported ${importedCount} records!`);
           } else {
-            alert("No valid expense rows found to import.");
+            alert('No valid expense rows found to import.');
           }
         } catch (err) {
           console.error(err);
-          alert("Failed to parse the file.");
+          alert('Failed to parse the file.');
         }
         e.target.value = '';
       };
@@ -547,27 +536,27 @@
 
     document.getElementById('btn-export-excel').addEventListener('click', () => {
       if (!expenses || expenses.length === 0) {
-        alert("No records available to export.");
+        alert('No records available to export.');
         return;
       }
 
-      let csvContent = "data:text/csv;charset=utf-8,Period,Category,Note,Amount,Currency\r\n";
+      let csvContent = 'data:text/csv;charset=utf-8,Period,Category,Note,Amount,Currency\r\n';
       expenses.forEach(e => {
         let row = [e.date, e.category, `"${(e.merchant || '').replace(/"/g, '""')}"`, e.amount, e.currency || '£'];
-        csvContent += row.join(",") + "\r\n";
+        csvContent += row.join(',') + '\r\n';
       });
 
       const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `expenses_export_${currentUserEmail || 'user'}_${new Date().toISOString().split('T')[0]}.csv`);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `expenses_export_${currentUserEmail || 'user'}_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     });
 
     function updateMonthHeader() {
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const txt = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
       document.querySelectorAll('.current-month-txt').forEach(el => el.innerText = txt);
       renderAllViews();
@@ -592,12 +581,12 @@
 
     document.getElementById('btn-sync').addEventListener('click', async () => {
       await syncWithSupabase();
-      alert("Synced with Supabase database!");
+      alert('Synced with Supabase database!');
     });
 
     document.getElementById('btn-stats-sync').addEventListener('click', async () => {
       await syncWithSupabase();
-      alert("Synced with Supabase database!");
+      alert('Synced with Supabase database!');
     });
 
     document.getElementById('nav-trans').addEventListener('click', () => {
@@ -643,7 +632,7 @@
       return expenses.filter(e => e.date && e.date.startsWith(prefix));
     }
 
-    function renderDaily(searchTerm = "") {
+    function renderDaily(searchTerm = '') {
       const container = document.getElementById('transaction-container');
       container.innerHTML = '';
 
@@ -668,7 +657,7 @@
         grouped[dateKey].push(item);
       });
 
-      Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a)).forEach(dateStr => {
+      Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a)).forEach(dateStr => {
         const dateObj = new Date(dateStr);
         const dayNum = dateObj.getDate();
         const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
@@ -696,7 +685,7 @@
           `;
         });
 
-        groupHtml += `</div>`;
+        groupHtml += '</div>';
         container.innerHTML += groupHtml;
       });
     }
@@ -718,7 +707,7 @@
         dateMap[d] = (dateMap[d] || 0) + parseFloat(e.amount || 0);
       });
 
-      for (let x = 0; x < firstDayIndex; x++) cal.innerHTML += `<div class="cal-cell empty"></div>`;
+      for (let x = 0; x < firstDayIndex; x++) cal.innerHTML += '<div class="cal-cell empty"></div>';
 
       for (let i = 1; i <= daysInMonth; i++) {
         const spend = dateMap[i] ? `£${dateMap[i].toFixed(0)}` : '';
@@ -781,7 +770,7 @@
         return;
       }
 
-      Object.keys(catTotals).sort((a,b) => catTotals[b] - catTotals[a]).forEach(cat => {
+      Object.keys(catTotals).sort((a, b) => catTotals[b] - catTotals[a]).forEach(cat => {
         const amt = catTotals[cat];
         const pct = ((amt / total) * 100).toFixed(1);
         container.innerHTML += `
@@ -816,20 +805,20 @@
       }
 
       let cumulativePercent = 0;
-      Object.keys(catTotals).sort((a,b) => catTotals[b] - catTotals[a]).forEach(cat => {
+      Object.keys(catTotals).sort((a, b) => catTotals[b] - catTotals[a]).forEach(cat => {
         const amt = catTotals[cat];
         const pct = (amt / total) * 100;
         const color = categoryColors[cat] || '#10b981';
 
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        circle.setAttribute("cx", "16");
-        circle.setAttribute("cy", "16");
-        circle.setAttribute("r", "16");
-        circle.setAttribute("fill", "transparent");
-        circle.setAttribute("stroke", color);
-        circle.setAttribute("stroke-width", "32");
-        circle.setAttribute("stroke-dasharray", `${pct} 100`);
-        circle.setAttribute("stroke-dashoffset", -cumulativePercent);
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', '16');
+        circle.setAttribute('cy', '16');
+        circle.setAttribute('r', '16');
+        circle.setAttribute('fill', 'transparent');
+        circle.setAttribute('stroke', color);
+        circle.setAttribute('stroke-width', '32');
+        circle.setAttribute('stroke-dasharray', `${pct} 100`);
+        circle.setAttribute('stroke-dashoffset', -cumulativePercent);
         svg.appendChild(circle);
 
         cumulativePercent += pct;
@@ -896,7 +885,7 @@
     };
 
     document.getElementById('delete-btn').addEventListener('click', async () => {
-      if (editingId && confirm("Delete this transaction?")) {
+      if (editingId && confirm('Delete this transaction?')) {
         await deleteFromLocalAndSupabase(editingId);
         closeModal();
       }
@@ -909,7 +898,7 @@
       allCats.forEach(c => {
         grid.innerHTML += `<div class="cat-tile" onclick="selectCategory('${c}')"><span>📁</span>${c}</div>`;
       });
-      grid.innerHTML += `<div class="cat-tile add-tile" onclick="addNewCategory()"><span>➕</span>Add</div>`;
+      grid.innerHTML += '<div class="cat-tile add-tile" onclick="addNewCategory()"><span>➕</span>Add</div>';
       catModal.style.display = 'flex';
     });
 
@@ -921,7 +910,7 @@
     };
 
     window.addNewCategory = function() {
-      const name = prompt("Enter new category name:");
+      const name = prompt('Enter new category name:');
       if (name && name.trim()) {
         const c = name.trim();
         if (!baseCategories.includes(c) && !customCategories.includes(c)) {
@@ -936,7 +925,7 @@
       btn.addEventListener('click', () => {
         const key = btn.getAttribute('data-key');
         const input = document.getElementById('input-amount');
-        
+
         if (key === null || key === 'null') {
           if (btn.id === 'key-backspace') {
             input.value = input.value.slice(0, -1);
@@ -951,7 +940,7 @@
         } else if (key === '=') {
           try {
             input.value = eval(input.value.replace(/×/g, '*').replace(/÷/g, '/')) || '';
-          } catch(e) {
+          } catch (e) {
             input.value = '';
           }
         } else {
@@ -966,12 +955,12 @@
       let amount = 0;
       try {
         amount = eval(rawAmount.replace(/×/g, '*').replace(/÷/g, '/')) || 0;
-      } catch(e) {
+      } catch (e) {
         amount = parseFloat(rawAmount) || 0;
       }
 
       if (!date || amount <= 0) {
-        alert("Please enter a valid date and amount.");
+        alert('Please enter a valid date and amount.');
         return;
       }
 
@@ -992,8 +981,6 @@
       await saveLocalAndSupabase(item);
       closeModal();
     }
-
-    // The rest of the file continues unchanged...
   </script>
 </body>
 </html>
