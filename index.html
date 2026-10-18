@@ -1,4 +1,6 @@
-<!-- 20261018 v11: Gemini trying to fix syntax error in transaction row template so login works -->
+<!-- 20261018 v7 Gemini trying to fix number entry & layout, auth and database sync untouched -->
+<!-- 20261018 v8 Copilot fix: corrected malformed JS operator so login button works again -->
+<!-- 20261018 v9 Amount enterin fixed. This version is works -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -71,10 +73,10 @@
     .progress-bg { background: #f3f4f6; height: 6px; border-radius: 3px; overflow: hidden; }
     .progress-fill { height: 100%; border-radius: 3px; }
     .stats-container { padding: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; }
-    .pie-chart { width: 160px; height: 160px; aspect-ratio: 1 / 1; border-radius: 50%; margin: 16px 0; position: relative; overflow: hidden; }
+    .pie-chart { width: 160px; height: 160px; border-radius: 50%; margin: 16px 0; position: relative; }
     .stats-row { width: 100%; display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
-    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; max-height: 240px; overflow-y: auto; }
-    .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; position: relative; }
+    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; max-height: 300px; overflow-y: auto; }
+    .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; }
     .cat-tile:active { background: #e5e7eb; }
     .cat-tile span { font-size: 20px; }
   </style>
@@ -196,11 +198,11 @@
           <button class="key-btn" data-key="7">7</button>
           <button class="key-btn" data-key="8">8</button>
           <button class="key-btn" data-key="9">9</button>
-          <button class="key-btn" data-key="+" title="Switch to Income">+</button>
+          <button class="key-btn" data-key="+">+</button>
           <button class="key-btn" data-key="4">4</button>
           <button class="key-btn" data-key="5">5</button>
           <button class="key-btn" data-key="6">6</button>
-          <button class="key-btn" data-key="-" title="Switch to Expense">-</button>
+          <button class="key-btn" data-key="-">-</button>
           <button class="key-btn" data-key="1">1</button>
           <button class="key-btn" data-key="2">2</button>
           <button class="key-btn" data-key="3">3</button>
@@ -213,14 +215,10 @@
     </div>
 
     <div class="modal" id="category-modal" style="z-index: 150;">
-      <div class="modal-content" style="height:65vh;">
+      <div class="modal-content" style="height:60vh;">
         <div class="modal-header">
           <span>Select Category</span>
           <button class="icon-btn" style="color:#333;font-size:14px;" id="close-cat-modal">Close</button>
-        </div>
-        <div style="display:flex; gap:6px; margin-bottom:10px;">
-          <input type="text" id="new-category-input" class="form-control" placeholder="Add new category...">
-          <button type="button" id="btn-add-category" class="auth-btn" style="width:auto; padding:0 16px; font-size:14px;">Add</button>
         </div>
         <div class="cat-grid" id="cat-grid-container"></div>
       </div>
@@ -594,20 +592,20 @@
       const dateKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
       container.innerHTML = dateKeys.map(date => {
         const entries = grouped[date].sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0));
-        const total = entries.reduce((sum, item) => sum + ((item.type || 'expense') === 'income' ? Number(item.amount) || 0 : -(Number(item.amount) || 0)), 0);
+        const total = entries.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
         return `
           <div class="day-group">
             <div class="day-header">
               <span>${new Date(date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-              <span>${total >= 0 ? '' : '-'}${formatMoney(Math.abs(total))}</span>
+              <span>${formatMoney(total)}</span>
             </div>
             ${entries.map(item => `
               <div class="trans-row" data-id="${item.id}" tabindex="0">
                 <div class="trans-left">
-                  <div class="trans-details"><strong>${item.merchant || item.note || 'New entry'}</strong></div>
+                  <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong></div>
                   <div class="trans-category">${item.category || 'Other'}</div>
                 </div>
-                <div class="trans-amount" style="color: ${(item.type || 'expense') === 'income' ? '#10b981' : '#ef4444'}">${(item.type \vert{}\vert{} 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
+                <div class="trans-amount">${(item.type || 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
               </div>
             `).join('')}
           </div>
@@ -640,16 +638,13 @@
       const byDate = {};
       getMonthExpenses().forEach(item => {
         const key = (item.date || '').slice(8, 10);
-        if (key) {
-          const amt = Number(item.amount) || 0;
-          byDate[key] = (byDate[key] || 0) + ((item.type || 'expense') === 'income' ? -amt : amt);
-        }
+        if (key) byDate[key] = (byDate[key] || 0) + (Number(item.amount) || 0);
       });
 
       for (let day = 1; day <= daysInMonth; day++) {
         const key = String(day).padStart(2, '0');
         const spend = byDate[key] || 0;
-        cells.push(`<div class="cal-cell"><div class="cal-date-num">${day}</div>${spend ? `<div class="cal-spend" style="color:${spend < 0 ? '#10b981' : '#ef4444'}">${formatMoney(Math.abs(spend))}</div>` : ''}</div>`);
+        cells.push(`<div class="cal-cell"><div class="cal-date-num">${day}</div>${spend ? `<div class="cal-spend">${formatMoney(spend)}</div>` : ''}</div>`);
       }
 
       while (cells.length % 7 !== 0) {
@@ -662,7 +657,7 @@
     function renderMonthlySummary() {
       const container = document.getElementById('monthly-container');
       if (!container) return;
-      const monthItems = getMonthExpenses().filter(item => (item.type || 'expense') !== 'income');
+      const monthItems = getMonthExpenses();
       const groups = {};
       monthItems.forEach(item => {
         const cat = item.category || 'Other';
@@ -730,6 +725,7 @@
       const slices = entries.map(([name, value]) => {
         const start = cumulative / total * 100;
         cumulative += value;
+        const end = cumulative / total * 100;
         const color = categoryColors[name] || '#10b981';
         const radius = 16;
         const circumference = 2 * Math.PI * radius;
@@ -775,7 +771,7 @@
         const entry = expenses.find(item => String(item.id) === String(idOrNull));
         if (!entry) return;
         editingId = entry.id;
-        modalTitle.textContent = entry.type === 'income' ? 'Income' : 'Expense';
+        modalTitle.textContent = 'Edit Transaction';
         deleteBtn.style.display = 'inline';
         dateInput.value = entry.date || new Date().toISOString().slice(0, 10);
         categoryInput.value = entry.category || 'Food';
@@ -809,46 +805,18 @@
         <div class="cat-tile" data-category="${name}">
           <span>${(categoryColors[name] ? '●' : '•')}</span>
           <div>${name}</div>
-          ${customCategories.includes(name) ? `<button class="del-cat" data-cat="${name}" style="position:absolute;top:2px;right:4px;background:none;border:none;color:#ef4444;font-size:12px;cursor:pointer;">×</button>` : ''}
         </div>
       `).join('');
       container.innerHTML = items;
       document.getElementById('category-modal').style.display = 'flex';
-      
       container.querySelectorAll('.cat-tile').forEach(tile => {
-        tile.addEventListener('click', (e) => {
-          if (e.target.classList.contains('del-cat')) return;
+        tile.addEventListener('click', () => {
           const name = tile.dataset.category;
           document.getElementById('input-category').value = name;
           document.getElementById('category-modal').style.display = 'none';
         });
       });
-
-      container.querySelectorAll('.del-cat').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const catToDelete = btn.dataset.cat;
-          customCategories = customCategories.filter(c => c !== catToDelete);
-          localStorage.setItem('custom_categories', JSON.stringify(customCategories));
-          openCategoryModal();
-        });
-      });
     }
-
-    document.getElementById('btn-add-category').addEventListener('click', () => {
-      const input = document.getElementById('new-category-input');
-      const val = input.value.trim();
-      if (!val) return;
-      const allCats = [...baseCategories, ...customCategories];
-      if (allCats.includes(val)) {
-        alert('Category already exists');
-        return;
-      }
-      customCategories.push(val);
-      localStorage.setItem('custom_categories', JSON.stringify(customCategories));
-      input.value = '';
-      openCategoryModal();
-    });
 
     function closeCategoryModal() {
       document.getElementById('category-modal').style.display = 'none';
@@ -898,6 +866,45 @@
       renderAllViews();
     }
 
+/*    function applyKeyInput(val) {
+      const input = document.getElementById('input-amount');
+      if (!input) return;
+
+      let currentRaw = input.value.toString().trim();
+
+      if (val === 'backspace') {
+        let rawDigits = currentRaw.replace(/\D/g, '');
+        rawDigits = rawDigits.slice(0, -1);
+        if (!rawDigits) {
+          input.value = '0.00';
+          return;
+        }
+        let numVal = (parseInt(rawDigits, 10) / 100).toFixed(2);
+        input.value = numVal;
+        return;
+      }
+
+      if (val === '+' || val === '-') {
+        activeExpenseType = val === '+' ? 'income' : 'expense';
+        document.getElementById('modal-title').textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';
+        return;
+      }
+
+      if (/^\d$/.test(val)) {
+        let rawDigits = currentRaw.replace(/\D/g, '');
+        if (rawDigits === '000' || rawDigits === '00' || rawDigits === '0') rawDigits = '';
+        rawDigits += val;
+        let numVal = (parseInt(rawDigits, 10) / 100).toFixed(2);
+        input.value = numVal;
+        return;
+      }
+
+      if (val === '.') {
+        return;
+      }
+    }
+*/
+
     function applyKeyInput(val) {
       const input = document.getElementById('input-amount');
       if (!input) return;
@@ -925,6 +932,7 @@
       }
 
       if (/^\d$/.test(val)) {
+        // If there's already a decimal point, limit decimals to 2 places
         if (currentVal.includes('.')) {
           const parts = currentVal.split('.');
           if (parts[1] && parts[1].length >= 2) return;
@@ -977,10 +985,7 @@
       });
     });
 
-    document.getElementById('add-fab').addEventListener('click', () => {
-      activeExpenseType = 'expense';
-      openEntryModal('new', null);
-    });
+    document.getElementById('add-fab').addEventListener('click', () => openEntryModal('new', null));
     document.getElementById('close-modal-top').addEventListener('click', closeEntryModal);
     document.getElementById('delete-btn').addEventListener('click', deleteEntry);
     document.getElementById('input-category').addEventListener('click', openCategoryModal);
@@ -1060,6 +1065,7 @@
       reader.readAsBinaryString(file);
     });
 
+    // initialize UI
     initAuth();
     loadLocalForUser();
   </script>
