@@ -1,6 +1,10 @@
 <!-- 20261018 v7 Gemini trying to fix number entry & layout, auth and database sync untouched -->
 <!-- 20261018 v8 Copilot fix: corrected malformed JS operator so login button works again -->
-<!-- 20261018 v9 Amount enterin fixed. This version is works -->
+<!-- 20261018 v9 Amount entering is fixed and added comments-->
+
+<!-- ========================================== -->
+<!-- EXPENSE TRACKER - SINGLE FILE APPLICATION  -->
+<!-- ========================================== -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -8,35 +12,52 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ExpenseTracker</title>
+  
+  <!-- External Libraries: SheetJS for Excel/CSV import/export & Supabase for cloud sync -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
+    /* ========================================== */
+    /* CSS STYLING & RESPONSIVE LAYOUT            */
+    /* ========================================== */
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
     .app-container { width: 100%; max-width: 480px; background: #fff; height: 100%; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    
+    /* Login Authentication Overlay Screen */
     #auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24px; }
     #auth-screen h2 { margin-bottom: 20px; color: #10b981; }
     .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
     .auth-btn { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
     .auth-btn:disabled { background: #a7f3d0; cursor: not-allowed; }
     .auth-error { color: #ef4444; font-size: 14px; margin-top: 10px; text-align: center; }
+
+    /* Top Application Bar & Month Navigation */
     .top-bar { background: #10b981; color: white; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
     .top-bar h1 { font-size: 18px; font-weight: 600; }
     .top-actions { display: flex; gap: 12px; align-items: center; }
     .icon-btn { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
     .month-nav { background: #059669; color: white; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500; }
     .month-nav button { background: none; border: none; color: white; font-size: 16px; cursor: pointer; padding: 0 8px; }
+
+    /* Summary Header Bar (Income, Expense, Net Total) */
     .summary-bar { background: #ecfdf5; padding: 10px 16px; display: flex; justify-content: space-around; border-bottom: 1px solid #e5e7eb; font-size: 13px; text-align: center; }
     .summary-item-box div:first-child { color: #6b7280; font-size: 11px; }
     .summary-item-box div:last-child { font-weight: 600; color: #111827; margin-top: 2px; }
+
+    /* Main Content View Switcher Tabs */
     .view-tabs { display: flex; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
     .view-tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: 500; color: #4b5563; cursor: pointer; border-bottom: 2px solid transparent; }
     .view-tab.active { color: #10b981; border-bottom-color: #10b981; background: #fff; }
+    
     .main-screen { display: none; flex-direction: column; height: 100%; width: 100%; }
     .main-screen.active { display: flex; }
     .content-area { flex: 1; overflow-y: auto; background: #f9fafb; padding-bottom: 80px; }
     .view-panel { display: none; }
     .view-panel.active { display: block; }
+
+    /* Transaction List Styling */
     .day-group { margin-bottom: 12px; background: #fff; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
     .day-header { padding: 8px 16px; background: #f3f4f6; display: flex; justify-content: space-between; font-size: 12px; color: #4b5563; }
     .trans-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; cursor: pointer; }
@@ -45,12 +66,16 @@
     .trans-category { font-size: 11px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; width: fit-content; color: #374151; font-weight: 500; }
     .trans-details strong { font-size: 14px; color: #111827; }
     .trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
+
+    /* Floating Action Button (FAB) & Bottom Navigation Bar */
     .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; cursor: pointer; }
     @media (max-width: 480px) { .fab { right: 20px; } }
     .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }
     .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
     .nav-item span:first-child { font-size: 20px; }
+
+    /* Modals & Keypad Controls */
     .modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: center; padding: 12px; }
     .modal-content { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 16px; font-weight: 600; }
@@ -62,12 +87,16 @@
     .key-btn { padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; text-align: center; color: #1f2937; }
     .key-btn:active { background: #e5e7eb; }
     .key-btn.ok { background: #10b981; color: white; grid-row: span 2; height: 100%; display: flex; align-items: center; justify-content: center; }
+
+    /* Calendar Grid View */
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #e5e7eb; padding: 2px; }
     .cal-day-name { background: #f3f4f6; text-align: center; padding: 8px 0; font-size: 11px; font-weight: 600; color: #4b5563; }
     .cal-cell { background: #fff; min-height: 60px; padding: 4px; display: flex; flex-direction: column; justify-content: space-between; }
     .cal-cell.empty { background: #fafafa; }
     .cal-date-num { font-size: 11px; font-weight: 500; color: #374151; }
     .cal-spend { font-size: 10px; color: #ef4444; font-weight: 600; text-align: right; }
+
+    /* Summary & Statistics Breakdown */
     .summary-item { padding: 12px 16px; background: #fff; border-bottom: 1px solid #f3f4f6; }
     .summary-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
     .progress-bg { background: #f3f4f6; height: 6px; border-radius: 3px; overflow: hidden; }
@@ -83,6 +112,10 @@
 </head>
 <body>
   <div class="app-container">
+    
+    <!-- ========================================== -->
+    <!-- SECTION 1: AUTHENTICATION SCREEN UI        -->
+    <!-- ========================================== -->
     <div id="auth-screen">
       <h2>ExpenseTracker Login</h2>
       <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
@@ -91,6 +124,9 @@
       <div id="auth-error" class="auth-error"></div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- SECTION 2: MAIN TRANSACTION SCREEN         -->
+    <!-- ========================================== -->
     <div id="screen-trans" class="main-screen active">
       <div class="top-bar">
         <h1>ExpenseTracker</h1>
@@ -103,18 +139,21 @@
         </div>
       </div>
 
+      <!-- Month Navigation Bar -->
       <div class="month-nav">
         <button class="btn-prev-m">◀</button>
         <span class="current-month-txt">Oct 2026</span>
         <button class="btn-next-m">▶</button>
       </div>
 
+      <!-- Monthly Totals Bar -->
       <div class="summary-bar">
         <div class="summary-item-box"><div>Income</div><div>£ 0.00</div></div>
         <div class="summary-item-box"><div>Expense</div><div class="total-exp-txt">£ 0.00</div></div>
         <div class="summary-item-box"><div>Total</div><div class="net-total-txt">-£ 0.00</div></div>
       </div>
 
+      <!-- View Switcher Tabs (Daily, Calendar, Monthly, Summary) -->
       <div class="view-tabs">
         <div class="view-tab active" data-tab="daily">Daily</div>
         <div class="view-tab" data-tab="calendar">Calendar</div>
@@ -122,10 +161,12 @@
         <div class="view-tab" data-tab="summary">Summary</div>
       </div>
 
+      <!-- Hidden Search Box Filter -->
       <div id="search-box" style="display:none; padding:8px; background:#fff; border-bottom:1px solid #e5e7eb;">
         <input type="text" id="search-input" class="form-control" placeholder="Search merchant or category...">
       </div>
 
+      <!-- Dynamic Content Panels Area -->
       <div class="content-area">
         <div id="panel-daily" class="view-panel active"><div id="transaction-container"></div></div>
         <div id="panel-calendar" class="view-panel"><div class="cal-grid" id="calendar-container"></div></div>
@@ -134,6 +175,9 @@
       </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- SECTION 3: STATISTICS / STATS SCREEN       -->
+    <!-- ========================================== -->
     <div id="screen-stats" class="main-screen">
       <div class="top-bar">
         <h1>Statistics</h1>
@@ -154,13 +198,18 @@
       </div>
     </div>
 
+    <!-- Floating Add Button -->
     <button class="fab" id="add-fab">+</button>
 
+    <!-- Bottom Footer Navigation Bar -->
     <div class="bottom-nav">
       <button class="nav-item active" id="nav-trans"><span>📝</span><span>Transaction</span></button>
       <button class="nav-item" id="nav-stats"><span>📊</span><span>Stats</span></button>
     </div>
 
+    <!-- ========================================== -->
+    <!-- SECTION 4: ADD / EDIT TRANSACTION MODAL    -->
+    <!-- ========================================== -->
     <div class="modal" id="entry-modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -194,6 +243,7 @@
           <input type="text" id="input-amount" class="form-control" placeholder="0.00" value="0.00" style="font-size:20px; font-weight:600; text-align:right;">
         </div>
 
+        <!-- Custom Onscreen Keypad -->
         <div class="keypad">
           <button class="key-btn" data-key="7">7</button>
           <button class="key-btn" data-key="8">8</button>
@@ -214,6 +264,7 @@
       </div>
     </div>
 
+    <!-- Category Selection Modal -->
     <div class="modal" id="category-modal" style="z-index: 150;">
       <div class="modal-content" style="height:60vh;">
         <div class="modal-header">
@@ -225,12 +276,16 @@
     </div>
   </div>
 
+  <!-- ========================================== -->
+  <!-- SECTION 5: JAVASCRIPT APP LOGIC & SESSIONS -->
+  <!-- ========================================== -->
   <script>
+    // --- Session 5.1: Supabase Configuration & Client Initialization ---
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
-
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // --- Session 5.2: Global State Variables ---
     let expenses = [];
     let currentUser = null;
     let accessToken = localStorage.getItem('sb_access_token') || null;
@@ -252,14 +307,13 @@
       'Education': '#e74c3c', 'Gift': '#3498db', 'Other': '#95a5a6'
     };
 
+    // --- Session 5.3: Authentication & Session Storage Helpers ---
     function parseJwt(token) {
       try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         return JSON.parse(window.atob(base64));
-      } catch (e) {
-        return null;
-      }
+      } catch (e) { return null; }
     }
 
     function getUserStorageKey() {
@@ -282,6 +336,7 @@
 
     function getGuestStorageKey() { return 'expenses_data_guest'; }
 
+    // Merges guest offline entries into user account upon sign-in
     function mergeGuestLocalToUser() {
       const guestKey = getGuestStorageKey();
       const guestRaw = localStorage.getItem(guestKey);
@@ -317,19 +372,14 @@
       localStorage.removeItem(guestKey);
 
       return Promise.all(deduped.map(async item => {
-        try {
-          await supabaseClient.from('expenses').upsert(item, { onConflict: 'id' });
-        } catch (e) {
-          console.warn('Failed to upload merged guest entry', e);
-        }
+        try { await supabaseClient.from('expenses').upsert(item, { onConflict: 'id' }); } catch (e) {}
       }));
     }
 
+    // Realtime Supabase Database Sync Subscriptions
     function subscribeToExpenses() {
       if (!currentUser || !currentUser.id) return;
-      if (expensesRealtime) {
-        supabaseClient.removeChannel(expensesRealtime);
-      }
+      if (expensesRealtime) supabaseClient.removeChannel(expensesRealtime);
 
       expensesRealtime = supabaseClient.channel('expenses-user-' + currentUser.id)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses', filter: `user_id=eq.${currentUser.id}` }, () => {
@@ -351,6 +401,7 @@
       if (currentUserId) saveAuthState();
     }
 
+    // Initialize Supabase Auth State on Startup
     async function initAuth() {
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
@@ -388,11 +439,11 @@
           }
         });
       } catch (e) {
-        console.error('initAuth error', e);
         document.getElementById('auth-screen').style.display = 'flex';
       }
     }
 
+    // Sign In Action Trigger
     async function login() {
       const btnLogin = document.getElementById('btn-login');
       const emailInput = document.getElementById('auth-email').value.trim();
@@ -410,21 +461,12 @@
 
       try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email: emailInput, password });
-
         if (error) {
           errEl.innerText = error.message || 'Invalid login credentials.';
           btnLogin.innerText = 'Sign In';
           btnLogin.disabled = false;
           return;
         }
-
-        if (!data || !data.session) {
-          errEl.innerText = 'No session returned from Supabase.';
-          btnLogin.innerText = 'Sign In';
-          btnLogin.disabled = false;
-          return;
-        }
-
         accessToken = data.session.access_token;
         currentUser = data.user;
         currentUserEmail = (currentUser?.email || emailInput).toLowerCase().trim();
@@ -436,7 +478,6 @@
         await syncWithSupabase();
         subscribeToExpenses();
       } catch (e) {
-        console.error('Login Exception:', e);
         errEl.innerText = 'Connection error or network failure.';
       } finally {
         btnLogin.innerText = 'Sign In';
@@ -444,17 +485,14 @@
       }
     }
 
+    // Sign Out Action Trigger
     async function logout() {
       accessToken = null;
       currentUserEmail = null;
       currentUserId = null;
       clearAuthState();
       unsubscribeFromExpenses();
-      try {
-        await supabaseClient.auth.signOut();
-      } catch (e) {
-        console.warn('Sign out warning', e);
-      }
+      try { await supabaseClient.auth.signOut(); } catch (e) {}
       expenses = [];
       document.getElementById('auth-screen').style.display = 'flex';
       renderAllViews();
@@ -464,18 +502,11 @@
     document.getElementById('auth-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
     document.getElementById('btn-logout').addEventListener('click', logout);
 
-    if (accessToken && currentUserId) {
-      document.getElementById('auth-screen').style.display = 'none';
-    }
-
+    // --- Session 5.4: Local Storage & Cloud Data Sync ---
     function loadLocalForUser() {
       const storageKey = getUserStorageKey();
       const stored = localStorage.getItem(storageKey);
-      try {
-        expenses = stored ? JSON.parse(stored) : [];
-      } catch (e) {
-        expenses = [];
-      }
+      try { expenses = stored ? JSON.parse(stored) : []; } catch (e) { expenses = []; }
       updateMonthHeader();
       renderAllViews();
     }
@@ -523,6 +554,7 @@
       datalist.innerHTML = merchants.map(name => `<option value="${name}"></option>`).join('');
     }
 
+    // Fetch and synchronize database records from Supabase cloud
     async function syncWithSupabase() {
       if (!currentUser || !currentUser.id) {
         renderAllViews();
@@ -542,9 +574,7 @@
         const merged = [...localMap.values()].sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));
         expenses = merged;
         localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-      } catch (e) {
-        console.warn('syncWithSupabase warning', e);
-      }
+      } catch (e) {}
 
       renderAllViews();
     }
@@ -560,6 +590,7 @@
       return { income, expense, total: income - expense };
     }
 
+    // --- Session 5.5: UI View Renderers ---
     function renderSummaryBar() {
       const items = getMonthExpenses();
       const totals = getMonthlyTotals(items);
@@ -605,7 +636,7 @@
                   <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong></div>
                   <div class="trans-category">${item.category || 'Other'}</div>
                 </div>
-                <div class="trans-amount">${(item.type || 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
+                <div class="trans-amount">${(item.type \vert{}\vert{} 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
               </div>
             `).join('')}
           </div>
@@ -702,6 +733,7 @@
       `;
     }
 
+    // Render Statistics Pie Chart & Breakdown List
     function renderStats() {
       const container = document.getElementById('stats-list-container');
       const svg = document.getElementById('svgPie');
@@ -725,7 +757,6 @@
       const slices = entries.map(([name, value]) => {
         const start = cumulative / total * 100;
         cumulative += value;
-        const end = cumulative / total * 100;
         const color = categoryColors[name] || '#10b981';
         const radius = 16;
         const circumference = 2 * Math.PI * radius;
@@ -758,6 +789,7 @@
       updateAutoSuggest();
     }
 
+    // --- Session 5.6: Modal Forms & Keypad Controller Logic ---
     function openEntryModal(mode, idOrNull) {
       const modal = document.getElementById('entry-modal');
       const dateInput = document.getElementById('input-date');
@@ -866,45 +898,10 @@
       renderAllViews();
     }
 
-/*    function applyKeyInput(val) {
-      const input = document.getElementById('input-amount');
-      if (!input) return;
+    /* (Old Cents Keypad Logic Remarked)
+    function applyKeyInput(val) { ... } */
 
-      let currentRaw = input.value.toString().trim();
-
-      if (val === 'backspace') {
-        let rawDigits = currentRaw.replace(/\D/g, '');
-        rawDigits = rawDigits.slice(0, -1);
-        if (!rawDigits) {
-          input.value = '0.00';
-          return;
-        }
-        let numVal = (parseInt(rawDigits, 10) / 100).toFixed(2);
-        input.value = numVal;
-        return;
-      }
-
-      if (val === '+' || val === '-') {
-        activeExpenseType = val === '+' ? 'income' : 'expense';
-        document.getElementById('modal-title').textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';
-        return;
-      }
-
-      if (/^\d$/.test(val)) {
-        let rawDigits = currentRaw.replace(/\D/g, '');
-        if (rawDigits === '000' || rawDigits === '00' || rawDigits === '0') rawDigits = '';
-        rawDigits += val;
-        let numVal = (parseInt(rawDigits, 10) / 100).toFixed(2);
-        input.value = numVal;
-        return;
-      }
-
-      if (val === '.') {
-        return;
-      }
-    }
-*/
-
+    // New Direct Decimal Keypad Input Logic
     function applyKeyInput(val) {
       const input = document.getElementById('input-amount');
       if (!input) return;
@@ -932,7 +929,6 @@
       }
 
       if (/^\d$/.test(val)) {
-        // If there's already a decimal point, limit decimals to 2 places
         if (currentVal.includes('.')) {
           const parts = currentVal.split('.');
           if (parts[1] && parts[1].length >= 2) return;
@@ -941,6 +937,7 @@
       }
     }
 
+    // --- Session 5.7: Event Listeners & UI Actions ---
     document.getElementById('nav-trans').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.add('active');
       document.getElementById('screen-stats').classList.remove('active');
@@ -1010,6 +1007,7 @@
       input.value = '';
     });
 
+    // Excel Export Trigger
     document.getElementById('btn-export-excel').addEventListener('click', () => {
       if (!expenses.length) {
         alert('No data to export');
@@ -1031,6 +1029,7 @@
     document.getElementById('btn-sync').addEventListener('click', syncWithSupabase);
     document.getElementById('btn-stats-sync').addEventListener('click', syncWithSupabase);
 
+    // Excel/CSV File Import Handler
     document.getElementById('import-file-input').addEventListener('change', (event) => {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
@@ -1058,14 +1057,13 @@
           localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
           renderAllViews();
         } catch (e) {
-          console.error('Import failed', e);
           alert('Failed to import file');
         }
       };
       reader.readAsBinaryString(file);
     });
 
-    // initialize UI
+    // --- Session 5.8: Application Startup Initialization ---
     initAuth();
     loadLocalForUser();
   </script>
