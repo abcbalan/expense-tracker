@@ -1,5 +1,6 @@
 <!-- 20261018 v7 Gemini trying to fix number entry & layout, auth and database sync untouched -->
 <!-- 20261018 v8 Copilot fix: corrected malformed JS operator so login button works again -->
+<!-- 20261018 v9 Try to fix amount entering -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -865,7 +866,7 @@
       renderAllViews();
     }
 
-    function applyKeyInput(val) {
+/*    function applyKeyInput(val) {
       const input = document.getElementById('input-amount');
       if (!input) return;
 
@@ -900,6 +901,43 @@
 
       if (val === '.') {
         return;
+      }
+    }
+*/
+
+    function applyKeyInput(val) {
+      const input = document.getElementById('input-amount');
+      if (!input) return;
+
+      let currentVal = input.value.toString().trim();
+      if (currentVal === '0.00' || currentVal === '0') currentVal = '';
+
+      if (val === 'backspace') {
+        currentVal = currentVal.slice(0, -1);
+        input.value = currentVal === '' ? '0.00' : currentVal;
+        return;
+      }
+
+      if (val === '+' || val === '-') {
+        activeExpenseType = val === '+' ? 'income' : 'expense';
+        document.getElementById('modal-title').textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';
+        return;
+      }
+
+      if (val === '.') {
+        if (!currentVal.includes('.')) {
+          input.value = (currentVal === '' ? '0' : currentVal) + '.';
+        }
+        return;
+      }
+
+      if (/^\d$/.test(val)) {
+        // If there's already a decimal point, limit decimals to 2 places
+        if (currentVal.includes('.')) {
+          const parts = currentVal.split('.');
+          if (parts[1] && parts[1].length >= 2) return;
+        }
+        input.value = currentVal === '0.00' ? val : currentVal + val;
       }
     }
 
