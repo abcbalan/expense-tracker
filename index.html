@@ -13,7 +13,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
     .app-container { width: 100%; max-width: 480px; background: #fff; height: 100%; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    #auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24px; }
+    #auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24[...]
     #auth-screen h2 { margin-bottom: 20px; color: #10b981; }
     .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
     .auth-btn { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
@@ -44,14 +44,14 @@
     .trans-category { font-size: 11px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; width: fit-content; color: #374151; font-weight: 500; }
     .trans-details strong { font-size: 14px; color: #111827; }
     .trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
-    .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; cursor: pointer; }
+    .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; ali[...]
     @media (max-width: 480px) { .fab { right: 20px; } }
-    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }
+    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center;[...]
     .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
     .nav-item span:first-child { font-size: 20px; }
     .modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: center; padding: 12px; }
-    .modal-content { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .modal-content { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px [...]
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 16px; font-weight: 600; }
     .form-group { margin-bottom: 10px; width: 100%; }
     .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
@@ -226,7 +226,7 @@
 
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_s[...]'
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -865,21 +865,41 @@
       renderAllViews();
     }
 
+    // Updated amount input behavior:
+    // - Typing digits without a decimal appends to the whole-pound integer part (e.g. 5 => 5.00)
+    // - Pressing '.' starts/enters the decimal part (e.g. 9 . 1 5 => 9.15)
+    // - Backspace removes the last character entered; when empty shows 0.00
     function applyKeyInput(val) {
       const input = document.getElementById('input-amount');
       if (!input) return;
 
-      let currentRaw = input.value.toString().trim();
+      let current = input.value ? String(input.value) : '0.00';
+
+      // Normalize display: if current is just formatted like 0.00 and user starts typing, treat as empty
+      if (current === '0.00') current = '';
 
       if (val === 'backspace') {
-        let rawDigits = currentRaw.replace(/\D/g, '');
-        rawDigits = rawDigits.slice(0, -1);
-        if (!rawDigits) {
+        if (!current) {
           input.value = '0.00';
           return;
         }
-        let numVal = (parseInt(rawDigits, 10) / 100).toFixed(2);
-        input.value = numVal;
+        // Remove last character
+        current = current.slice(0, -1);
+        // If all removed, reset
+        if (!current || current === '-' || current === '.' || current === '-.') {
+          input.value = '0.00';
+          return;
+        }
+        // If there's a dot, keep up to 2 decimals
+        if (current.includes('.')) {
+          const parts = current.split('.');
+          parts[1] = (parts[1] || '').slice(0, 2);
+          // If decimal part is empty, keep the trailing dot so user can continue typing decimals
+          input.value = parts[1] === '' ? `${parts[0]}.` : `${parts[0]}.${parts[1]}`;
+        } else {
+          // No dot: format as pounds with two decimals
+          input.value = Number(current).toFixed(2);
+        }
         return;
       }
 
@@ -889,18 +909,37 @@
         return;
       }
 
-      if (/^\d$/.test(val)) {
-        let rawDigits = currentRaw.replace(/\D/g, '');
-        if (rawDigits === '000' || rawDigits === '00' || rawDigits === '0') rawDigits = '';
-        rawDigits += val;
-        let numVal = (parseInt(rawDigits, 10) / 100).toFixed(2);
-        input.value = numVal;
+      if (val === '.') {
+        // If already has dot, ignore
+        if (current.includes('.')) return;
+        // If empty, start as '0.' otherwise append dot
+        input.value = current ? `${current}.` : '0.';
         return;
       }
 
-      if (val === '.') {
+      if (/^\d$/.test(val)) {
+        // If current contains a dot, append to decimal part up to 2 digits
+        if (current.includes('.')) {
+          const parts = current.split('.');
+          const intPart = parts[0] || '0';
+          const decPart = (parts[1] || '') + val;
+          // limit to 2 decimals
+          input.value = `${intPart}.${decPart.slice(0, 2)}`;
+          return;
+        }
+
+        // No dot: append digit to integer part
+        let intPart = current || '';
+        // Remove leading zeros
+        intPart = intPart.replace(/^0+/, '');
+        intPart = intPart + val;
+        // If result is empty (shouldn't), set to '0'
+        if (!intPart) intPart = '0';
+        input.value = Number(intPart).toFixed(2);
         return;
       }
+
+      // default: no-op
     }
 
     document.getElementById('nav-trans').addEventListener('click', () => {
@@ -998,38 +1037,4 @@
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (evt) => {
-        try {
-          const data = evt.target.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
-          const firstSheet = workbook.SheetNames[0];
-          const json = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
-          json.forEach(row => {
-            const entry = {
-              id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
-              user_id: currentUser?.id || null,
-              date: (row.date && new Date(row.date).toISOString().slice(0,10)) || new Date().toISOString().slice(0,10),
-              merchant: row.merchant || row.note || '',
-              note: row.merchant || row.note || '',
-              category: row.category || 'Other',
-              amount: Math.abs(Number(row.amount || row.value || 0)),
-              type: (row.type || 'expense'),
-              created_at: new Date().toISOString()
-            };
-            expenses.unshift(entry);
-          });
-          localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-          renderAllViews();
-        } catch (e) {
-          console.error('Import failed', e);
-          alert('Failed to import file');
-        }
-      };
-      reader.readAsBinaryString(file);
-    });
-
-    // initialize UI
-    initAuth();
-    loadLocalForUser();
-  </script>
-</body>
-</html>
+[...]
