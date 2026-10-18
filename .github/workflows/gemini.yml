@@ -11,7 +11,8 @@ jobs:
       contents: read
       pull-requests: write
     steps:
+      - uses: actions/checkout@v4
       - name: "Run Gemini Code Review"
-        uses: petarzarkov/gemini-code-review-action@v1
+        uses: sshnaidm/gemini-code-review-action@v2
         with:
           gemini-key: ${{ secrets.GEMINI_API_KEY }}
