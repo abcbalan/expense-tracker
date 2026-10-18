@@ -1,9 +1,6 @@
 <!-- 20261018 v7 Gemini trying to fix number entry & layout, auth and database sync untouched -->
 <!-- 20261018 v8 Copilot fix: corrected malformed JS operator so login button works again -->
-<!-- 20261018 v9 Amount entering is fixed and trying to add comments-->
-<!-- ================================================================= -->
-<!-- EXPENSE TRACKER - SINGLE FILE APPLICATION (COMMENTED FOR STUDY)   -->
-<!-- ================================================================= -->
+<!-- 20261018 v9 Amount entering fixed -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -11,52 +8,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ExpenseTracker</title>
-  
-  <!-- External Libraries: SheetJS for Excel/CSV import/export & Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
   <style>
-    /* =============================================================== */
-    /* CSS STYLING & RESPONSIVE LAYOUT                                 */
-    /* =============================================================== */
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
     .app-container { width: 100%; max-width: 480px; background: #fff; height: 100%; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    
-    /* Authentication Login Screen Styling */
     #auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24px; }
     #auth-screen h2 { margin-bottom: 20px; color: #10b981; }
     .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
     .auth-btn { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
     .auth-btn:disabled { background: #a7f3d0; cursor: not-allowed; }
     .auth-error { color: #ef4444; font-size: 14px; margin-top: 10px; text-align: center; }
-
-    /* Top Navigation Bar */
     .top-bar { background: #10b981; color: white; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
     .top-bar h1 { font-size: 18px; font-weight: 600; }
     .top-actions { display: flex; gap: 12px; align-items: center; }
     .icon-btn { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
     .month-nav { background: #059669; color: white; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500; }
     .month-nav button { background: none; border: none; color: white; font-size: 16px; cursor: pointer; padding: 0 8px; }
-
-    /* Summary Bar */
     .summary-bar { background: #ecfdf5; padding: 10px 16px; display: flex; justify-content: space-around; border-bottom: 1px solid #e5e7eb; font-size: 13px; text-align: center; }
     .summary-item-box div:first-child { color: #6b7280; font-size: 11px; }
     .summary-item-box div:last-child { font-weight: 600; color: #111827; margin-top: 2px; }
-
-    /* View Tabs */
     .view-tabs { display: flex; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
     .view-tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: 500; color: #4b5563; cursor: pointer; border-bottom: 2px solid transparent; }
     .view-tab.active { color: #10b981; border-bottom-color: #10b981; background: #fff; }
-    
     .main-screen { display: none; flex-direction: column; height: 100%; width: 100%; }
     .main-screen.active { display: flex; }
     .content-area { flex: 1; overflow-y: auto; background: #f9fafb; padding-bottom: 80px; }
     .view-panel { display: none; }
     .view-panel.active { display: block; }
-
-    /* Transactions List */
     .day-group { margin-bottom: 12px; background: #fff; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
     .day-header { padding: 8px 16px; background: #f3f4f6; display: flex; justify-content: space-between; font-size: 12px; color: #4b5563; }
     .trans-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; cursor: pointer; }
@@ -65,16 +45,12 @@
     .trans-category { font-size: 11px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; width: fit-content; color: #374151; font-weight: 500; }
     .trans-details strong { font-size: 14px; color: #111827; }
     .trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
-
-    /* Floating Action Button & Bottom Nav */
     .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; cursor: pointer; }
     @media (max-width: 480px) { .fab { right: 20px; } }
     .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }
     .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
     .nav-item span:first-child { font-size: 20px; }
-
-    /* Modals & Keypad */
     .modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: center; padding: 12px; }
     .modal-content { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 16px; font-weight: 600; }
@@ -86,33 +62,27 @@
     .key-btn { padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; text-align: center; color: #1f2937; }
     .key-btn:active { background: #e5e7eb; }
     .key-btn.ok { background: #10b981; color: white; grid-row: span 2; height: 100%; display: flex; align-items: center; justify-content: center; }
-
-    /* Calendar Grid */
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #e5e7eb; padding: 2px; }
     .cal-day-name { background: #f3f4f6; text-align: center; padding: 8px 0; font-size: 11px; font-weight: 600; color: #4b5563; }
     .cal-cell { background: #fff; min-height: 60px; padding: 4px; display: flex; flex-direction: column; justify-content: space-between; }
     .cal-cell.empty { background: #fafafa; }
     .cal-date-num { font-size: 11px; font-weight: 500; color: #374151; }
     .cal-spend { font-size: 10px; color: #ef4444; font-weight: 600; text-align: right; }
-
-    /* Stats & Pie Chart */
     .summary-item { padding: 12px 16px; background: #fff; border-bottom: 1px solid #f3f4f6; }
     .summary-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
     .progress-bg { background: #f3f4f6; height: 6px; border-radius: 3px; overflow: hidden; }
     .progress-fill { height: 100%; border-radius: 3px; }
     .stats-container { padding: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; }
-    .pie-chart { width: 160px; height: 160px; aspect-ratio: 1 / 1; border-radius: 50%; margin: 16px 0; position: relative; overflow: hidden; }
+    .pie-chart { width: 160px; height: 160px; border-radius: 50%; margin: 16px 0; position: relative; }
     .stats-row { width: 100%; display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
-    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; max-height: 240px; overflow-y: auto; }
-    .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; position: relative; }
+    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; max-height: 300px; overflow-y: auto; }
+    .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; }
     .cat-tile:active { background: #e5e7eb; }
     .cat-tile span { font-size: 20px; }
   </style>
 </head>
 <body>
   <div class="app-container">
-    
-    <!-- 1. Authentication Login Screen -->
     <div id="auth-screen">
       <h2>ExpenseTracker Login</h2>
       <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
@@ -121,7 +91,6 @@
       <div id="auth-error" class="auth-error"></div>
     </div>
 
-    <!-- 2. Main Transaction Screen -->
     <div id="screen-trans" class="main-screen active">
       <div class="top-bar">
         <h1>ExpenseTracker</h1>
@@ -165,7 +134,6 @@
       </div>
     </div>
 
-    <!-- 3. Statistics Screen -->
     <div id="screen-stats" class="main-screen">
       <div class="top-bar">
         <h1>Statistics</h1>
@@ -186,16 +154,13 @@
       </div>
     </div>
 
-    <!-- Floating Add Button -->
     <button class="fab" id="add-fab">+</button>
 
-    <!-- Bottom Navigation Footer -->
     <div class="bottom-nav">
       <button class="nav-item active" id="nav-trans"><span>📝</span><span>Transaction</span></button>
       <button class="nav-item" id="nav-stats"><span>📊</span><span>Stats</span></button>
     </div>
 
-    <!-- 4. Add/Edit Transaction Entry Modal -->
     <div class="modal" id="entry-modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -229,16 +194,15 @@
           <input type="text" id="input-amount" class="form-control" placeholder="0.00" value="0.00" style="font-size:20px; font-weight:600; text-align:right;">
         </div>
 
-        <!-- Custom Keypad -->
         <div class="keypad">
           <button class="key-btn" data-key="7">7</button>
           <button class="key-btn" data-key="8">8</button>
           <button class="key-btn" data-key="9">9</button>
-          <button class="key-btn" data-key="+" title="Switch to Income">+</button>
+          <button class="key-btn" data-key="+">+</button>
           <button class="key-btn" data-key="4">4</button>
           <button class="key-btn" data-key="5">5</button>
           <button class="key-btn" data-key="6">6</button>
-          <button class="key-btn" data-key="-" title="Switch to Expense">-</button>
+          <button class="key-btn" data-key="-">-</button>
           <button class="key-btn" data-key="1">1</button>
           <button class="key-btn" data-key="2">2</button>
           <button class="key-btn" data-key="3">3</button>
@@ -250,16 +214,11 @@
       </div>
     </div>
 
-    <!-- 5. Category Selection Modal -->
     <div class="modal" id="category-modal" style="z-index: 150;">
-      <div class="modal-content" style="height:65vh;">
+      <div class="modal-content" style="height:60vh;">
         <div class="modal-header">
           <span>Select Category</span>
           <button class="icon-btn" style="color:#333;font-size:14px;" id="close-cat-modal">Close</button>
-        </div>
-        <div style="display:flex; gap:6px; margin-bottom:10px;">
-          <input type="text" id="new-category-input" class="form-control" placeholder="Add new category...">
-          <button type="button" id="btn-add-category" class="auth-btn" style="width:auto; padding:0 16px; font-size:14px;">Add</button>
         </div>
         <div class="cat-grid" id="cat-grid-container"></div>
       </div>
@@ -267,16 +226,11 @@
   </div>
 
   <script>
-    // ===============================================================
-    // JAVASCRIPT APP LOGIC & SESSIONS
-    // ===============================================================
-
-    // [Session 1] Supabase Cloud Client Setup
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
+
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // [Session 2] Global State Variables & Local Storage Keys
     let expenses = [];
     let currentUser = null;
     let accessToken = localStorage.getItem('sb_access_token') || null;
@@ -298,7 +252,6 @@
       'Education': '#e74c3c', 'Gift': '#3498db', 'Other': '#95a5a6'
     };
 
-    // [Session 3] Authentication Helpers (JWT Decoding & Local Storage Management)
     function parseJwt(token) {
       try {
         const base64Url = token.split('.')[1];
@@ -329,7 +282,6 @@
 
     function getGuestStorageKey() { return 'expenses_data_guest'; }
 
-    // [Session 4] Guest Data Migration to User Cloud Database upon Login
     function mergeGuestLocalToUser() {
       const guestKey = getGuestStorageKey();
       const guestRaw = localStorage.getItem(guestKey);
@@ -373,7 +325,6 @@
       }));
     }
 
-    // [Session 5] Realtime Subscription for Cloud DB Sync
     function subscribeToExpenses() {
       if (!currentUser || !currentUser.id) return;
       if (expensesRealtime) {
@@ -400,7 +351,6 @@
       if (currentUserId) saveAuthState();
     }
 
-    // [Session 6] Authentication State Initialization & Handlers
     async function initAuth() {
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
@@ -443,7 +393,6 @@
       }
     }
 
-    // Sign In Login Function
     async function login() {
       const btnLogin = document.getElementById('btn-login');
       const emailInput = document.getElementById('auth-email').value.trim();
@@ -495,7 +444,6 @@
       }
     }
 
-    // Sign Out Logout Function
     async function logout() {
       accessToken = null;
       currentUserEmail = null;
@@ -520,7 +468,6 @@
       document.getElementById('auth-screen').style.display = 'none';
     }
 
-    // [Session 7] Local Data Loading & Currency Formatting
     function loadLocalForUser() {
       const storageKey = getUserStorageKey();
       const stored = localStorage.getItem(storageKey);
@@ -576,7 +523,6 @@
       datalist.innerHTML = merchants.map(name => `<option value="${name}"></option>`).join('');
     }
 
-    // [Session 8] Cloud Sync with Supabase Database
     async function syncWithSupabase() {
       if (!currentUser || !currentUser.id) {
         renderAllViews();
@@ -614,7 +560,6 @@
       return { income, expense, total: income - expense };
     }
 
-    // [Session 9] UI Rendering Functions (Summary Bar, Transactions, Calendar, Stats Pie Chart)
     function renderSummaryBar() {
       const items = getMonthExpenses();
       const totals = getMonthlyTotals(items);
@@ -647,20 +592,20 @@
       const dateKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
       container.innerHTML = dateKeys.map(date => {
         const entries = grouped[date].sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0));
-        const total = entries.reduce((sum, item) => sum + ((item.type || 'expense') === 'income' ? Number(item.amount) || 0 : -(Number(item.amount) || 0)), 0);
+        const total = entries.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
         return `
           <div class="day-group">
             <div class="day-header">
               <span>${new Date(date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-              <span>${total >= 0 ? '' : '-'}${formatMoney(Math.abs(total))}</span>
+              <span>${formatMoney(total)}</span>
             </div>
             ${entries.map(item => `
               <div class="trans-row" data-id="${item.id}" tabindex="0">
                 <div class="trans-left">
-                  <div class="trans-details"><strong>${item.merchant || item.note || 'New entry'}</strong></div>
+                  <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong></div>
                   <div class="trans-category">${item.category || 'Other'}</div>
                 </div>
-                <div class="trans-amount" style="color: ${(item.type || 'expense') === 'income' ? '#10b981' : '#ef4444'}">${(item.type \vert{}\vert{} 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
+                <div class="trans-amount">${(item.type || 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
               </div>
             `).join('')}
           </div>
@@ -693,16 +638,13 @@
       const byDate = {};
       getMonthExpenses().forEach(item => {
         const key = (item.date || '').slice(8, 10);
-        if (key) {
-          const amt = Number(item.amount) || 0;
-          byDate[key] = (byDate[key] || 0) + ((item.type || 'expense') === 'income' ? -amt : amt);
-        }
+        if (key) byDate[key] = (byDate[key] || 0) + (Number(item.amount) || 0);
       });
 
       for (let day = 1; day <= daysInMonth; day++) {
         const key = String(day).padStart(2, '0');
         const spend = byDate[key] || 0;
-        cells.push(`<div class="cal-cell"><div class="cal-date-num">${day}</div>${spend ? `<div class="cal-spend" style="color:${spend < 0 ? '#10b981' : '#ef4444'}">${formatMoney(Math.abs(spend))}</div>` : ''}</div>`);
+        cells.push(`<div class="cal-cell"><div class="cal-date-num">${day}</div>${spend ? `<div class="cal-spend">${formatMoney(spend)}</div>` : ''}</div>`);
       }
 
       while (cells.length % 7 !== 0) {
@@ -715,7 +657,7 @@
     function renderMonthlySummary() {
       const container = document.getElementById('monthly-container');
       if (!container) return;
-      const monthItems = getMonthExpenses().filter(item => (item.type || 'expense') !== 'income');
+      const monthItems = getMonthExpenses();
       const groups = {};
       monthItems.forEach(item => {
         const cat = item.category || 'Other';
@@ -783,6 +725,7 @@
       const slices = entries.map(([name, value]) => {
         const start = cumulative / total * 100;
         cumulative += value;
+        const end = cumulative / total * 100;
         const color = categoryColors[name] || '#10b981';
         const radius = 16;
         const circumference = 2 * Math.PI * radius;
@@ -815,7 +758,6 @@
       updateAutoSuggest();
     }
 
-    // [Session 10] Transaction Entry Modal & Custom Category Management
     function openEntryModal(mode, idOrNull) {
       const modal = document.getElementById('entry-modal');
       const dateInput = document.getElementById('input-date');
@@ -829,7 +771,7 @@
         const entry = expenses.find(item => String(item.id) === String(idOrNull));
         if (!entry) return;
         editingId = entry.id;
-        modalTitle.textContent = entry.type === 'income' ? 'Income' : 'Expense';
+        modalTitle.textContent = 'Edit Transaction';
         deleteBtn.style.display = 'inline';
         dateInput.value = entry.date || new Date().toISOString().slice(0, 10);
         categoryInput.value = entry.category || 'Food';
@@ -863,46 +805,18 @@
         <div class="cat-tile" data-category="${name}">
           <span>${(categoryColors[name] ? '●' : '•')}</span>
           <div>${name}</div>
-          ${customCategories.includes(name) ? `<button class="del-cat" data-cat="${name}" style="position:absolute;top:2px;right:4px;background:none;border:none;color:#ef4444;font-size:12px;cursor:pointer;">×</button>` : ''}
         </div>
       `).join('');
       container.innerHTML = items;
       document.getElementById('category-modal').style.display = 'flex';
-      
       container.querySelectorAll('.cat-tile').forEach(tile => {
-        tile.addEventListener('click', (e) => {
-          if (e.target.classList.contains('del-cat')) return;
+        tile.addEventListener('click', () => {
           const name = tile.dataset.category;
           document.getElementById('input-category').value = name;
           document.getElementById('category-modal').style.display = 'none';
         });
       });
-
-      container.querySelectorAll('.del-cat').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const catToDelete = btn.dataset.cat;
-          customCategories = customCategories.filter(c => c !== catToDelete);
-          localStorage.setItem('custom_categories', JSON.stringify(customCategories));
-          openCategoryModal();
-        });
-      });
     }
-
-    document.getElementById('btn-add-category').addEventListener('click', () => {
-      const input = document.getElementById('new-category-input');
-      const val = input.value.trim();
-      if (!val) return;
-      const allCats = [...baseCategories, ...customCategories];
-      if (allCats.includes(val)) {
-        alert('Category already exists');
-        return;
-      }
-      customCategories.push(val);
-      localStorage.setItem('custom_categories', JSON.stringify(customCategories));
-      input.value = '';
-      openCategoryModal();
-    });
 
     function closeCategoryModal() {
       document.getElementById('category-modal').style.display = 'none';
@@ -952,7 +866,45 @@
       renderAllViews();
     }
 
-    // [Session 11] Onscreen Keypad Decimal & Income/Expense Toggle Logic
+/*    function applyKeyInput(val) {
+      const input = document.getElementById('input-amount');
+      if (!input) return;
+
+      let currentRaw = input.value.toString().trim();
+
+      if (val === 'backspace') {
+        let rawDigits = currentRaw.replace(/\D/g, '');
+        rawDigits = rawDigits.slice(0, -1);
+        if (!rawDigits) {
+          input.value = '0.00';
+          return;
+        }
+        let numVal = (parseInt(rawDigits, 10) / 100).toFixed(2);
+        input.value = numVal;
+        return;
+      }
+
+      if (val === '+' || val === '-') {
+        activeExpenseType = val === '+' ? 'income' : 'expense';
+        document.getElementById('modal-title').textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';
+        return;
+      }
+
+      if (/^\d$/.test(val)) {
+        let rawDigits = currentRaw.replace(/\D/g, '');
+        if (rawDigits === '000' || rawDigits === '00' || rawDigits === '0') rawDigits = '';
+        rawDigits += val;
+        let numVal = (parseInt(rawDigits, 10) / 100).toFixed(2);
+        input.value = numVal;
+        return;
+      }
+
+      if (val === '.') {
+        return;
+      }
+    }
+*/
+
     function applyKeyInput(val) {
       const input = document.getElementById('input-amount');
       if (!input) return;
@@ -980,6 +932,7 @@
       }
 
       if (/^\d$/.test(val)) {
+        // If there's already a decimal point, limit decimals to 2 places
         if (currentVal.includes('.')) {
           const parts = currentVal.split('.');
           if (parts[1] && parts[1].length >= 2) return;
@@ -988,7 +941,6 @@
       }
     }
 
-    // [Session 12] Event Listeners & Application Event Bindings
     document.getElementById('nav-trans').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.add('active');
       document.getElementById('screen-stats').classList.remove('active');
@@ -1033,10 +985,7 @@
       });
     });
 
-    document.getElementById('add-fab').addEventListener('click', () => {
-      activeExpenseType = 'expense';
-      openEntryModal('new', null);
-    });
+    document.getElementById('add-fab').addEventListener('click', () => openEntryModal('new', null));
     document.getElementById('close-modal-top').addEventListener('click', closeEntryModal);
     document.getElementById('delete-btn').addEventListener('click', deleteEntry);
     document.getElementById('input-category').addEventListener('click', openCategoryModal);
@@ -1116,7 +1065,7 @@
       reader.readAsBinaryString(file);
     });
 
-    // [Session 13] Application Initializer Execution
+    // initialize UI
     initAuth();
     loadLocalForUser();
   </script>
