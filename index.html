@@ -43,14 +43,14 @@
     .trans-category { font-size: 11px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; width: fit-content; color: #374151; font-weight: 500; }
     .trans-details strong { font-size: 14px; color: #111827; }
     .trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
-    .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.35); cursor: pointer; z-index: 20; }
+    .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 6px 20px rgba(16,185,129,0.3); z-index: 10; }
     @media (max-width: 480px) { .fab { right: 20px; } }
-    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; z-index: 10; }
+    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }
     .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
     .nav-item span:first-child { font-size: 20px; }
     .modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: center; padding: 12px; }
-    .modal-content { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-content { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 16px; font-weight: 600; }
     .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
@@ -97,7 +97,7 @@
           <button class="icon-btn" id="btn-search" title="Search">🔍</button>
           <label class="icon-btn" title="Import Excel/CSV" style="cursor:pointer;">📂<input type="file" id="import-file-input" accept=".xlsx, .xls, .csv" style="display:none;"></label>
           <button class="icon-btn" id="btn-export-excel" title="Export CSV">📥</button>
-          <button class="icon-btn" id="btn-sync" title="Sync Cloud">🔄</button>
+          <button class="icon-btn" id="btn-sync" title="Sync Cloud">���</button>
           <button class="icon-btn" id="btn-logout" title="Logout">🚪</button>
         </div>
       </div>
@@ -226,7 +226,7 @@
 
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wM';
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -409,7 +409,7 @@
 
       try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email: emailInput, password });
-        
+
         if (error) {
           errEl.innerText = error.message || 'Invalid login credentials.';
           btnLogin.innerText = 'Sign In';
@@ -604,7 +604,7 @@
                   <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong></div>
                   <div class="trans-category">${item.category || 'Other'}</div>
                 </div>
-                <div class="trans-amount">${(item.type \vert{}\vert{} 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
+                <div class="trans-amount">${(item.type || 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
               </div>
             `).join('')}
           </div>
@@ -998,35 +998,36 @@
           const sheet = data.Sheets[data.SheetNames[0]];
           const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
           rows.forEach(row => {
-            const amount = Number(row.amount || row.Amount || 0);
-            if (!row.date && !row.Date) return;
-            expenses.unshift({
-              id: crypto.randomUUID ? crypto.randomUUID() : `imp_${Date.now()}`,
+            const merchant = row.merchant || row.note || row.Merchant || row.Note || 'Imported';
+            const category = row.category || row.Category || 'Other';
+            const amount = Number(row.amount ?? row.Amount ?? 0) || 0;
+            const date = row.date || row.Date || new Date().toISOString().slice(0, 10);
+            const type = (row.type || row.Type || 'expense').toString().toLowerCase();
+            const item = {
+              id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${Math.random()}`,
               user_id: currentUser?.id || null,
-              date: row.date || row.Date,
-              merchant: row.merchant || row.Merchant || row.note || row.Note || 'Imported',
-              note: row.merchant || row.Merchant || row.note || row.Note || 'Imported',
-              category: row.category || row.Category || 'Other',
+              date,
+              merchant,
+              note: merchant,
+              category,
               amount: Math.abs(amount),
-              type: amount >= 0 ? 'income' : 'expense',
+              type: type === 'income' ? 'income' : 'expense',
               created_at: new Date().toISOString()
-            });
+            };
+            expenses.push(item);
           });
           localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
           renderAllViews();
         } catch (e) {
-          console.error('Import failed', e);
-          alert('Import failed. Please ensure the Excel/CSV file is valid.');
+          console.error('Import error', e);
+          alert('Import failed. Please check the file format.');
         }
       };
       reader.readAsArrayBuffer(file);
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
-      if (typeof initAuth === 'function') initAuth();
-      if (typeof loadLocalForUser === 'function') loadLocalForUser();
-      renderAllViews();
-    });
+    initAuth();
+    loadLocalForUser();
   </script>
 </body>
 </html>
