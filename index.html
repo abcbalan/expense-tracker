@@ -1,4 +1,4 @@
-<!-- Testing Gemini review -->
+// 20261018 v1
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,19 +42,22 @@
     .trans-category { font-size: 11px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; width: fit-content; color: #374151; font-weight: 500; }
     .trans-details strong { font-size: 14px; color: #111827; }
     .trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
-    .fab { position: absolute; bottom: 75px; right: 20px; width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.35); cursor: pointer; z-index: 20; }
-    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }
+    .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.35); cursor: pointer; z-index: 20; }
+    @media (max-width: 480px) { .fab { right: 20px; } }
+    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; z-index: 10; }
     .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
     .nav-item span:first-child { font-size: 20px; }
-    .modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: flex-end; flex-direction: column; }
-    .modal-content { background: #fff; width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 16px; font-weight: 600; }
-    .form-group { margin-bottom: 12px; }
+    .modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: center; padding: 12px; }
+    .modal-content { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 16px; font-weight: 600; }
+    .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
     .form-control { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; background: #fff; }
-    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
-    .key-btn { padding: 14px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; text-align: center; color: #1f2937; }
+    .row-group { display: flex; gap: 10px; }
+    .row-group .form-group { flex: 1; min-width: 0; }
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+    .key-btn { padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; text-align: center; color: #1f2937; }
     .key-btn:active { background: #e5e7eb; }
     .key-btn.ok { background: #10b981; color: white; grid-row: span 2; height: 100%; display: flex; align-items: center; justify-content: center; }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #e5e7eb; padding: 2px; }
@@ -70,12 +73,10 @@
     .stats-container { padding: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; }
     .pie-chart { width: 160px; height: 160px; border-radius: 50%; margin: 16px 0; position: relative; }
     .stats-row { width: 100%; display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
-    .badge-percent { padding: 2px 6px; border-radius: 4px; color: #fff; font-size: 11px; font-weight: 600; }
     .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; max-height: 300px; overflow-y: auto; }
     .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; }
     .cat-tile:active { background: #e5e7eb; }
     .cat-tile span { font-size: 20px; }
-    .cat-tile.add-tile { background: #ecfdf5; color: #10b981; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -84,7 +85,7 @@
       <h2>ExpenseTracker Login</h2>
       <input type="email" id="auth-email" class="auth-input" placeholder="Email address">
       <input type="password" id="auth-password" class="auth-input" placeholder="Password">
-      <button id="btn-login" class="auth-btn" onclick="login()">Sign In</button>
+      <button id="btn-login" class="auth-btn">Sign In</button>
       <div id="auth-error" class="auth-error"></div>
     </div>
 
@@ -166,12 +167,12 @@
           <button class="icon-btn" style="color:#ef4444;font-size:14px;display:none;" id="delete-btn">Delete</button>
         </div>
 
-        <div style="display:flex; gap:8px;">
-          <div class="form-group" style="flex:1;">
+        <div class="row-group">
+          <div class="form-group">
             <label>Date</label>
             <input type="date" id="input-date" class="form-control">
           </div>
-          <div class="form-group" style="flex:1;">
+          <div class="form-group">
             <label>Category</label>
             <input type="text" id="input-category" class="form-control" readonly style="cursor:pointer;" value="Food">
           </div>
@@ -181,14 +182,14 @@
           <label>Merchant / Note</label>
           <div style="display:flex; gap:6px;">
             <input type="text" id="input-merchant" class="form-control" list="merchant-list" placeholder="e.g. Tesco, Starbucks" style="flex:1;">
-            <button type="button" id="btn-clear-merchant" class="form-control" style="width:auto; background:#f3f4f6; border:1px solid #d1d5db; cursor:pointer;" title="Hide from suggestions">🚫</button>
+            <button type="button" id="btn-clear-merchant" class="form-control" style="width:auto; background:#f3f4f6; border:1px solid #d1d5db; cursor:pointer;" title="Hide suggestions">🚫</button>
           </div>
           <datalist id="merchant-list"></datalist>
         </div>
 
         <div class="form-group">
           <label>Amount (£)</label>
-          <input type="text" id="input-amount" class="form-control" placeholder="0.00" readonly style="font-size:20px; font-weight:600; text-align:right;">
+          <input type="text" id="input-amount" class="form-control" placeholder="0.00" style="font-size:20px; font-weight:600; text-align:right;">
         </div>
 
         <div class="keypad">
@@ -203,10 +204,10 @@
           <button class="key-btn" data-key="1">1</button>
           <button class="key-btn" data-key="2">2</button>
           <button class="key-btn" data-key="3">3</button>
-          <button class="key-btn ok" id="key-ok" data-key="null">OK</button>
+          <button class="key-btn ok" id="key-ok">OK</button>
           <button class="key-btn" data-key=".">.</button>
           <button class="key-btn" data-key="0">0</button>
-          <button class="key-btn" id="key-backspace" data-key="null">⌫</button>
+          <button class="key-btn" id="key-backspace">⌫</button>
         </div>
       </div>
     </div>
@@ -594,7 +595,7 @@
                   <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong></div>
                   <div class="trans-category">${item.category || 'Other'}</div>
                 </div>
-                <div class="trans-amount">${(item.type || 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
+                <div class="trans-amount">${(item.type \vert{}\vert{} 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
               </div>
             `).join('')}
           </div>
@@ -724,7 +725,7 @@
       }).join('');
       svg.innerHTML = slices;
 
-      container.innerHTML = entries.map(([name, value], index) => {
+      container.innerHTML = entries.map(([name, value]) => {
         const percent = ((value / total) * 100).toFixed(0);
         const color = categoryColors[name] || '#10b981';
         return `
@@ -909,7 +910,6 @@
 
     document.getElementById('search-input').addEventListener('input', renderAllViews);
 
-    document.querySelector('.btn-prev-m').forEach = Array.prototype.forEach;
     document.querySelectorAll('.btn-prev-m').forEach(button => {
       button.addEventListener('click', () => {
         currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
@@ -937,16 +937,25 @@
     document.querySelectorAll('.key-btn[data-key]').forEach(btn => {
       btn.addEventListener('click', () => {
         const val = btn.dataset.key;
-        if (val === 'null') return;
+        if (!val) return;
         applyKeyInput(val);
       });
     });
 
+    document.getElementById('input-amount').addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (/^\d*\.?\d*$/.test(val)) {
+        // Allow free typing
+      }
+    });
+
     document.getElementById('btn-clear-merchant').addEventListener('click', () => {
       const input = document.getElementById('input-merchant');
+      if (input.value) {
+        hiddenMerchants.push(input.value);
+        localStorage.setItem('hidden_merchants', JSON.stringify(hiddenMerchants));
+      }
       input.value = '';
-      hiddenMerchants.push(input.value);
-      localStorage.setItem('hidden_merchants', JSON.stringify(hiddenMerchants));
     });
 
     document.getElementById('btn-export-excel').addEventListener('click', () => {
