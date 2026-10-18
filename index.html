@@ -1,4 +1,4 @@
-<!-- 20261018 v6 Gemini trying to fix layout alignment and keypad entry while preserving user login & sync -->
+<!-- 20261018 v7 Gemini trying to fix number entry & layout, auth and database sync untouched -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -894,6 +894,10 @@
         rawDigits += val;
         let numVal = (parseInt(rawDigits, 10) / 100).toFixed(2);
         input.value = numVal;
+        return;
+      }
+
+      if (val === '.') {
         return;
       }
     }
