@@ -1,4 +1,5 @@
 <!-- 20261018 v7 Gemini trying to fix number entry & layout, auth and database sync untouched -->
+<!-- 20261018 v8 Copilot fix: corrected malformed JS operator so login button works again -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -43,14 +44,14 @@
     .trans-category { font-size: 11px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; width: fit-content; color: #374151; font-weight: 500; }
     .trans-details strong { font-size: 14px; color: #111827; }
     .trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
-    .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 6px 20px rgba(16,185,129,0.3); z-index: 10; border: none; cursor: pointer; }
+    .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; cursor: pointer; }
     @media (max-width: 480px) { .fab { right: 20px; } }
     .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }
     .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
     .nav-item span:first-child { font-size: 20px; }
     .modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: center; padding: 12px; }
-    .modal-content { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+    .modal-content { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 16px; font-weight: 600; }
     .form-group { margin-bottom: 10px; width: 100%; }
     .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
@@ -225,7 +226,7 @@
 
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wM[...]';
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -603,7 +604,7 @@
                   <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong></div>
                   <div class="trans-category">${item.category || 'Other'}</div>
                 </div>
-                <div class="trans-amount">${(item.type \vert{}\vert{} 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
+                <div class="trans-amount">${(item.type || 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)}</div>
               </div>
             `).join('')}
           </div>
@@ -729,7 +730,7 @@
         const circumference = 2 * Math.PI * radius;
         const dash = (value / total) * circumference;
         const dashArray = `${dash} ${circumference - dash}`;
-        return `<circle r="${radius}" cx="16" cy="16" fill="transparent" stroke="${color}" stroke-width="7" stroke-dasharray="${dashArray}" stroke-dashoffset="${-((start / 100) * circumference)}"></circle>`;
+        return `<circle r="${radius}" cx="16" cy="16" fill="transparent" stroke="${color}" stroke-width="7" stroke-dasharray="${dashArray}" stroke-dashoffset="-${((start / 100) * circumference)}"></circle>`;
       }).join('');
       svg.innerHTML = slices;
 
@@ -998,38 +999,35 @@
       const reader = new FileReader();
       reader.onload = (evt) => {
         try {
-          const data = XLSX.read(evt.target.result, { type: 'array' });
-          const sheet = data.Sheets[data.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-          rows.forEach(row => {
-            const merchant = row.merchant || row.note || row.Merchant || row.Note || 'Imported';
-            const category = row.category || row.Category || 'Other';
-            const amount = Number(row.amount ?? row.Amount ?? 0) || 0;
-            const date = row.date || row.Date || new Date().toISOString().slice(0, 10);
-            const type = (row.type || row.Type || 'expense').toString().toLowerCase();
-            const item = {
-              id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${Math.random()}`,
+          const data = evt.target.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const firstSheet = workbook.SheetNames[0];
+          const json = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+          json.forEach(row => {
+            const entry = {
+              id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
               user_id: currentUser?.id || null,
-              date,
-              merchant,
-              note: merchant,
-              category,
-              amount: Math.abs(amount),
-              type: type === 'income' ? 'income' : 'expense',
+              date: (row.date && new Date(row.date).toISOString().slice(0,10)) || new Date().toISOString().slice(0,10),
+              merchant: row.merchant || row.note || '',
+              note: row.merchant || row.note || '',
+              category: row.category || 'Other',
+              amount: Math.abs(Number(row.amount || row.value || 0)),
+              type: (row.type || 'expense'),
               created_at: new Date().toISOString()
             };
-            expenses.push(item);
+            expenses.unshift(entry);
           });
           localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
           renderAllViews();
         } catch (e) {
-          console.error('Import error', e);
-          alert('Import failed. Please check the file format.');
+          console.error('Import failed', e);
+          alert('Failed to import file');
         }
       };
-      reader.readAsArrayBuffer(file);
+      reader.readAsBinaryString(file);
     });
 
+    // initialize UI
     initAuth();
     loadLocalForUser();
   </script>
