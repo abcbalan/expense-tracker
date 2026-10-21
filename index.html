@@ -592,7 +592,9 @@
 
       const dateKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
       container.innerHTML = dateKeys.map(date => {
-        const entries = grouped[date].sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0));
+        /* to sort the entry when entering
+        const entries = grouped[date].sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0));*/
+        const entries = grouped[date].sort((a, b) =>new Date(b.created_at) -new Date(a.created_at));
         const total = entries.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
         return `
           <div class="day-group">
