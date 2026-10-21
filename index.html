@@ -917,7 +917,9 @@ else {
       const category = document.getElementById('input-category').value || 'Food';
       const amount = Number(document.getElementById('input-amount').value || 0);
       const date = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
-      const type = activeExpenseType === 'income' ? 'income' : 'expense';
+      /* try to fix salary entered but income still shows zero
+      const type = activeExpenseType === 'income' ? 'income' : 'expense';*/
+      const type = document.getElementById('input-category').value === 'Salary' ? 'income' : activeExpenseType;
       return {
         id: editingId || (crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}`),
         user_id: currentUser?.id || null,
@@ -981,7 +983,7 @@ else {
         document.getElementById('modal-title').textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';
         return;
       } */
-      if (val === '+' || val === '-') {
+      /* if (val === '+' || val === '-') {
         activeExpenseType = val === '+' ? 'income' : 'expense';
         document.getElementById('modal-title').textContent =
           activeExpenseType === 'income'
@@ -992,7 +994,20 @@ else {
             ? 'Salary'
             : 'Food';
         return;
-      }
+      }*/
+      if (val === '+' || val === '-') {
+        activeExpenseType =
+          val === '+' ? 'income' : 'expense';
+        document.getElementById('modal-title').textContent =
+          activeExpenseType === 'income'
+            ? 'Income'
+            : 'Expense';
+        document.getElementById('input-category').value =
+          activeExpenseType === 'income'
+            ? 'Salary'
+            : 'Food';
+        return;
+        }
 
       if (/^\d$/.test(val)) {
         let rawDigits = currentRaw.replace(/\D/g, '');
