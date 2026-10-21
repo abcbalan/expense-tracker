@@ -1082,10 +1082,17 @@ else {
       activeExpenseType = 'expense';
       openEntryModal('new', null);
     });
-    document.getElementById('income-fab').addEventListener('click', () => {
+    /*document.getElementById('income-fab').addEventListener('click', () => {
       activeExpenseType = 'income';
       openEntryModal('new', null);
-    });
+    });*/
+    const incomeFab = document.getElementById('income-fab');
+    if (incomeFab) {
+      incomeFab.addEventListener('click', () => {
+        activeExpenseType = 'income';
+        openEntryModal('new', null);
+      });
+    }
     document.getElementById('close-modal-top').addEventListener('click', closeEntryModal);
     document.getElementById('delete-btn').addEventListener('click', deleteEntry);
     document.getElementById('input-category').addEventListener('click', openCategoryModal);
