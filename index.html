@@ -783,7 +783,9 @@
         activeExpenseType = entry.type === 'income' ? 'income' : 'expense';
       } else {
         editingId = null;
-        modalTitle.textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';
+        /* Word cancel next to Expense
+        modalTitle.textContent = activeExpenseType === 'income' ? 'Income' : 'Expense'; */
+        modalTitle.textContent = 'Expense / Income';
         deleteBtn.style.display = 'none';
         dateInput.value = new Date().toISOString().slice(0, 10);
         categoryInput.value =
