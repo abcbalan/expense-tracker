@@ -929,7 +929,9 @@ else {
       const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
       if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
       else expenses.unshift(item);
-      expenses = expenses.sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));
+      /* try to fix the entry sorting
+      expenses = expenses.sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));*/
+      expenses = expenses.sort((a, b) =>new Date(b.created_at || b.date) -new Date(a.created_at || a.date));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       if (currentUser?.id) {
         supabaseClient.from('expenses').upsert(item, { onConflict: 'id' }).then(() => {}).catch(console.warn);
