@@ -1,6 +1,7 @@
 <!-- 20261018 v7 Gemini trying to fix number entry & layout, auth and database sync untouched -->
 <!-- 20261018 v8 Copilot fix: corrected malformed JS operator so login button works again -->
 <!-- 20261018 v9 Amount entering fixed -->
+<!-- 20261021 v10 Merchants delete and Category fixed -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -805,6 +806,7 @@
       const categories = [...new Set([...baseCategories, ...customCategories])];
       /* try to allow manually add category */
       categories.push('+ Add Category');
+      categories.push('🗑 Delete Category');
       /* end */
       const items = categories.map(name => `
         <div class="cat-tile" data-category="${name}">
@@ -823,7 +825,8 @@
         }); */
         tile.addEventListener('click', () => {
     const name = tile.dataset.category;
-    if (name === '+ Add Category') {
+    /* try to let category can be added or removed */
+    /*if (name === '+ Add Category') {
         const newCategory = prompt('Enter new category name');
         if (newCategory && newCategory.trim()) {
             customCategories.push(newCategory.trim());
@@ -836,7 +839,56 @@
         }
     } else {
         document.getElementById('input-category').value = name;
+    }*/
+          if (name === '+ Add Category') {
+    const newCategory = prompt('Enter new category name');
+    if (newCategory && newCategory.trim()) {
+        const catName = newCategory.trim();
+        if (!customCategories.includes(catName) &&
+            !baseCategories.includes(catName)) {
+            customCategories.push(catName);
+            localStorage.setItem(
+                'custom_categories',
+                JSON.stringify(customCategories)
+            );
+        }
+
+        document.getElementById('input-category').value = catName;
     }
+}
+else if (name === '🗑 Delete Category') {
+    const deleteCategory =
+        prompt('Enter category name to delete');
+    if (deleteCategory && deleteCategory.trim()) {
+        const catToDelete = deleteCategory.trim();
+        expenses.forEach(item => {
+            if (item.category === catToDelete) {
+                item.category = 'Other';
+            }
+
+        });
+        customCategories =
+            customCategories.filter(
+                c => c !== catToDelete
+            );
+        localStorage.setItem(
+            'custom_categories',
+            JSON.stringify(customCategories)
+        );
+        localStorage.setItem(
+            getUserStorageKey(),
+            JSON.stringify(expenses)
+        );
+        alert(
+            `"${catToDelete}" deleted and existing records changed to Other.`
+        );
+        openCategoryModal();
+        return;
+    }
+}
+else {
+    document.getElementById('input-category').value = name;
+}
     document.getElementById('category-modal').style.display = 'none';
 });
       });
