@@ -935,6 +935,7 @@ else {
 
     function saveEntry() {
       const item = buildEntryObject();
+      console.log(item);
       const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
       if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
       else expenses.unshift(item);
