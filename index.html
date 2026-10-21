@@ -803,6 +803,9 @@
       const container = document.getElementById('cat-grid-container');
       if (!container) return;
       const categories = [...new Set([...baseCategories, ...customCategories])];
+      /* try to allow manually add category */
+      categories.push('+ Add Category');
+      /* end */
       const items = categories.map(name => `
         <div class="cat-tile" data-category="${name}">
           <span>${(categoryColors[name] ? '●' : '•')}</span>
@@ -812,11 +815,30 @@
       container.innerHTML = items;
       document.getElementById('category-modal').style.display = 'flex';
       container.querySelectorAll('.cat-tile').forEach(tile => {
+        /* try to fix category issue 
         tile.addEventListener('click', () => {
           const name = tile.dataset.category;
           document.getElementById('input-category').value = name;
           document.getElementById('category-modal').style.display = 'none';
-        });
+        }); */
+        tile.addEventListener('click', () => {
+    const name = tile.dataset.category;
+    if (name === '+ Add Category') {
+        const newCategory = prompt('Enter new category name');
+        if (newCategory && newCategory.trim()) {
+            customCategories.push(newCategory.trim());
+            localStorage.setItem(
+                'custom_categories',
+                JSON.stringify(customCategories)
+            );
+            document.getElementById('input-category').value =
+                newCategory.trim();
+        }
+    } else {
+        document.getElementById('input-category').value = name;
+    }
+    document.getElementById('category-modal').style.display = 'none';
+});
       });
     }
 
