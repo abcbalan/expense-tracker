@@ -12,9 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    /*Changed 20261021 10:52*/
-    /*body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100vh; overflow: hidden; }*/
-    body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100dvh; height: 100vh; overflow: hidden; }
+    body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
     .app-container { width: 100%; max-width: 480px; background: #fff; height: 100%; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     #auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24px; }
     #auth-screen h2 { margin-bottom: 20px; color: #10b981; }
@@ -34,10 +32,7 @@
     .view-tabs { display: flex; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
     .view-tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: 500; color: #4b5563; cursor: pointer; border-bottom: 2px solid transparent; }
     .view-tab.active { color: #10b981; border-bottom-color: #10b981; background: #fff; }
-    /* Change this rule: */
-    /* .main-screen { display: none; flex-direction: column; height: 100%; width: 100%; } */
-    /* To this: */
-    .main-screen { display: none; flex-direction: column; flex: 1; width: 100%; overflow: hidden; }
+    .main-screen { display: none; flex-direction: column; height: 100%; width: 100%; }
     .main-screen.active { display: flex; }
     .content-area { flex: 1; overflow-y: auto; background: #f9fafb; padding-bottom: 80px; }
     .view-panel { display: none; }
@@ -52,22 +47,7 @@
     .trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
     .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; cursor: pointer; }
     @media (max-width: 480px) { .fab { right: 20px; } }
-    /* Changed 20261021 10:52 */
-    /*.bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }*/
-    /*.bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; z-index: 50; }*/
-    /* Changed 20261021 - Fixed for Samsung / Android system bar clipping */
-  .bottom-nav { 
-    width: 100%; 
-    height: 60px; 
-    background: #fff; 
-    border-top: 1px solid #e5e7eb; 
-    display: flex; 
-    justify-content: space-around; 
-    align-items: center; 
-    z-index: 50; 
-    flex-shrink: 0; /* Prevents it from getting squished */
-    padding-bottom: env(safe-area-inset-bottom, 0px); /* Adjusts for phone gesture bars */
-  }  
+    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }
     .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
     .nav-item span:first-child { font-size: 20px; }
