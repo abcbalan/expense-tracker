@@ -947,7 +947,9 @@ else {
 
       if (val === '+' || val === '-') {
         activeExpenseType = val === '+' ? 'income' : 'expense';
-        document.getElementById('modal-title').textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';
+        /* word cancel next to Expense
+        document.getElementById('modal-title').textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';*/
+        document.getElementById('modal-title').textContent = 'Expense / Income';
         return;
       }
 
