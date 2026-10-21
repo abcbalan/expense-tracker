@@ -1120,43 +1120,6 @@ else {
         `Merchant renamed to "${merchantName}"`
     );
 });
-    const merchantToDelete =
-        document.getElementById('input-merchant').value.trim();
-    if (!merchantToDelete) return;
-    if (!confirm(
-        `Delete "${merchantToDelete}" and clear all existing records?`
-    )) return;
-    const updatedItems = [];
-    expenses.forEach(item => {
-        if ((item.merchant || '').toLowerCase() ===
-            merchantToDelete.toLowerCase()) {
-            item.merchant = '';
-            item.note = '';
-            updatedItems.push(item);
-        }
-    });
-    localStorage.setItem(
-        getUserStorageKey(),
-        JSON.stringify(expenses)
-    );
-    if (currentUser?.id) {
-        for (const item of updatedItems) {
-            try {
-                await supabaseClient
-                    .from('expenses')
-                    .update({
-                        merchant: '',
-                        note: ''
-                    })
-                    .eq('id', item.id);
-            } catch (err) {
-                console.warn(err);
-            }
-        }
-    }
-    document.getElementById('input-merchant').value = '';
-    renderAllViews();
-});
     document.getElementById('btn-export-excel').addEventListener('click', () => {
       if (!expenses.length) {
         alert('No data to export');
