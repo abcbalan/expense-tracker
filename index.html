@@ -976,9 +976,21 @@ else {
         return;
       }
 
-      if (val === '+' || val === '-') {
+      /* if (val === '+' || val === '-') {
         activeExpenseType = val === '+' ? 'income' : 'expense';
         document.getElementById('modal-title').textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';
+        return;
+      } */
+      if (val === '+' || val === '-') {
+        activeExpenseType = val === '+' ? 'income' : 'expense';
+        document.getElementById('modal-title').textContent =
+          activeExpenseType === 'income'
+            ? 'Income'
+            : 'Expense';
+        document.getElementById('input-category').value =
+          activeExpenseType === 'income'
+            ? 'Salary'
+            : 'Food';
         return;
       }
 
