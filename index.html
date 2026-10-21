@@ -1003,15 +1003,35 @@
       });
     });
 
-    document.getElementById('btn-clear-merchant').addEventListener('click', () => {
+    /* try to fix Merchants can be deleted */
+    /*document.getElementById('btn-clear-merchant').addEventListener('click', () => {
       const input = document.getElementById('input-merchant');
       if (input.value) {
         hiddenMerchants.push(input.value);
         localStorage.setItem('hidden_merchants', JSON.stringify(hiddenMerchants));
       }
       input.value = '';
-    });
-
+    });*/
+    document.getElementById('btn-clear-merchant').addEventListener('click', () => {
+  const merchantToDelete =
+      document.getElementById('input-merchant').value.trim();
+  if (!merchantToDelete) return;
+  if (!confirm(`Delete "${merchantToDelete}" from suggestions?`))
+      return;
+  expenses.forEach(item => {
+      if ((item.merchant || '').toLowerCase() ===
+          merchantToDelete.toLowerCase()) {
+          item.merchant = '';
+          item.note = '';
+      }
+  });
+  localStorage.setItem(
+      getUserStorageKey(),
+      JSON.stringify(expenses)
+  );
+  document.getElementById('input-merchant').value = '';
+  renderAllViews();
+});
     document.getElementById('btn-export-excel').addEventListener('click', () => {
       if (!expenses.length) {
         alert('No data to export');
