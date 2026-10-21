@@ -242,7 +242,9 @@
     let expensesRealtime = null;
     let activeExpenseType = 'expense';
 
-    const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other'];
+    /* try add income issue
+    const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other'];*/
+    const baseCategories = ['Food','Social Life','Self-development','Transportation','Culture','Household','Apparel','Beauty','Health','Education','Gift','Salary','Other'];
     let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
 
@@ -786,7 +788,12 @@
         modalTitle.textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';
         deleteBtn.style.display = 'none';
         dateInput.value = new Date().toISOString().slice(0, 10);
-        categoryInput.value = 'Food';
+        /* try to add income
+        categoryInput.value = 'Food'; */
+        categoryInput.value =
+          activeExpenseType === 'income'
+            ? 'Salary'
+            : 'Food';
         merchantInput.value = '';
         amountInput.value = '0.00';
       }
@@ -1069,8 +1076,16 @@ else {
         renderAllViews();
       });
     });
-
-    document.getElementById('add-fab').addEventListener('click', () => openEntryModal('new', null));
+/*  Try to add income function
+    document.getElementById('add-fab').addEventListener('click', () => openEntryModal('new', null)); */
+    document.getElementById('add-fab').addEventListener('click', () => {
+      activeExpenseType = 'expense';
+      openEntryModal('new', null);
+    });
+    document.getElementById('income-fab').addEventListener('click', () => {
+      activeExpenseType = 'income';
+      openEntryModal('new', null);
+    });
     document.getElementById('close-modal-top').addEventListener('click', closeEntryModal);
     document.getElementById('delete-btn').addEventListener('click', deleteEntry);
     document.getElementById('input-category').addEventListener('click', openCategoryModal);
