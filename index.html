@@ -801,7 +801,14 @@
     function openCategoryModal() {
       const container = document.getElementById('cat-grid-container');
       if (!container) return;
-      const categories = [...new Set([...baseCategories, ...customCategories])];
+      /* try to sort the category 
+      const categories = [...new Set([...baseCategories, ...customCategories])]; */
+      const categories = [
+        ...baseCategories,
+        ...customCategories.sort((a,b)=>
+        a.localeCompare(b)
+        )
+      ];
       /* try to allow manually add category */
       categories.push('+ Add Category');
       categories.push('🗑 Delete Category');
