@@ -51,7 +51,20 @@
     @media (max-width: 480px) { .fab { right: 20px; } }
     /* Changed 20261021 10:52 */
     /*.bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }*/
-    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; z-index: 50; }
+    /*.bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; z-index: 50; }*/
+    /* Changed 20261021 - Fixed for Samsung / Android system bar clipping */
+  .bottom-nav { 
+    width: 100%; 
+    height: 60px; 
+    background: #fff; 
+    border-top: 1px solid #e5e7eb; 
+    display: flex; 
+    justify-content: space-around; 
+    align-items: center; 
+    z-index: 50; 
+    flex-shrink: 0; /* Prevents it from getting squished */
+    padding-bottom: env(safe-area-inset-bottom, 0px); /* Adjusts for phone gesture bars */
+  }  
     .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
     .nav-item span:first-child { font-size: 20px; }
