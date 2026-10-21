@@ -594,8 +594,6 @@
 
       const dateKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
       container.innerHTML = dateKeys.map(date => {
-        /* to sort the entry when entering
-        const entries = grouped[date].sort((a, b) => (Number(b.amount) || 0) - (Number(a.amount) || 0));*/
         const entries = grouped[date].sort((a, b) =>new Date(b.created_at) -new Date(a.created_at));
         const total = entries.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
         return `
@@ -788,8 +786,6 @@
         modalTitle.textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';
         deleteBtn.style.display = 'none';
         dateInput.value = new Date().toISOString().slice(0, 10);
-        /* try to add income
-        categoryInput.value = 'Food'; */
         categoryInput.value =
           activeExpenseType === 'income'
             ? 'Salary'
@@ -810,8 +806,6 @@
     function openCategoryModal() {
       const container = document.getElementById('cat-grid-container');
       if (!container) return;
-      /* try to sort the category 
-      const categories = [...new Set([...baseCategories, ...customCategories])]; */
       const categories = [
         ...baseCategories,
         ...customCategories.sort((a,b)=>
@@ -831,29 +825,8 @@
       container.innerHTML = items;
       document.getElementById('category-modal').style.display = 'flex';
       container.querySelectorAll('.cat-tile').forEach(tile => {
-        /* try to fix category issue 
-        tile.addEventListener('click', () => {
-          const name = tile.dataset.category;
-          document.getElementById('input-category').value = name;
-          document.getElementById('category-modal').style.display = 'none';
-        }); */
         tile.addEventListener('click', () => {
     const name = tile.dataset.category;
-    /* try to let category can be added or removed */
-    /*if (name === '+ Add Category') {
-        const newCategory = prompt('Enter new category name');
-        if (newCategory && newCategory.trim()) {
-            customCategories.push(newCategory.trim());
-            localStorage.setItem(
-                'custom_categories',
-                JSON.stringify(customCategories)
-            );
-            document.getElementById('input-category').value =
-                newCategory.trim();
-        }
-    } else {
-        document.getElementById('input-category').value = name;
-    }*/
           if (name === '+ Add Category') {
     const newCategory = prompt('Enter new category name');
     if (newCategory && newCategory.trim()) {
@@ -917,8 +890,6 @@ else {
       const category = document.getElementById('input-category').value || 'Food';
       const amount = Number(document.getElementById('input-amount').value || 0);
       const date = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
-      /* try to fix salary entered but income still shows zero
-      const type = activeExpenseType === 'income' ? 'income' : 'expense';*/
       const type = document.getElementById('input-category').value === 'Salary' ? 'income' : activeExpenseType;
       return {
         id: editingId || (crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}`),
@@ -939,8 +910,6 @@ else {
       const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
       if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
       else expenses.unshift(item);
-      /* try to fix the entry sorting
-      expenses = expenses.sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));*/
       expenses = expenses.sort((a, b) =>new Date(b.created_at || b.date) -new Date(a.created_at || a.date));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       if (currentUser?.id) {
@@ -960,53 +929,6 @@ else {
       closeEntryModal();
       renderAllViews();
     }
-
-/*    function applyKeyInput(val) {
-      const input = document.getElementById('input-amount');
-      if (!input) return;
-
-      let currentRaw = input.value.toString().trim();
-
-      if (val === 'backspace') {
-        let rawDigits = currentRaw.replace(/\D/g, '');
-        rawDigits = rawDigits.slice(0, -1);
-        if (!rawDigits) {
-          input.value = '0.00';
-          return;
-        }
-        let numVal = (parseInt(rawDigits, 10) / 100).toFixed(2);
-        input.value = numVal;
-        return;
-      }
-
-      if (val === '+' || val === '-') {
-        activeExpenseType =
-          val === '+' ? 'income' : 'expense';
-        document.getElementById('modal-title').textContent =
-          activeExpenseType === 'income'
-            ? 'Income'
-            : 'Expense';
-        document.getElementById('input-category').value =
-          activeExpenseType === 'income'
-            ? 'Salary'
-            : 'Food';
-        return;
-      }
-
-      if (/^\d$/.test(val)) {
-        let rawDigits = currentRaw.replace(/\D/g, '');
-        if (rawDigits === '000' || rawDigits === '00' || rawDigits === '0') rawDigits = '';
-        rawDigits += val;
-        let numVal = (parseInt(rawDigits, 10) / 100).toFixed(2);
-        input.value = numVal;
-        return;
-      }
-
-      if (val === '.') {
-        return;
-      }
-    }
-*/
 
     function applyKeyInput(val) {
       const input = document.getElementById('input-amount');
@@ -1087,16 +1009,10 @@ else {
         renderAllViews();
       });
     });
-/*  Try to add income function
-    document.getElementById('add-fab').addEventListener('click', () => openEntryModal('new', null)); */
     document.getElementById('add-fab').addEventListener('click', () => {
       activeExpenseType = 'expense';
       openEntryModal('new', null);
     });
-    /*document.getElementById('income-fab').addEventListener('click', () => {
-      activeExpenseType = 'income';
-      openEntryModal('new', null);
-    });*/
     const incomeFab = document.getElementById('income-fab');
     if (incomeFab) {
       incomeFab.addEventListener('click', () => {
