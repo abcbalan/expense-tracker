@@ -979,23 +979,6 @@ else {
         return;
       }
 
-      /* if (val === '+' || val === '-') {
-        activeExpenseType = val === '+' ? 'income' : 'expense';
-        document.getElementById('modal-title').textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';
-        return;
-      } */
-      /* if (val === '+' || val === '-') {
-        activeExpenseType = val === '+' ? 'income' : 'expense';
-        document.getElementById('modal-title').textContent =
-          activeExpenseType === 'income'
-            ? 'Income'
-            : 'Expense';
-        document.getElementById('input-category').value =
-          activeExpenseType === 'income'
-            ? 'Salary'
-            : 'Food';
-        return;
-      }*/
       if (val === '+' || val === '-') {
         activeExpenseType =
           val === '+' ? 'income' : 'expense';
@@ -1008,7 +991,7 @@ else {
             ? 'Salary'
             : 'Food';
         return;
-        }
+      }
 
       if (/^\d$/.test(val)) {
         let rawDigits = currentRaw.replace(/\D/g, '');
