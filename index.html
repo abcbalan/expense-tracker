@@ -244,8 +244,6 @@
 
     const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other'];
     let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
-    /* try to fix merchants not able to delete */
-    localStorage.removeItem('hidden_merchants');
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
 
     const categoryColors = {
@@ -1079,6 +1077,49 @@ else {
 
     /* try to fix Merchants can be deleted */
     document.getElementById('btn-clear-merchant').addEventListener('click', async () => {
+    const oldMerchant =
+        document.getElementById('input-merchant').value.trim();
+    if (!oldMerchant) return;
+    const newMerchant =
+        prompt(`Rename "${oldMerchant}" to:`);
+    if (!newMerchant || !newMerchant.trim()) return;
+    const merchantName =
+        newMerchant.trim();
+    const updatedItems = [];
+    expenses.forEach(item => {
+        if ((item.merchant || '').toLowerCase() ===
+            oldMerchant.toLowerCase()) {
+            item.merchant = merchantName;
+            item.note = merchantName;
+            updatedItems.push(item);
+        }
+    });
+    localStorage.setItem(
+        getUserStorageKey(),
+        JSON.stringify(expenses)
+    );
+    if (currentUser?.id) {
+        for (const item of updatedItems) {
+            try {
+                await supabaseClient
+                    .from('expenses')
+                    .update({
+                        merchant: merchantName,
+                        note: merchantName
+                    })
+                    .eq('id', item.id);
+            } catch (err) {
+                console.warn(err);
+            }
+        }
+    }
+    document.getElementById('input-merchant').value =
+        merchantName;
+    renderAllViews();
+    alert(
+        `Merchant renamed to "${merchantName}"`
+    );
+});
     const merchantToDelete =
         document.getElementById('input-merchant').value.trim();
     if (!merchantToDelete) return;
