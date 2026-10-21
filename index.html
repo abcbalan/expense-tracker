@@ -243,6 +243,8 @@
 
     const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other'];
     let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
+    /* try to fix merchants not able to delete */
+    localStorage.removeItem('hidden_merchants');
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
 
     const categoryColors = {
