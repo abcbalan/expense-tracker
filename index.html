@@ -60,8 +60,9 @@
     .form-control { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; background: #fff; height: 42px; }
     /* try to fix iphone catelory field smaller issue
     .row-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; align-items: start; } 
-    .row-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; } */
-    .row-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; align-items: start;} 
+    .row-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; } 
+    .row-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; align-items: start;} */
+    .row-group { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; width: 100%; align-items: start; }
     .form-group { margin-bottom: 10px; width: 100%; min-width: 0; }
     .form-group { border: 1px solid red; }
     /*#input-date, #input-category { width: 100%; min-width: 0; }
