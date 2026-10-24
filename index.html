@@ -1171,6 +1171,22 @@ else {
       reader.readAsBinaryString(file);
     });
 
+// Check if redirected from a password recovery link
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    const newPassword = prompt('Enter your new password:');
+    if (newPassword && newPassword.trim()) {
+      const { data, error } = await supabaseClient.auth.updateUser({
+        password: newPassword.trim()
+      });
+      if (error) {
+        alert('Error updating password: ' + error.message);
+      } else {
+        alert('Password successfully updated! You are now logged in.');
+      }
+    }
+  }
+});
     // initialize UI
     initAuth();
     loadLocalForUser();
