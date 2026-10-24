@@ -1137,16 +1137,18 @@ else {
     document.getElementById('btn-sync').addEventListener('click', syncWithSupabase);
     document.getElementById('btn-stats-sync').addEventListener('click', syncWithSupabase);
 
-    document.getElementById('import-file-input').addEventListener('change', (event) => {
+document.getElementById('import-file-input').addEventListener('change', async (event) => {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (evt) => {
+      reader.onload = async (evt) => {
         try {
           const data = evt.target.result;
           const workbook = XLSX.read(data, { type: 'binary' });
           const firstSheet = workbook.SheetNames[0];
           const json = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+          
+          const newEntries = [];
           json.forEach(row => {
             const entry = {
               id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
@@ -1159,10 +1161,22 @@ else {
               type: (row.type || 'expense'),
               created_at: new Date().toISOString()
             };
-            expenses.unshift(entry);
+            newEntries.push(entry);
           });
+
+          // Add to local array and save to storage
+          expenses = [...newEntries, ...expenses];
           localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+
+          // Upload all imported entries to Supabase so they persist across logins
+          if (currentUser?.id) {
+            for (const item of newEntries) {
+              await supabaseClient.from('expenses').upsert(item, { onConflict: 'id' });
+            }
+          }
+
           renderAllViews();
+          alert(`Successfully imported and synced ${newEntries.length} records!`);
         } catch (e) {
           console.error('Import failed', e);
           alert('Failed to import file');
