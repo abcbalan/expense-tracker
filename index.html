@@ -86,7 +86,7 @@
     .progress-bg { background: #f3f4f6; height: 6px; border-radius: 3px; overflow: hidden; }
     .progress-fill { height: 100%; border-radius: 3px; }
     .stats-container { padding: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; }
-    .pie-chart { width: 160px; height: 160px; border-radius: 50%; margin: 16px 0; position: relative; }
+    .pie-chart { width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 16px 0; position: relative; }
     .stats-row { width: 100%; display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
     .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; max-height: 300px; overflow-y: auto; }
     .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; }
@@ -749,11 +749,11 @@ function renderStats() {
         cumulative += value;
         const end = cumulative / total * 100;
         const color = categoryColors[name] || '#10b981';
-        const radius = 50;
+        const radius = 25;
         const circumference = 2 * Math.PI * radius;
         const dash = (value / total) * circumference;
         const dashArray = `${dash} ${circumference - dash}`;
-        return `<circle r="${radius}" cx="50" cy="50" fill="transparent" stroke="${color}" stroke-width="100" stroke-dasharray="${dashArray}" stroke-dashoffset="-${((start / 100) * circumference)}"></circle>`;
+        return `<circle r="${radius}" cx="16" cy="16" fill="transparent" stroke="${color}" stroke-width="50" stroke-dasharray="${dashArray}" stroke-dashoffset="-${((start / 100) * circumference)}"></circle>`;
       }).join('');
       svg.innerHTML = slices;
 
@@ -768,7 +768,6 @@ function renderStats() {
         `;
       }).join('');
     }
-
     function renderAllViews() {
       updateMonthHeader();
       renderSummaryBar();
