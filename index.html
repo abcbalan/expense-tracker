@@ -78,9 +78,7 @@
     .progress-bg { background: #f3f4f6; height: 6px; border-radius: 3px; overflow: hidden; }
     .progress-fill { height: 100%; border-radius: 3px; }
     .stats-container { padding: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; }
-    /* try to fix stats diagram not circle shape 1 
-    .pie-chart { width: 160px; height: 160px; border-radius: 50%; margin: 16px 0; position: relative; } */
-    .pie-chart { width: 160px; height: 160px; aspect-ratio: 1 / 1; border-radius: 50%; margin: 16px 0; position: relative; flex-shrink: 0; }
+    .pie-chart { width: 160px; height: 160px; border-radius: 50%; margin: 16px 0; position: relative; }
     .stats-row { width: 100%; display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
     .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; max-height: 300px; overflow-y: auto; }
     .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; }
@@ -155,7 +153,7 @@
       </div>
       <div class="content-area">
         <div class="stats-container">
-          <div class="pie-chart"><svg id="svgPie" viewBox="0 0 100 100" style="width:100%;height:100%;transform:rotate(-90deg);"></svg></div>
+          <div class="pie-chart"><svg id="svgPie" viewBox="0 0 32 32" style="width:100%;height:100%;transform:rotate(-90deg);"></svg></div>
           <div id="stats-list-container" style="width:100%;"></div>
         </div>
       </div>
@@ -711,51 +709,24 @@
       `;
     }
 
-function renderStats() {
-    const container = document.getElementById('stats-list-container');
-    const svg = document.getElementById('svgPie');
-    if (!container || !svg) return;
-    const monthItems = getMonthExpenses().filter(item => (item.type || 'expense') !== 'income');
-    const totals = {};
-    monthItems.forEach(item => {
-      const name = item.category || 'Other';
-      totals[name] = (totals[name] || 0) + (Number(item.amount) || 0);
-    });
+    function renderStats() {
+      const container = document.getElementById('stats-list-container');
+      const svg = document.getElementById('svgPie');
+      if (!container || !svg) return;
+      const monthItems = getMonthExpenses().filter(item => (item.type || 'expense') !== 'income');
+      const totals = {};
+      monthItems.forEach(item => {
+        const name = item.category || 'Other';
+        totals[name] = (totals[name] || 0) + (Number(item.amount) || 0);
+      });
 
-    const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
-    if (!entries.length) {
-      container.innerHTML = '<div style="padding:20px; color:#6b7280; text-align:center;">No statistics yet</div>';
-      svg.innerHTML = '';
-      return;
-    }
+      const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+      if (!entries.length) {
+        container.innerHTML = '<div style="padding:20px; color:#6b7280; text-align:center;">No statistics yet</div>';
+        svg.innerHTML = '';
+        return;
+      }
 
-    const total = entries.reduce((sum, [, value]) => sum + value, 0) || 1;
-    let cumulative = 0;
-    const slices = entries.map(([name, value]) => {
-      const start = cumulative / total * 100;
-      cumulative += value;
-      const end = cumulative / total * 100;
-      const color = categoryColors[name] || '#10b981';
-      const radius = 40;
-      const circumference = 2 * Math.PI * radius;
-      const dash = (value / total) * circumference;
-      const dashArray = `${dash} ${circumference - dash}`;
-      return `<circle r="${radius}" cx="50" cy="50" fill="transparent" stroke="${color}" stroke-width="18" stroke-dasharray="${dashArray}" stroke-dashoffset="-${((start / 100) * circumference)}"></circle>`;
-    }).join('');
-    svg.innerHTML = slices;
-
-    container.innerHTML = entries.map(([name, value]) => {
-      const percent = ((value / total) * 100).toFixed(0);
-      const color = categoryColors[name] || '#10b981';
-      return `
-        <div class="stats-row">
-          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:8px;"></span>${name}</span>
-          <span>${percent}%</span>
-        </div>
-      `;
-    }).join('');
-  }
-    
       const total = entries.reduce((sum, [, value]) => sum + value, 0) || 1;
       let cumulative = 0;
       const slices = entries.map(([name, value]) => {
