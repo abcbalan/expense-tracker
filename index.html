@@ -1,4 +1,4 @@
-<!-- 20261023 v12 Fixed Everything -->
+<!-- 20261023 v13 try to add weekly, monthly and annually chart -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -10,9 +10,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    /* Try to fix the bottom transaction and stats missing in browser issue 
-    body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
-    .app-container { width: 100%; max-width: 480px; background: #fff; height: 100%; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.1); }*/
     body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
     .app-container { width: 100%; max-width: 480px; background: #fff; height: 100vh; height: 100dvh; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     
@@ -28,6 +25,12 @@
     .icon-btn { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
     .month-nav { background: #059669; color: white; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500; }
     .month-nav button { background: none; border: none; color: white; font-size: 16px; cursor: pointer; padding: 0 8px; }
+    
+    /* Stats timeframe selector styling */
+    .stats-filter-bar { display: flex; background: #ecfdf5; padding: 8px 16px; justify-content: center; gap: 8px; border-bottom: 1px solid #e5e7eb; }
+    .stats-filter-btn { background: #fff; border: 1px solid #d1d5db; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; color: #374151; cursor: pointer; }
+    .stats-filter-btn.active { background: #10b981; color: white; border-color: #10b981; }
+
     .summary-bar { background: #ecfdf5; padding: 10px 16px; display: flex; justify-content: space-around; border-bottom: 1px solid #e5e7eb; font-size: 13px; text-align: center; }
     .summary-item-box div:first-child { color: #6b7280; font-size: 11px; }
     .summary-item-box div:last-child { font-weight: 600; color: #111827; margin-top: 2px; }
@@ -47,15 +50,12 @@
     .trans-category { font-size: 11px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; width: fit-content; color: #374151; font-weight: 500; }
     .trans-details strong { font-size: 14px; color: #111827; }
     .trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
-    /* try to fix salary should be green color issue */
-    .trans-amount.income { color: #10b981; } /* Green for income */
-    .trans-amount.expense { color: #ef4444; } /* Red for expense */
-    .cal-spend.income { color: #10b981; } /* Green for net income/salary days */
-    .cal-spend.expense { color: #ef4444; } /* Red for net expense days */
-    .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; cursor: pointer; }
+    .trans-amount.income { color: #10b981; }
+    .trans-amount.expense { color: #ef4444; }
+    .cal-spend.income { color: #10b981; }
+    .cal-spend.expense { color: #ef4444; }
+    .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; cursor: pointer; z-index: 50; }
     @media (max-width: 480px) { .fab { right: 20px; } }
-    /* Try to fix bottom line issue *
-    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; } */
     .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; padding-bottom: env(safe-area-inset-bottom); background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; z-index: 50; }
     .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
@@ -66,11 +66,7 @@
     .form-group { margin-bottom: 10px; width: 100%; }
     .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
     .form-control { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; background: #fff; height: 42px; }
-    
-    /* try to fix iphone catelory field smaller issue */
     .row-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; align-items: start; } 
-    /* fix iphone catelory field end */
-    
     .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
     .key-btn { padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; text-align: center; color: #1f2937; }
     .key-btn:active { background: #e5e7eb; }
@@ -159,6 +155,14 @@
         <span class="current-month-txt">Oct 2026</span>
         <button class="btn-next-m">▶</button>
       </div>
+      
+      <!-- Weekly / Monthly / Annually Toggle Selector -->
+      <div class="stats-filter-bar">
+        <button class="stats-filter-btn" data-timeframe="weekly">Weekly</button>
+        <button class="stats-filter-btn active" data-timeframe="monthly">Monthly</button>
+        <button class="stats-filter-btn" data-timeframe="annually">Annually</button>
+      </div>
+
       <div class="content-area">
         <div class="stats-container">
           <div class="pie-chart"><svg id="svgPie" viewBox="0 0 100 100" style="width:100%;height:100%;transform:rotate(-90deg);"></svg></div>
@@ -253,9 +257,8 @@
     let currentDate = new Date();
     let expensesRealtime = null;
     let activeExpenseType = 'expense';
+    let currentStatsTimeframe = 'monthly'; // 'weekly', 'monthly', 'annually'
 
-    /* try add income issue
-    const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Other'];*/
     const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Salary','Other'];
     let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
@@ -523,7 +526,12 @@
 
     function updateMonthHeader() {
       const monthTxt = document.querySelectorAll('.current-month-txt');
-      const label = currentDate.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+      let label = '';
+      if (currentStatsTimeframe === 'annually') {
+        label = currentDate.getFullYear().toString();
+      } else {
+        label = currentDate.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+      }
       monthTxt.forEach(el => el.textContent = label);
     }
 
@@ -606,7 +614,7 @@
 
       const dateKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
       container.innerHTML = dateKeys.map(date => {
-        const entries = grouped[date].sort((a, b) =>new Date(b.created_at) -new Date(a.created_at));
+        const entries = grouped[date].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         const total = entries.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
         return `
           <div class="day-group">
@@ -632,7 +640,7 @@
       });
     }
 
-function renderCalendar() {
+    function renderCalendar() {
       const container = document.getElementById('calendar-container');
       if (!container) return;
       const month = getMonthStart();
@@ -724,20 +732,46 @@ function renderCalendar() {
       `;
     }
 
-function renderStats() {
+    function getStatsFilteredItems() {
+      if (currentStatsTimeframe === 'annually') {
+        const year = currentDate.getFullYear();
+        return expenses.filter(item => {
+          const d = new Date(item.date || item.created_at || new Date());
+          return d.getFullYear() === year && (item.type || 'expense') !== 'income';
+        });
+      } else if (currentStatsTimeframe === 'weekly') {
+        // Current week based on currentDate
+        const curr = new Date(currentDate);
+        const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1))); // Monday
+        firstDayOfWeek.setHours(0,0,0,0);
+        const lastDayOfWeek = new Date(firstDayOfWeek);
+        lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 7);
+
+        return expenses.filter(item => {
+          const d = new Date(item.date || item.created_at || new Date());
+          return d >= firstDayOfWeek && d < lastDayOfWeek && (item.type || 'expense') !== 'income';
+        });
+      } else {
+        // Monthly
+        return getMonthExpenses().filter(item => (item.type || 'expense') !== 'income');
+      }
+    }
+
+    function renderStats() {
       const container = document.getElementById('stats-list-container');
       const svg = document.getElementById('svgPie');
       if (!container || !svg) return;
-      const monthItems = getMonthExpenses().filter(item => (item.type || 'expense') !== 'income');
+      
+      const statsItems = getStatsFilteredItems();
       const totals = {};
-      monthItems.forEach(item => {
+      statsItems.forEach(item => {
         const name = item.category || 'Other';
         totals[name] = (totals[name] || 0) + (Number(item.amount) || 0);
       });
 
       const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
       if (!entries.length) {
-        container.innerHTML = '<div style="padding:20px; color:#6b7280; text-align:center;">No statistics yet</div>';
+        container.innerHTML = '<div style="padding:20px; color:#6b7280; text-align:center;">No statistics for this timeframe</div>';
         svg.innerHTML = '';
         return;
       }
@@ -753,7 +787,6 @@ function renderStats() {
 
         const color = categoryColors[name] || '#10b981';
 
-        // Handle full 100% single category case
         if (percentage === 1) {
           return `<circle cx="50" cy="50" r="50" fill="${color}"></circle>`;
         }
@@ -776,7 +809,7 @@ function renderStats() {
         return `
           <div class="stats-row">
             <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:8px;"></span>${name}</span>
-            <span>${percent}%</span>
+            <span>${formatMoney(value)} (${percent}%)</span>
           </div>
         `;
       }).join('');
@@ -815,15 +848,10 @@ function renderStats() {
         activeExpenseType = entry.type === 'income' ? 'income' : 'expense';
       } else {
         editingId = null;
-        /* Word cancel next to Expense
-        modalTitle.textContent = activeExpenseType === 'income' ? 'Income' : 'Expense'; */
         modalTitle.textContent = 'Expense / Income';
         deleteBtn.style.display = 'none';
         dateInput.value = new Date().toISOString().slice(0, 10);
-        categoryInput.value =
-          activeExpenseType === 'income'
-            ? 'Salary'
-            : 'Food';
+        categoryInput.value = activeExpenseType === 'income' ? 'Salary' : 'Food';
         merchantInput.value = '';
         amountInput.value = '0.00';
       }
@@ -842,14 +870,11 @@ function renderStats() {
       if (!container) return;
       const categories = [
         ...baseCategories,
-        ...customCategories.sort((a,b)=>
-        a.localeCompare(b)
-        )
+        ...customCategories.sort((a,b)=> a.localeCompare(b))
       ];
-      /* try to allow manually add category */
       categories.push('+ Add Category');
       categories.push('🗑 Delete Category');
-      /* end */
+      
       const items = categories.map(name => `
         <div class="cat-tile" data-category="${name}">
           <span>${(categoryColors[name] ? '●' : '•')}</span>
@@ -860,58 +885,36 @@ function renderStats() {
       document.getElementById('category-modal').style.display = 'flex';
       container.querySelectorAll('.cat-tile').forEach(tile => {
         tile.addEventListener('click', () => {
-    const name = tile.dataset.category;
+          const name = tile.dataset.category;
           if (name === '+ Add Category') {
-    const newCategory = prompt('Enter new category name');
-    if (newCategory && newCategory.trim()) {
-        const catName = newCategory.trim();
-        if (!customCategories.includes(catName) &&
-            !baseCategories.includes(catName)) {
-            customCategories.push(catName);
-            localStorage.setItem(
-                'custom_categories',
-                JSON.stringify(customCategories)
-            );
-        }
-
-        document.getElementById('input-category').value = catName;
-    }
-}
-else if (name === '🗑 Delete Category') {
-    const deleteCategory =
-        prompt('Enter category name to delete');
-    if (deleteCategory && deleteCategory.trim()) {
-        const catToDelete = deleteCategory.trim();
-        expenses.forEach(item => {
-            if (item.category === catToDelete) {
-                item.category = 'Other';
+            const newCategory = prompt('Enter new category name');
+            if (newCategory && newCategory.trim()) {
+              const catName = newCategory.trim();
+              if (!customCategories.includes(catName) && !baseCategories.includes(catName)) {
+                customCategories.push(catName);
+                localStorage.setItem('custom_categories', JSON.stringify(customCategories));
+              }
+              document.getElementById('input-category').value = catName;
             }
-
+          } else if (name === '🗑 Delete Category') {
+            const deleteCategory = prompt('Enter category name to delete');
+            if (deleteCategory && deleteCategory.trim()) {
+              const catToDelete = deleteCategory.trim();
+              expenses.forEach(item => {
+                if (item.category === catToDelete) { item.category = 'Other'; }
+              });
+              customCategories = customCategories.filter(c => c !== catToDelete);
+              localStorage.setItem('custom_categories', JSON.stringify(customCategories));
+              localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+              alert(`"${catToDelete}" deleted and existing records changed to Other.`);
+              openCategoryModal();
+              return;
+            }
+          } else {
+            document.getElementById('input-category').value = name;
+          }
+          document.getElementById('category-modal').style.display = 'none';
         });
-        customCategories =
-            customCategories.filter(
-                c => c !== catToDelete
-            );
-        localStorage.setItem(
-            'custom_categories',
-            JSON.stringify(customCategories)
-        );
-        localStorage.setItem(
-            getUserStorageKey(),
-            JSON.stringify(expenses)
-        );
-        alert(
-            `"${catToDelete}" deleted and existing records changed to Other.`
-        );
-        openCategoryModal();
-        return;
-    }
-}
-else {
-    document.getElementById('input-category').value = name;
-}
-    document.getElementById('category-modal').style.display = 'none';
-});
       });
     }
 
@@ -940,11 +943,10 @@ else {
 
     function saveEntry() {
       const item = buildEntryObject();
-      console.log(item);
       const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
       if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
       else expenses.unshift(item);
-      expenses = expenses.sort((a, b) =>new Date(b.created_at || b.date) -new Date(a.created_at || a.date));
+      expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       if (currentUser?.id) {
         supabaseClient.from('expenses').upsert(item, { onConflict: 'id' }).then(() => {}).catch(console.warn);
@@ -979,8 +981,6 @@ else {
 
       if (val === '+' || val === '-') {
         activeExpenseType = val === '+' ? 'income' : 'expense';
-        /* word cancel next to Expense
-        document.getElementById('modal-title').textContent = activeExpenseType === 'income' ? 'Income' : 'Expense';*/
         document.getElementById('modal-title').textContent = 'Expense / Income';
         return;
       }
@@ -993,7 +993,6 @@ else {
       }
 
       if (/^\d$/.test(val)) {
-        // If there's already a decimal point, limit decimals to 2 places
         if (currentVal.includes('.')) {
           const parts = currentVal.split('.');
           if (parts[1] && parts[1].length >= 2) return;
@@ -1014,6 +1013,18 @@ else {
       document.getElementById('screen-stats').classList.add('active');
       document.getElementById('nav-trans').classList.remove('active');
       document.getElementById('nav-stats').classList.add('active');
+      renderStats();
+    });
+
+    // Timeframe button click listeners
+    document.querySelectorAll('.stats-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.stats-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentStatsTimeframe = btn.dataset.timeframe;
+        updateMonthHeader();
+        renderStats();
+      });
     });
 
     document.querySelectorAll('.view-tab').forEach(tab => {
@@ -1032,7 +1043,11 @@ else {
 
     document.querySelectorAll('.btn-prev-m').forEach(button => {
       button.addEventListener('click', () => {
-        currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+        if (currentStatsTimeframe === 'annually') {
+          currentDate = new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), 1);
+        } else {
+          currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+        }
         updateMonthHeader();
         renderAllViews();
       });
@@ -1040,22 +1055,21 @@ else {
 
     document.querySelectorAll('.btn-next-m').forEach(button => {
       button.addEventListener('click', () => {
-        currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+        if (currentStatsTimeframe === 'annually') {
+          currentDate = new Date(currentDate.getFullYear() + 1, currentDate.getMonth(), 1);
+        } else {
+          currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+        }
         updateMonthHeader();
         renderAllViews();
       });
     });
+
     document.getElementById('add-fab').addEventListener('click', () => {
       activeExpenseType = 'expense';
       openEntryModal('new', null);
     });
-    const incomeFab = document.getElementById('income-fab');
-    if (incomeFab) {
-      incomeFab.addEventListener('click', () => {
-        activeExpenseType = 'income';
-        openEntryModal('new', null);
-      });
-    }
+
     document.getElementById('close-modal-top').addEventListener('click', closeEntryModal);
     document.getElementById('delete-btn').addEventListener('click', deleteEntry);
     document.getElementById('input-category').addEventListener('click', openCategoryModal);
@@ -1071,51 +1085,35 @@ else {
       });
     });
 
-    /* try to fix Merchants can be deleted */
     document.getElementById('btn-clear-merchant').addEventListener('click', async () => {
-    const oldMerchant =
-        document.getElementById('input-merchant').value.trim();
-    if (!oldMerchant) return;
-    const newMerchant =
-        prompt(`Rename "${oldMerchant}" to:`);
-    if (!newMerchant || !newMerchant.trim()) return;
-    const merchantName =
-        newMerchant.trim();
-    const updatedItems = [];
-    expenses.forEach(item => {
-        if ((item.merchant || '').toLowerCase() ===
-            oldMerchant.toLowerCase()) {
-            item.merchant = merchantName;
-            item.note = merchantName;
-            updatedItems.push(item);
+      const oldMerchant = document.getElementById('input-merchant').value.trim();
+      if (!oldMerchant) return;
+      const newMerchant = prompt(`Rename "${oldMerchant}" to:`);
+      if (!newMerchant || !newMerchant.trim()) return;
+      const merchantName = newMerchant.trim();
+      const updatedItems = [];
+      expenses.forEach(item => {
+        if ((item.merchant || '').toLowerCase() === oldMerchant.toLowerCase()) {
+          item.merchant = merchantName;
+          item.note = merchantName;
+          updatedItems.push(item);
         }
-    });
-    localStorage.setItem(
-        getUserStorageKey(),
-        JSON.stringify(expenses)
-    );
-    if (currentUser?.id) {
+      });
+      localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+      if (currentUser?.id) {
         for (const item of updatedItems) {
-            try {
-                await supabaseClient
-                    .from('expenses')
-                    .update({
-                        merchant: merchantName,
-                        note: merchantName
-                    })
-                    .eq('id', item.id);
-            } catch (err) {
-                console.warn(err);
-            }
+          try {
+            await supabaseClient.from('expenses').update({ merchant: merchantName, note: merchantName }).eq('id', item.id);
+          } catch (err) {
+            console.warn(err);
+          }
         }
-    }
-    document.getElementById('input-merchant').value =
-        merchantName;
-    renderAllViews();
-    alert(
-        `Merchant renamed to "${merchantName}"`
-    );
-});
+      }
+      document.getElementById('input-merchant').value = merchantName;
+      renderAllViews();
+      alert(`Merchant renamed to "${merchantName}"`);
+    });
+
     document.getElementById('btn-export-excel').addEventListener('click', () => {
       if (!expenses.length) {
         alert('No data to export');
@@ -1137,7 +1135,7 @@ else {
     document.getElementById('btn-sync').addEventListener('click', syncWithSupabase);
     document.getElementById('btn-stats-sync').addEventListener('click', syncWithSupabase);
 
-document.getElementById('import-file-input').addEventListener('change', async (event) => {
+    document.getElementById('import-file-input').addEventListener('change', async (event) => {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -1164,14 +1162,14 @@ document.getElementById('import-file-input').addEventListener('change', async (e
             newEntries.push(entry);
           });
 
-          // Add to local array and save to storage
           expenses = [...newEntries, ...expenses];
           localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
-          // Upload all imported entries to Supabase so they persist across logins
           if (currentUser?.id) {
-            for (const item of newEntries) {
-              await supabaseClient.from('expenses').upsert(item, { onConflict: 'id' });
+            const batchSize = 200;
+            for (let i = 0; i < newEntries.length; i += batchSize) {
+              const batch = newEntries.slice(i, i + batchSize);
+              await supabaseClient.from('expenses').upsert(batch, { onConflict: 'id' });
             }
           }
 
@@ -1185,7 +1183,6 @@ document.getElementById('import-file-input').addEventListener('change', async (e
       reader.readAsBinaryString(file);
     });
 
-    // initialize UI
     initAuth();
     loadLocalForUser();
   </script>
