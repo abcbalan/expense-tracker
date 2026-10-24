@@ -743,19 +743,32 @@ function renderStats() {
       }
 
       const total = entries.reduce((sum, [, value]) => sum + value, 0) || 1;
-      let cumulative = 0;
-      const slices = entries.map(([name, value]) => {
-        const start = cumulative / total * 100;
-        cumulative += value;
-        const end = cumulative / total * 100;
+      let cumulativeAngle = 0;
+
+      const paths = entries.map(([name, value]) => {
+        const percentage = value / total;
+        const startAngle = cumulativeAngle;
+        cumulativeAngle += percentage * 360;
+        const endAngle = cumulativeAngle;
+
         const color = categoryColors[name] || '#10b981';
-        const radius = 25;
-        const circumference = 2 * Math.PI * radius;
-        const dash = (value / total) * circumference;
-        const dashArray = `${dash} ${circumference - dash}`;
-        return `<circle r="${radius}" cx="16" cy="16" fill="transparent" stroke="${color}" stroke-width="50" stroke-dasharray="${dashArray}" stroke-dashoffset="-${((start / 100) * circumference)}"></circle>`;
+
+        // Handle full 100% single category case
+        if (percentage === 1) {
+          return `<circle cx="50" cy="50" r="50" fill="${color}"></circle>`;
+        }
+
+        const x1 = 50 + 50 * Math.cos(Math.PI * startAngle / 180);
+        const y1 = 50 + 50 * Math.sin(Math.PI * startAngle / 180);
+        const x2 = 50 + 50 * Math.cos(Math.PI * endAngle / 180);
+        const y2 = 50 + 50 * Math.sin(Math.PI * endAngle / 180);
+        const largeArcFlag = percentage > 0.5 ? 1 : 0;
+
+        const pathData = `M 50 50 L ${x1} ${y1} A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+        return `<path d="${pathData}" fill="${color}"></path>`;
       }).join('');
-      svg.innerHTML = slices;
+
+      svg.innerHTML = paths;
 
       container.innerHTML = entries.map(([name, value]) => {
         const percent = ((value / total) * 100).toFixed(0);
@@ -768,6 +781,7 @@ function renderStats() {
         `;
       }).join('');
     }
+    
     function renderAllViews() {
       updateMonthHeader();
       renderSummaryBar();
