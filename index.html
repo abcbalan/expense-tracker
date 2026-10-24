@@ -46,6 +46,8 @@
     /* try to fix salary should be green color issue */
     .trans-amount.income { color: #10b981; } /* Green for income */
     .trans-amount.expense { color: #ef4444; } /* Red for expense */
+    .cal-spend.income { color: #10b981; } /* Green for net income/salary days */
+    .cal-spend.expense { color: #ef4444; } /* Red for net expense days */
     .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; cursor: pointer; }
     @media (max-width: 480px) { .fab { right: 20px; } }
     .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; }
@@ -624,10 +626,9 @@
       });
     }
 
-    function renderCalendar() {
+function renderCalendar() {
       const container = document.getElementById('calendar-container');
       if (!container) return;
-
       const month = getMonthStart();
       const year = month.getFullYear();
       const monthIndex = month.getMonth();
@@ -636,31 +637,39 @@
       const firstWeekday = (firstDay.getDay() + 6) % 7;
       const daysInMonth = lastDay.getDate();
       const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
       let cells = [];
       dayNames.forEach(name => cells.push(`<div class="cal-day-name">${name}</div>`));
-
       for (let i = 0; i < firstWeekday; i++) cells.push('<div class="cal-cell empty"></div>');
-
       const byDate = {};
       getMonthExpenses().forEach(item => {
         const key = (item.date || '').slice(8, 10);
-        if (key) byDate[key] = (byDate[key] || 0) + (Number(item.amount) || 0);
+        if (key) {
+          if (!byDate[key]) byDate[key] = 0;
+          const amount = Number(item.amount) || 0;
+          if ((item.type || 'expense') === 'income') {
+            byDate[key] += amount;
+          } else {
+            byDate[key] -= amount;
+          }
+        }
       });
-
       for (let day = 1; day <= daysInMonth; day++) {
         const key = String(day).padStart(2, '0');
-        const spend = byDate[key] || 0;
-        cells.push(`<div class="cal-cell"><div class="cal-date-num">${day}</div>${spend ? `<div class="cal-spend">${formatMoney(spend)}</div>` : ''}</div>`);
+        const net = byDate[key] || 0;
+        if (net !== 0) {
+          const isIncome = net >= 0;
+          const formatted = `${isIncome ? '+' : '-'}${formatMoney(Math.abs(net))}`;
+          cells.push(`<div class="cal-cell"><div class="cal-date-num">${day}</div><div class="cal-spend ${isIncome ? 'income' : 'expense'}">${formatted}</div></div>`);
+        } else {
+          cells.push(`<div class="cal-cell"><div class="cal-date-num">${day}</div></div>`);
+        }
       }
-
       while (cells.length % 7 !== 0) {
         cells.push('<div class="cal-cell empty"></div>');
       }
-
       container.innerHTML = cells.join('');
     }
-
+    
     function renderMonthlySummary() {
       const container = document.getElementById('monthly-container');
       if (!container) return;
