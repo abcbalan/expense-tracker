@@ -614,8 +614,7 @@
                 <div class="trans-left">
                   <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong></div>
                   <div class="trans-category">${item.category || 'Other'}</div>
-                </div>
-                /* try to fix salary should be green color 2 */ 
+                </div> 
                 <div class="trans-amount ${(item.type || 'expense') === 'income' ? 'income' : 'expense'}"> ${(item.type || 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)} </div>             
               </div>
             `).join('')}
