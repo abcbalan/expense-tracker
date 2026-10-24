@@ -546,19 +546,42 @@
       datalist.innerHTML = merchants.map(name => `<option value="${name}"></option>`).join('');
     }
 
-    async function syncWithSupabase() {
+async function syncWithSupabase() {
       if (!currentUser || !currentUser.id) {
         renderAllViews();
         return;
       }
 
       try {
-        const { data, error } = await supabaseClient.from('expenses').select('*').eq('user_id', currentUser.id);
-        if (error) throw error;
+        let allRemote = [];
+        let from = 0;
+        const step = 1000;
+        let fetchMore = true;
 
-        const remote = Array.isArray(data) ? data : [];
+        // Paginate to fetch all records beyond Supabase's 1000-row default limit
+        while (fetchMore) {
+          const { data, error } = await supabaseClient
+            .from('expenses')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .range(from, from + step - 1);
+
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            allRemote = allRemote.concat(data);
+            if (data.length < step) {
+              fetchMore = false;
+            } else {
+              from += step;
+            }
+          } else {
+            fetchMore = false;
+          }
+        }
+
         const localMap = new Map((expenses || []).map(item => [String(item.id), item]));
-        remote.forEach(item => {
+        allRemote.forEach(item => {
           if (!localMap.has(String(item.id))) localMap.set(String(item.id), item);
         });
 
@@ -571,7 +594,6 @@
 
       renderAllViews();
     }
-
     function getMonthlyTotals(items) {
       let income = 0;
       let expense = 0;
