@@ -1,4 +1,5 @@
 <!-- 20261024 v15 work prefectly and to allow Anroid to install as an app -->
+<!-- try to let user add Category income or expense -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -245,7 +246,7 @@
       </div>
     </div>
 
-    <div class="modal" id="category-modal" style="z-index: 150;">
+<div class="modal" id="category-modal" style="z-index: 150;">
       <div class="modal-content" style="height:60vh;">
         <div class="modal-header">
           <span>Select Category</span>
@@ -254,8 +255,24 @@
         <div class="cat-grid" id="cat-grid-container"></div>
       </div>
     </div>
-  </div>
 
+    <!-- NEW CHOICE MODAL INSIDE APP-CONTAINER -->
+    <div class="modal" id="category-type-modal" style="z-index: 200;">
+      <div class="modal-content" style="max-width: 320px; text-align: center;">
+        <div class="modal-header">
+          <span>Select Category Type</span>
+          <button class="icon-btn" style="color:#333;font-size:14px;" id="close-type-modal">Cancel</button>
+        </div>
+        <p id="type-modal-title" style="margin: 10px 0 20px 0; font-size: 14px; color: #4b5563; font-weight: 500;"></p>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" id="btn-type-expense" class="auth-btn" style="background: #ef4444; flex: 1;">Expense (-)</button>
+          <button type="button" id="btn-type-income" class="auth-btn" style="background: #10b981; flex: 1;">Income (+)</button>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- NOW this single </div> closes your .app-container -->
+  
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
@@ -275,6 +292,7 @@
 
     const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Salary','Other'];
     let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
+    let customIncomeCategories = JSON.parse(localStorage.getItem('custom_income_categories') || '[]'); // <-- ADD THIS LINE HERE
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
 
     const categoryColors = {
@@ -963,7 +981,11 @@ async function syncWithSupabase() {
       const category = document.getElementById('input-category').value || 'Food';
       const amount = Number(document.getElementById('input-amount').value || 0);
       const date = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
-      const type = document.getElementById('input-category').value === 'Salary' ? 'income' : activeExpenseType;
+      
+      // Check if category is Salary or part of your custom income categories list
+      const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
+      const type = isIncomeCategory ? 'income' : activeExpenseType;
+
       return {
         id: editingId || (crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}`),
         user_id: currentUser?.id || null,
