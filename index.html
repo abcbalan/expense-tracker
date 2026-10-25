@@ -919,12 +919,13 @@ async function syncWithSupabase() {
       editingId = null;
     }
 
-    function openCategoryModal() {
+function openCategoryModal() {
       const container = document.getElementById('cat-grid-container');
       if (!container) return;
       const categories = [
         ...baseCategories,
-        ...customCategories.sort((a,b)=> a.localeCompare(b))
+        ...customCategories.sort((a,b)=> a.localeCompare(b)),
+        ...customIncomeCategories.sort((a,b)=> a.localeCompare(b))
       ];
       categories.push('+ Add Category');
       categories.push('🗑 Delete Category');
@@ -937,28 +938,61 @@ async function syncWithSupabase() {
       `).join('');
       container.innerHTML = items;
       document.getElementById('category-modal').style.display = 'flex';
+      
       container.querySelectorAll('.cat-tile').forEach(tile => {
         tile.addEventListener('click', () => {
           const name = tile.dataset.category;
           if (name === '+ Add Category') {
-            const newCategory = prompt('Enter new category name');
+            const newCategory = prompt('Enter new category name:');
             if (newCategory && newCategory.trim()) {
               const catName = newCategory.trim();
-              if (!customCategories.includes(catName) && !baseCategories.includes(catName)) {
+              
+              if (customCategories.includes(catName) || customIncomeCategories.includes(catName) || baseCategories.includes(catName)) {
+                alert('Category already exists!');
+                return;
+              }
+
+              // Close category list modal first
+              document.getElementById('category-modal').style.display = 'none';
+
+              // Open custom type selection modal
+              const typeModal = document.getElementById('category-type-modal');
+              document.getElementById('type-modal-title').textContent = `Is "${catName}" an Expense or Income?`;
+              typeModal.style.display = 'flex';
+
+              // Handle Expense button click
+              document.getElementById('btn-type-expense').onclick = () => {
                 customCategories.push(catName);
                 localStorage.setItem('custom_categories', JSON.stringify(customCategories));
-              }
-              document.getElementById('input-category').value = catName;
+                document.getElementById('input-category').value = catName;
+                typeModal.style.display = 'none';
+              };
+
+              // Handle Income button click
+              document.getElementById('btn-type-income').onclick = () => {
+                customIncomeCategories.push(catName);
+                localStorage.setItem('custom_income_categories', JSON.stringify(customIncomeCategories));
+                document.getElementById('input-category').value = catName;
+                typeModal.style.display = 'none';
+              };
+
+              // Handle Cancel button click
+              document.getElementById('close-type-modal').onclick = () => {
+                typeModal.style.display = 'none';
+              };
+              return;
             }
           } else if (name === '🗑 Delete Category') {
-            const deleteCategory = prompt('Enter category name to delete');
+            const deleteCategory = prompt('Enter category name to delete:');
             if (deleteCategory && deleteCategory.trim()) {
               const catToDelete = deleteCategory.trim();
               expenses.forEach(item => {
                 if (item.category === catToDelete) { item.category = 'Other'; }
               });
               customCategories = customCategories.filter(c => c !== catToDelete);
+              customIncomeCategories = customIncomeCategories.filter(c => c !== catToDelete);
               localStorage.setItem('custom_categories', JSON.stringify(customCategories));
+              localStorage.setItem('custom_income_categories', JSON.stringify(customIncomeCategories));
               localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
               alert(`"${catToDelete}" deleted and existing records changed to Other.`);
               openCategoryModal();
