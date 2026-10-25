@@ -200,15 +200,29 @@
           <button class="icon-btn" style="color:#ef4444;font-size:14px;display:none;" id="delete-btn">Delete</button>
         </div>
 
-        <div class="row-group">
-          <div class="form-group">
-            <label>Date</label>
-            <input type="date" id="input-date" class="form-control">
+        <div class="row-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Date</label>
+            <input type="date" id="input-date" style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 4px 0;">
           </div>
-          <div class="form-group">
-            <label>Category</label>
-            <input type="text" id="input-category" class="form-control" readonly style="cursor:pointer;" value="Food">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Category</label>
+            <input type="text" id="input-category" readonly style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; cursor: pointer; padding: 4px 0;" value="Food">
           </div>
+        </div>
+
+        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 12px;">
+          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Merchant / Note</label>
+          <div style="display:flex; gap:6px; align-items: center;">
+            <input type="text" id="input-merchant" list="merchant-list" placeholder="e.g. Tesco, Starbucks" style="flex:1; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 4px 0;" autocomplete="off">
+            <button type="button" id="btn-clear-merchant" style="width:auto; background:none; border:none; cursor:pointer; font-size: 16px;" title="Hide suggestions">🚫</button>
+          </div>
+          <datalist id="merchant-list"></datalist>
+        </div>
+
+        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 12px;">
+          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Amount (£)</label>
+          <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 20px; font-weight: 600; text-align: right; color: #111827; outline: none; padding: 4px 0;">
         </div>
 
         <div class="form-group">
