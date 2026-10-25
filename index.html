@@ -200,18 +200,17 @@
           <button class="icon-btn" style="color:#ef4444;font-size:14px;display:none;" id="delete-btn">Delete</button>
         </div>
 
-        <div class="row-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
-          <div class="form-group" style="margin-bottom: 0;">
-            <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Date</label>
-            <input type="date" id="input-date" style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 4px 0;">
-          </div>
-          <div class="form-group" style="margin-bottom: 0;">
-            <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Category</label>
-            <input type="text" id="input-category" readonly style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; cursor: pointer; padding: 4px 0;" value="Food">
-          </div>
+        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
+          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Date</label>
+          <input type="date" id="input-date" style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 4px 0;">
         </div>
 
-        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 12px;">
+        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
+          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Category</label>
+          <input type="text" id="input-category" readonly style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; cursor: pointer; padding: 4px 0;" value="Food">
+        </div>
+
+        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
           <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Merchant / Note</label>
           <div style="display:flex; gap:6px; align-items: center;">
             <input type="text" id="input-merchant" list="merchant-list" placeholder="e.g. Tesco, Starbucks" style="flex:1; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 4px 0;" autocomplete="off">
@@ -220,23 +219,9 @@
           <datalist id="merchant-list"></datalist>
         </div>
 
-        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 12px;">
+        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;">
           <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Amount (£)</label>
           <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 20px; font-weight: 600; text-align: right; color: #111827; outline: none; padding: 4px 0;">
-        </div>
-
-        <div class="form-group">
-          <label>Merchant / Note</label>
-          <div style="display:flex; gap:6px;">
-            <input type="text" id="input-merchant" class="form-control" list="merchant-list" placeholder="e.g. Tesco, Starbucks" style="flex:1;" autocomplete="off">
-            <button type="button" id="btn-clear-merchant" class="form-control" style="width:auto; background:#f3f4f6; border:1px solid #d1d5db; cursor:pointer;" title="Hide suggestions">🚫</button>
-          </div>
-          <datalist id="merchant-list"></datalist>
-        </div>
-
-        <div class="form-group">
-          <label>Amount (£)</label>
-          <input type="text" id="input-amount" class="form-control" placeholder="0.00" value="0.00" style="font-size:20px; font-weight:600; text-align:right;">
         </div>
 
         <div class="keypad">
