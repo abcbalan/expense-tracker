@@ -7,6 +7,7 @@
 <!-- 20261026 v34 try with Restored Transaction Timeframe Dropdown & Fully Functional Filters -->
 <!-- 20261026 v35 with Restored Entry Modal Repeat (Weekly/Monthly/Yearly) Dropdown & Cloud Sync -->
 <!-- 20261026 v36 try with Fully Functional Dynamic Recurring Transactions (Weekly, Monthly, Annually) -->
+<!-- 20261026 v37 with Smart Recurring Series Truncation (Delete Future Occurrences While Preserving Past Records) -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -400,6 +401,7 @@
     let currentUserEmail = (localStorage.getItem('sb_user_email') || '').toLowerCase().trim();
     let currentUserId = localStorage.getItem('sb_user_id') || null;
     let editingId = null;
+    let editingInstanceDate = null;
     
     // Separate Dates for Transaction screen vs Stats screen
     let currentTransDate = new Date();
@@ -1042,6 +1044,7 @@
       items.forEach(item => {
         const itemDate = new Date(item.date || item.created_at || new Date().toISOString());
         const repeat = item.repeat || 'none';
+        const untilDate = item.repeatUntil ? new Date(item.repeatUntil) : null;
 
         if (repeat === 'none' || !repeat) {
           if (itemDate >= viewStart && itemDate < viewEnd) {
@@ -1055,6 +1058,7 @@
             currDate.setDate(currDate.getDate() + diffWeeks * 7);
           }
           while (currDate < viewEnd) {
+            if (untilDate && currDate > untilDate) break;
             if (currDate >= viewStart && currDate >= itemDate) {
               expanded.push({ ...item, displayDate: currDate.toISOString().slice(0, 10) });
             }
@@ -1072,6 +1076,8 @@
           while (true) {
             const targetDate = new Date(year, month, day);
             if (targetDate >= viewEnd) break;
+            if (untilDate && targetDate > untilDate) break;
+
             if (targetDate >= viewStart && targetDate >= itemDate) {
               if (targetDate.getMonth() === month) {
                 expanded.push({ ...item, displayDate: targetDate.toISOString().slice(0, 10) });
@@ -1094,6 +1100,8 @@
           while (true) {
             const targetDate = new Date(year, month, day);
             if (targetDate >= viewEnd) break;
+            if (untilDate && targetDate > untilDate) break;
+
             if (targetDate >= viewStart && targetDate >= itemDate) {
               if (targetDate.getFullYear() === year) {
                 expanded.push({ ...item, displayDate: targetDate.toISOString().slice(0, 10) });
@@ -1289,7 +1297,7 @@
               <span>${formatMoney(total)}</span>
             </div>
             ${entries.map(item => `
-              <div class="trans-row" data-id="${item.id}" tabindex="0">
+              <div class="trans-row" data-id="${item.id}" data-display-date="${item.displayDate}" tabindex="0">
                 <div class="trans-left">
                   <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong> ${item.repeat && item.repeat !== 'none' ? `<span style="font-size:10px; color:#10b981; background:#ecfdf5; padding:1px 4px; border-radius:3px; margin-left:4px;">🔄 ${item.repeat}</span>` : ''}</div>
                   <div class="trans-category">${item.category || 'Other'}</div>
@@ -1302,7 +1310,7 @@
       }).join('');
 
       container.querySelectorAll('.trans-row').forEach(row => {
-        row.addEventListener('click', () => openEntryModal('edit', row.dataset.id));
+        row.addEventListener('click', () => openEntryModal('edit', row.dataset.id, row.dataset.displayDate));
       });
     }
 
@@ -1498,7 +1506,7 @@
       updateAutoSuggest();
     }
 
-    function openEntryModal(mode, idOrNull) {
+    function openEntryModal(mode, idOrNull, displayDateOrNull) {
       const modal = document.getElementById('entry-modal');
       const dateInput = document.getElementById('input-date');
       const categoryInput = document.getElementById('input-category');
@@ -1512,6 +1520,7 @@
         const entry = expenses.find(item => String(item.id) === String(idOrNull));
         if (!entry) return;
         editingId = entry.id;
+        editingInstanceDate = displayDateOrNull || entry.date;
         modalTitle.textContent = t('expenseOrIncome');
         deleteBtn.style.display = 'inline';
         dateInput.value = entry.date || new Date().toISOString().slice(0, 10);
@@ -1522,6 +1531,7 @@
         activeExpenseType = entry.type === 'income' ? 'income' : 'expense';
       } else {
         editingId = null;
+        editingInstanceDate = null;
         modalTitle.textContent = t('expenseOrIncome');
         deleteBtn.style.display = 'none';
         dateInput.value = new Date().toISOString().slice(0, 10);
@@ -1537,6 +1547,7 @@
       document.getElementById('entry-modal').style.display = 'none';
       document.getElementById('input-amount').value = '0.00';
       editingId = null;
+      editingInstanceDate = null;
     }
 
     function openCategoryModal() {
@@ -1635,6 +1646,8 @@
       const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
       const type = isIncomeCategory ? 'income' : activeExpenseType;
 
+      const existingEntry = expenses.find(e => String(e.id) === String(editingId));
+
       return {
         id: editingId || (crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}`),
         user_id: currentUserId || currentUser?.id || null,
@@ -1645,7 +1658,8 @@
         amount: Math.abs(amount),
         type,
         repeat,
-        created_at: new Date().toISOString()
+        repeatUntil: existingEntry ? existingEntry.repeatUntil : null,
+        created_at: existingEntry ? existingEntry.created_at : new Date().toISOString()
       };
     }
 
@@ -1667,12 +1681,36 @@
       renderAllViews();
     }
 
+    function getPreviousDate(dateStr, repeat) {
+      const d = new Date(dateStr + 'T00:00:00');
+      if (repeat === 'weekly') {
+        d.setDate(d.getDate() - 7);
+      } else if (repeat === 'monthly') {
+        d.setMonth(d.getMonth() - 1);
+      } else if (repeat === 'annually') {
+        d.setFullYear(d.getFullYear() - 1);
+      }
+      return d.toISOString().slice(0, 10);
+    }
+
     function deleteEntry() {
       if (!editingId) return;
-      expenses = expenses.filter(item => String(item.id) !== String(editingId));
-      localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-      if (currentUser?.id || currentUserId) {
-        supabaseClient.from('expenses').delete().eq('id', editingId).then(() => {}).catch(console.warn);
+      const entry = expenses.find(item => String(item.id) === String(editingId));
+
+      if (entry && entry.repeat && entry.repeat !== 'none' && editingInstanceDate && editingInstanceDate > entry.date) {
+        // Truncate series before the selected instance date so future ones stop but past ones stay
+        entry.repeatUntil = getPreviousDate(editingInstanceDate, entry.repeat);
+        localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+        if (currentUser?.id || currentUserId) {
+          supabaseClient.from('expenses').upsert(entry, { onConflict: 'id' }).then(() => {}).catch(console.warn);
+        }
+      } else {
+        // Delete entire record if it's the base date or non-recurring
+        expenses = expenses.filter(item => String(item.id) !== String(editingId));
+        localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+        if (currentUser?.id || currentUserId) {
+          supabaseClient.from('expenses').delete().eq('id', editingId).then(() => {}).catch(console.warn);
+        }
       }
       closeEntryModal();
       renderAllViews();
@@ -1847,7 +1885,7 @@
 
     document.getElementById('add-fab').addEventListener('click', () => {
       activeExpenseType = 'expense';
-      openEntryModal('new', null);
+      openEntryModal('new', null, null);
     });
 
     document.getElementById('close-modal-top').addEventListener('click', closeEntryModal);
@@ -1939,6 +1977,7 @@
               amount: Math.abs(Number(row.amount || row.value || 0)),
               type: (row.type || 'expense'),
               repeat: row.repeat || 'none',
+              repeatUntil: null,
               created_at: new Date().toISOString()
             };
             newEntries.push(entry);
