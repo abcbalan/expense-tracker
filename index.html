@@ -1,5 +1,5 @@
-<!-- 20261025 v20 with Settings, Multi-Currency & Multi-Language Support -->
-<!-- Work Perfectly -->
+<!-- 20261025 v21 with Settings, Multi-Currency & Multi-Language Support -->
+<!-- Trying to add more language and currency -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -197,12 +197,24 @@
           <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="currencyPref">Currency Preference</h3>
           <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="currencyDesc">Choose your currency symbol.</p>
           <select id="select-currency" class="form-control" style="cursor: pointer;">
-            <option value="£">£ (GBP - British Pound)</option>
-            <option value="$">$ (USD - US Dollar)</option>
-            <option value="€">€ (EUR - Euro)</option>
-            <option value="¥">¥ (JPY/CNY - Yen/Yuan)</option>
-            <option value="A$">A$ (AUD - Australian Dollar)</option>
-            <option value="C$">C$ (CAD - Canadian Dollar)</option>
+            <option value="AU">Australia (English - A$ AUD)</option>
+            <option value="CA">Canada (English - C$ CAD)</option>
+            <option value="CN">中国大陆 (简体中文 - ¥ CNY)</option>
+            <option value="CZ">Czechia / Czech Republic (Čeština - Kč CZK)</option>
+            <option value="EU">Eurozone / Europe (English - € EUR)</option>
+            <option value="FR">France (Français - € EUR)</option>
+            <option value="DE">Germany (Deutsch - € EUR)</option>
+            <option value="HK">香港 (繁體中文 - HK$ HKD)</option>
+            <option value="HU">Hungary (Magyar - Ft HUF)</option>
+            <option value="JP">Japan (English - ¥ JPY)</option>
+            <option value="MX">México (Español - $ MXN)</option>
+            <option value="PL">Poland (Polski - zł PLN)</option>
+            <option value="ES">España (Español - € EUR)</option>
+            <option value="SE">Sweden (Svenska - kr SEK)</option>
+            <option value="SG">Singapore (English - S$ SGD)</option>
+            <option value="TW">台湾 (繁體中文 - NT$ TWD)</option>
+            <option value="UK">United Kingdom (English - £ GBP)</option>
+            <option value="US">United States (English - $ USD)</option>
           </select>
         </div>
 
@@ -327,9 +339,31 @@
     let activeExpenseType = 'expense';
     let currentStatsTimeframe = 'monthly';
 
-    // Settings State
-    let currentCurrency = localStorage.getItem('user_currency') || '£';
-    let currentLang = localStorage.getItem('user_lang') || 'en';
+// === ADD PART 2 RIGHT HERE ===
+    const countrySettings = {
+      AU: { currency: 'A$', lang: 'en' },
+      CA: { currency: 'C$', lang: 'en' },
+      CN: { currency: '¥', lang: 'zh' },
+      CZ: { currency: 'Kč', lang: 'cs' },
+      EU: { currency: '€', lang: 'en' },
+      FR: { currency: '€', lang: 'fr' },
+      DE: { currency: '€', lang: 'de' },
+      HK: { currency: 'HK$', lang: 'zh' },
+      HU: { currency: 'Ft', lang: 'hu' },
+      JP: { currency: '¥', lang: 'en' },
+      MX: { currency: '$', lang: 'es' },
+      PL: { currency: 'zł', lang: 'pl' },
+      ES: { currency: '€', lang: 'es' },
+      SE: { currency: 'kr', lang: 'sv' },
+      SG: { currency: 'S$', lang: 'en' },
+      TW: { currency: 'NT$', lang: 'zh' },
+      UK: { currency: '£', lang: 'en' },
+      US: { currency: '$', lang: 'en' },
+    };
+
+    let currentCountry = localStorage.getItem('user_country') || 'UK';
+    let currentCurrency = countrySettings[currentCountry] ? countrySettings[currentCountry].currency : '£';
+    let currentLang = countrySettings[currentCountry] ? countrySettings[currentCountry].lang : 'en';
 
     // Translations Dictionary
     const translations = {
@@ -371,6 +405,78 @@
         selectCategory: 'Seleccionar Categoría', close: 'Cerrar', selectCategoryType: 'Seleccionar Tipo de Categoría',
         expenseNeg: 'Gasto (-)', incomePos: 'Ingreso (+)', noTransactions: 'Sin transacciones aún',
         noStats: 'Sin estadísticas para este periodo', noExpenseData: 'Sin datos de gastos'
+      }
+      pl: {
+        income: 'Przychód', expense: 'Wydatek', total: 'Suma',
+        daily: 'Dziennie', calendar: 'Kalendarz', monthly: 'Miesięcznie', summary: 'Podsumowanie',
+        statistics: 'Statystyki', weekly: 'Tygodniowo', annually: 'Rocznie',
+        settingsTitle: 'Ustawienia', countryPref: 'Kraj i region', countryDesc: 'Automatycznie dopasowuje język i walutę.',
+        navTrans: 'Transakcje', navStats: 'Statystyki', navSettings: 'Ustawienia',
+        cancel: 'Anuluj', expenseOrIncome: 'Wydatek lub Przychód', delete: 'Usuń',
+        date: 'Data', category: 'Kategoria', merchantNote: 'Sklep / Notatka', amountLabel: 'Kwota',
+        selectCategory: 'Wybierz kategorię', close: 'Zamknij', selectCategoryType: 'Wybierz typ kategorii',
+        expenseNeg: 'Wydatek (-)', incomePos: 'Przychód (+)', noTransactions: 'Brak transakcji',
+        noStats: 'Brak statystyk dla tego okresu', noExpenseData: 'Brak danych o wydatkach'
+      },
+      sv: {
+        income: 'Inkomst', expense: 'Utgift', total: 'Totalt',
+        daily: 'Dagligen', calendar: 'Kalender', monthly: 'Månadsvis', summary: 'Sammanfattning',
+        statistics: 'Statistik', weekly: 'Veckovis', annually: 'Årligen',
+        settingsTitle: 'Inställningar', countryPref: 'Land och region', countryDesc: 'Matchar automatiskt språk och valuta.',
+        navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Inställningar',
+        cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inkomst', delete: 'Radera',
+        date: 'Datum', category: 'Kategori', merchantNote: 'Företag / Anteckning', amountLabel: 'Belopp',
+        selectCategory: 'Välj kategori', close: 'Stäng', selectCategoryType: 'Välj kategorityp',
+        expenseNeg: 'Utgift (-)', incomePos: 'Inkomst (+)', noTransactions: 'Inga transaktioner än',
+        noStats: 'Ingen statistik för denna period', noExpenseData: 'Inga utgiftsdata'
+      },
+      fr: {
+        income: 'Revenu', expense: 'Dépense', total: 'Total',
+        daily: 'Quotidien', calendar: 'Calendrier', monthly: 'Mensuel', summary: 'Résumé',
+        statistics: 'Statistiques', weekly: 'Hebdomadaire', annually: 'Annuel',
+        settingsTitle: 'Paramètres', countryPref: 'Pays et région', countryDesc: 'Associe automatiquement la langue et la devise.',
+        navTrans: 'Transaction', navStats: 'Statistiques', navSettings: 'Paramètres',
+        cancel: 'Annuler', expenseOrIncome: 'Dépense ou Revenu', delete: 'Supprimer',
+        date: 'Date', category: 'Catégorie', merchantNote: 'Marchand / Note', amountLabel: 'Montant',
+        selectCategory: 'Sélectionner la catégorie', close: 'Fermer', selectCategoryType: 'Sélectionner le type',
+        expenseNeg: 'Dépense (-)', incomePos: 'Revenu (+)', noTransactions: 'Aucune transaction',
+        noStats: 'Aucune statistique pour cette période', noExpenseData: 'Aucune donnée de dépense'
+      },
+      de: {
+        income: 'Einnahmen', expense: 'Ausgaben', total: 'Gesamt',
+        daily: 'Täglich', calendar: 'Kalender', monthly: 'Monatlich', summary: 'Zusammenfassung',
+        statistics: 'Statistiken', weekly: 'Wöchentlich', annually: 'Jährlich',
+        settingsTitle: 'Einstellungen', countryPref: 'Land & Region', countryDesc: 'Passt Sprache und Währung automatisch an.',
+        navTrans: 'Transaktion', navStats: 'Statistiken', navSettings: 'Einstellungen',
+        cancel: 'Abbrechen', expenseOrIncome: 'Ausgabe oder Einnahme', delete: 'Löschen',
+        date: 'Datum', category: 'Kategorie', merchantNote: 'Händler / Notiz', amountLabel: 'Betrag',
+        selectCategory: 'Kategorie auswählen', close: 'Schließen', selectCategoryType: 'Kategorie-Typ auswählen',
+        expenseNeg: 'Ausgabe (-)', incomePos: 'Einnahme (+)', noTransactions: 'Noch keine Transaktionen',
+        noStats: 'Keine Statistiken für diesen Zeitraum', noExpenseData: 'Keine Ausgabendaten'
+      },
+      cs: {
+        income: 'Příjem', expense: 'Výdaj', total: 'Celkem',
+        daily: 'Denně', calendar: 'Kalendář', monthly: 'Měsíčně', summary: 'Shrnutí',
+        statistics: 'Statistiky', weekly: 'Týdně', annually: 'Ročně',
+        settingsTitle: 'Nastavení', countryPref: 'Země a region', countryDesc: 'Automaticky přizpůsobí jazyk a měnu.',
+        navTrans: 'Transakce', navStats: 'Statistiky', navSettings: 'Nastavení',
+        cancel: 'Zrušit', expenseOrIncome: 'Výdaj nebo Příjem', delete: 'Smazat',
+        date: 'Datum', category: 'Kategorie', merchantNote: 'Obchodník / Poznámka', amountLabel: 'Částka',
+        selectCategory: 'Vybrat kategorii', close: 'Zavřít', selectCategoryType: 'Vybrat typ kategorie',
+        expenseNeg: 'Výdaj (-)', incomePos: 'Příjem (+)', noTransactions: 'Zatím žádné transakce',
+        noStats: 'Žádné statistiky pro toto období', noExpenseData: 'Žádná data o výdajích'
+      },
+      hu: {
+        income: 'Bevétel', expense: 'Költség', total: 'Összesen',
+        daily: 'Napi', calendar: 'Naptár', monthly: 'Havi', summary: 'Összegzés',
+        statistics: 'Statisztika', weekly: 'Heti', annually: 'Éves',
+        settingsTitle: 'Beállítások', countryPref: 'Ország és régió', countryDesc: 'Automatikusan igazítja a nyelvet és a pénznemet.',
+        navTrans: 'Tranzakció', navStats: 'Statisztika', navSettings: 'Beállítások',
+        cancel: 'Mégse', expenseOrIncome: 'Költség vagy Bevétel', delete: 'Törlés',
+        date: 'Dátum', category: 'Kategória', merchantNote: 'Kereskedő / Megjegyzés', amountLabel: 'Összeg',
+        selectCategory: 'Kategória kiválasztása', close: 'Bezárás', selectCategoryType: 'Kategória típus',
+        expenseNeg: 'Költség (-)', incomePos: 'Bevétel (+)', noTransactions: 'Még nincsenek tranzakciók',
+        noStats: 'Nincs statisztika erre az időszakra', noExpenseData: 'Nincs kiadási adat'
       }
     };
 
@@ -1252,6 +1358,26 @@
       });
     }
 
+    // === ADD PART 4 RIGHT HERE ===
+    const countrySelect = document.getElementById('select-country');
+    if (countrySelect) {
+      countrySelect.value = currentCountry;
+      countrySelect.addEventListener('change', (e) => {
+        currentCountry = e.target.value;
+        const setting = countrySettings[currentCountry] || countrySettings['UK'];
+        
+        currentCurrency = setting.currency;
+        currentLang = setting.lang;
+
+        localStorage.setItem('user_country', currentCountry);
+        localStorage.setItem('user_currency', currentCurrency);
+        localStorage.setItem('user_lang', currentLang);
+
+        renderAllViews();
+      });
+    }
+    // =============================
+    
     document.querySelectorAll('.stats-filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.stats-filter-btn').forEach(b => b.classList.remove('active'));
