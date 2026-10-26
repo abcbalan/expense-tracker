@@ -1,5 +1,6 @@
 <!-- 20261027 v27 Dynamic Weekly Date Range Header, this is work -->
 <!-- 20261027 v28 try to fix Recurring Future Projections + Multi-device Sync + Smart Deletion -->
+<!-- 20261027 v29 try to Custom Categories & Transactions Cloud Sync Across Devices & Logins -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -725,8 +726,8 @@
     }
 
     const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Salary','Other'];
-    let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
-    let customIncomeCategories = JSON.parse(localStorage.getItem('custom_income_categories') || '[]');
+    let customCategories = [];
+    let customIncomeCategories = [];
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
 
     const categoryColors = {
@@ -777,6 +778,52 @@
     }
 
     function getGuestStorageKey() { return 'expenses_data_guest'; }
+
+    // Load custom categories from Supabase user metadata or localStorage fallback
+    function loadCategoriesFromUser(user) {
+      if (user && user.user_metadata) {
+        if (user.user_metadata.custom_categories && Array.isArray(user.user_metadata.custom_categories)) {
+          customCategories = user.user_metadata.custom_categories;
+        }
+        if (user.user_metadata.custom_income_categories && Array.isArray(user.user_metadata.custom_income_categories)) {
+          customIncomeCategories = user.user_metadata.custom_income_categories;
+        }
+      }
+
+      if (customCategories.length === 0) {
+        try {
+          customCategories = JSON.parse(localStorage.getItem(getCustomCategoriesKey()) || '[]');
+        } catch (e) { customCategories = []; }
+      }
+
+      if (customIncomeCategories.length === 0) {
+        try {
+          customIncomeCategories = JSON.parse(localStorage.getItem(getCustomIncomeCategoriesKey()) || '[]');
+        } catch (e) { customIncomeCategories = []; }
+      }
+
+      localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories));
+      localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories));
+    }
+
+    // Save custom categories to localStorage and sync to Supabase user metadata
+    async function saveCustomCategoriesToCloud() {
+      localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories));
+      localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories));
+
+      if (currentUser && currentUser.id) {
+        try {
+          await supabaseClient.auth.updateUser({
+            data: {
+              custom_categories: customCategories,
+              custom_income_categories: customIncomeCategories
+            }
+          });
+        } catch (e) {
+          console.warn('Failed to sync custom categories to cloud', e);
+        }
+      }
+    }
 
     function mergeGuestLocalToUser() {
       const guestKey = getGuestStorageKey();
@@ -856,9 +903,11 @@
           currentUserEmail = (currentUser.email || '').toLowerCase().trim();
           currentUserId = currentUser.id;
           saveAuthState();
+          loadCategoriesFromUser(currentUser);
           document.getElementById('auth-screen').style.display = 'none';
         } else {
           document.getElementById('auth-screen').style.display = 'flex';
+          loadLocalForUser();
         }
 
         supabaseClient.auth.onAuthStateChange(async (_event, session) => {
@@ -868,6 +917,7 @@
             currentUserEmail = (currentUser.email || '').toLowerCase().trim();
             currentUserId = currentUser.id;
             saveAuthState();
+            loadCategoriesFromUser(currentUser);
             document.getElementById('auth-screen').style.display = 'none';
             await mergeGuestLocalToUser();
             await syncWithSupabase();
@@ -879,6 +929,8 @@
             clearAuthState();
             unsubscribeFromExpenses();
             expenses = [];
+            customCategories = [];
+            customIncomeCategories = [];
             document.getElementById('auth-screen').style.display = 'flex';
             renderAllViews();
           }
@@ -926,6 +978,7 @@
         currentUserEmail = (currentUser?.email || emailInput).toLowerCase().trim();
         currentUserId = currentUser?.id || null;
         saveAuthState();
+        loadCategoriesFromUser(currentUser);
 
         document.getElementById('auth-screen').style.display = 'none';
         await mergeGuestLocalToUser();
@@ -952,6 +1005,8 @@
         console.warn('Sign out warning', e);
       }
       expenses = [];
+      customCategories = [];
+      customIncomeCategories = [];
       document.getElementById('auth-screen').style.display = 'flex';
       renderAllViews();
     }
@@ -973,13 +1028,7 @@
         expenses = [];
       }
 
-      try {
-        customCategories = JSON.parse(localStorage.getItem(getCustomCategoriesKey()) || '[]');
-      } catch (e) { customCategories = []; }
-
-      try {
-        customIncomeCategories = JSON.parse(localStorage.getItem(getCustomIncomeCategoriesKey()) || '[]');
-      } catch (e) { customIncomeCategories = []; }
+      loadCategoriesFromUser(currentUser);
 
       updateHeaders();
       renderAllViews();
@@ -1113,6 +1162,13 @@
       }
 
       try {
+        // Also fetch latest user metadata for categories
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+          currentUser = user;
+          loadCategoriesFromUser(user);
+        }
+
         let allRemote = [];
         let from = 0;
         const step = 1000;
@@ -1516,7 +1572,7 @@
       document.getElementById('category-modal').style.display = 'flex';
       
       container.querySelectorAll('.cat-tile').forEach(tile => {
-        tile.addEventListener('click', () => {
+        tile.addEventListener('click', async () => {
           const name = tile.dataset.category;
           if (name === '+ Add Category') {
             const newCategory = prompt('Enter new category name:');
@@ -1533,16 +1589,16 @@
               document.getElementById('type-modal-title').textContent = `Is "${catName}" an Expense or Income?`;
               typeModal.style.display = 'flex';
 
-              document.getElementById('btn-type-expense').onclick = () => {
+              document.getElementById('btn-type-expense').onclick = async () => {
                 customCategories.push(catName);
-                localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories));
+                await saveCustomCategoriesToCloud();
                 document.getElementById('input-category').value = catName;
                 typeModal.style.display = 'none';
               };
 
-              document.getElementById('btn-type-income').onclick = () => {
+              document.getElementById('btn-type-income').onclick = async () => {
                 customIncomeCategories.push(catName);
-                localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories));
+                await saveCustomCategoriesToCloud();
                 document.getElementById('input-category').value = catName;
                 typeModal.style.display = 'none';
               };
@@ -1562,8 +1618,7 @@
               customCategories = customCategories.filter(c => c !== catToDelete);
               customIncomeCategories = customIncomeCategories.filter(c => c !== catToDelete);
 
-              localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories)); 
-              localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories)); 
+              await saveCustomCategoriesToCloud();
               localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
               alert(`"${catToDelete}" deleted and existing records changed to Other.`);
               openCategoryModal();
@@ -1631,7 +1686,6 @@
         const confirmFutureOnly = confirm("Do you want to stop repeating and DELETE ONLY FUTURE entries from this date forward?\n\n- Click OK to keep all previous months/weeks and delete future entries.\n- Click Cancel to delete the entire series completely.");
         
         if (confirmFutureOnly) {
-          // Set cutoff date to the selected date. Past entries will show, future ones from selected date will stop!
           const cutoffDate = editingSelectedDate || document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
           target.repeat_until = cutoffDate;
           
@@ -1925,7 +1979,6 @@
     });
 
     initAuth();
-    loadLocalForUser();
   </script>
 </body>
 </html>
