@@ -1,6 +1,7 @@
 <!-- 20261026 v29 Try to fix Weekly, Monthly, Annually new function issue -->
 <!-- 20261026 v29 with Clean Inline Repeat Icon & Fixed Persistent Storage -->
 <!-- 20261026 v30 with Dropdown Repeat Selection & Default Daily No-Repeat -->
+<!-- 20261026 v31 with Persistent Cloud Sync for Categories and Transactions -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -724,8 +725,8 @@
     }
 
     const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Salary','Other'];
-    let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
-    let customIncomeCategories = JSON.parse(localStorage.getItem('custom_income_categories') || '[]');
+    let customCategories = [];
+    let customIncomeCategories = [];
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
 
     const categoryColors = {
@@ -884,6 +885,8 @@
             clearAuthState();
             unsubscribeFromExpenses();
             expenses = [];
+            customCategories = [];
+            customIncomeCategories = [];
             document.getElementById('auth-screen').style.display = 'flex';
             loadLocalForUser();
           }
@@ -959,6 +962,8 @@
         console.warn('Sign out warning', e);
       }
       expenses = [];
+      customCategories = [];
+      customIncomeCategories = [];
       document.getElementById('auth-screen').style.display = 'flex';
       loadLocalForUser();
     }
@@ -1019,13 +1024,11 @@
     }
 
     function updateHeaders() {
-      // Transaction Screen Header (Always Month/Year)
       const transHeader = document.getElementById('trans-month-txt');
       if (transHeader) {
         transHeader.textContent = currentTransDate.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', year: 'numeric' });
       }
 
-      // Stats Screen Header (Context Aware based on timeframe)
       const statsHeader = document.getElementById('stats-month-txt');
       if (statsHeader) {
         let label = '';
@@ -1101,6 +1104,22 @@
         const merged = [...localMap.values()].sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));
         expenses = merged;
         localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+
+        // Pull unique categories from remote items so they appear across devices/browsers automatically
+        const remoteExpCats = new Set();
+        const remoteIncCats = new Set();
+        merged.forEach(item => {
+          if (!item.category) return;
+          if (baseCategories.includes(item.category)) return;
+          if (item.type === 'income') remoteIncCats.add(item.category);
+          else remoteExpCats.add(item.category);
+        });
+
+        customCategories = [...new Set([...customCategories, ...remoteExpCats])];
+        customIncomeCategories = [...new Set([...customIncomeCategories, ...remoteIncCats])];
+        localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories));
+        localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories));
+
       } catch (e) {
         console.warn('syncWithSupabase warning', e);
       }
@@ -1338,7 +1357,6 @@
         }
       });
 
-      // Update stats summary bar text
       const statsIncomeEl = document.getElementById('stats-income-txt');
       const statsExpenseEl = document.getElementById('stats-expense-txt');
       if (statsIncomeEl) statsIncomeEl.textContent = formatMoney(statsIncome);
@@ -1424,7 +1442,7 @@
         merchantInput.value = entry.merchant || entry.note || '';
         amountInput.value = Number(entry.amount || 0).toFixed(2);
         repeatSelect.value = 'none';
-        if (repeatGroupContainer) repeatGroupContainer.style.display = 'none'; // hide when editing single instance
+        if (repeatGroupContainer) repeatGroupContainer.style.display = 'none';
         activeExpenseType = entry.type === 'income' ? 'income' : 'expense';
       } else {
         editingId = null;
@@ -1434,7 +1452,7 @@
         categoryInput.value = activeExpenseType === 'income' ? 'Salary' : 'Food';
         merchantInput.value = '';
         amountInput.value = '0.00';
-        repeatSelect.value = 'none'; // Default to Daily (no repeat)
+        repeatSelect.value = 'none';
         if (repeatGroupContainer) repeatGroupContainer.style.display = 'flex';
       }
       modal.style.display = 'flex';
@@ -1537,7 +1555,7 @@
       const category = document.getElementById('input-category').value || 'Food';
       const amount = Number(document.getElementById('input-amount').value || 0);
       const startDateStr = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
-      const repeatFreq = document.getElementById('select-repeat-freq').value; // 'none', 'weekly', 'monthly', 'annually'
+      const repeatFreq = document.getElementById('select-repeat-freq').value;
       
       const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
       const type = isIncomeCategory ? 'income' : activeExpenseType;
@@ -1557,7 +1575,9 @@
           const item = expenses[idx];
           localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
           if (currentUser?.id) {
-            supabaseClient.from('expenses').upsert(item, { onConflict: 'id' }).then(() => {}).catch(console.warn);
+            supabaseClient.from('expenses').upsert(item, { onConflict: 'id' }).then(({ error }) => {
+              if (error) console.error('Cloud save failed:', error);
+            }).catch(console.warn);
           }
         }
       } else {
@@ -1566,9 +1586,9 @@
         
         let baseDate = new Date(startDateStr + 'T00:00:00');
         let count = 1;
-        if (repeatFreq === 'weekly') count = 52; // 1 year of weekly repeats
-        else if (repeatFreq === 'monthly') count = 36; // 3 years of monthly repeats
-        else if (repeatFreq === 'annually') count = 10; // 10 years of annual repeats
+        if (repeatFreq === 'weekly') count = 52;
+        else if (repeatFreq === 'monthly') count = 36;
+        else if (repeatFreq === 'annually') count = 10;
 
         for (let i = 0; i < count; i++) {
           let currDate = new Date(baseDate);
@@ -1602,7 +1622,9 @@
         localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
         if (currentUser?.id) {
-          supabaseClient.from('expenses').upsert(newItems, { onConflict: 'id' }).then(() => {}).catch(console.warn);
+          supabaseClient.from('expenses').upsert(newItems, { onConflict: 'id' }).then(({ error }) => {
+            if (error) console.error('Cloud batch save failed:', error);
+          }).catch(console.warn);
         }
       }
 
@@ -1679,7 +1701,6 @@
       }
     }
 
-    // Navigation Toggle Logic for 3 screens
     document.getElementById('nav-trans').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.add('active');
       document.getElementById('screen-stats').classList.remove('active');
@@ -1708,7 +1729,6 @@
       document.getElementById('nav-settings').classList.add('active');
     });
 
-    // Settings Dropdowns Listeners
     const currencySelect = document.getElementById('select-currency');
     if (currencySelect) {
       currencySelect.value = currentCurrency;
@@ -1753,7 +1773,6 @@
 
     document.getElementById('search-input').addEventListener('input', renderAllViews);
 
-    // Independent screen navigation handlers (Prev/Next buttons)
     document.querySelectorAll('.btn-prev-m').forEach(button => {
       button.addEventListener('click', () => {
         const screen = button.dataset.screen;
@@ -1873,7 +1892,7 @@
           const data = evt.target.result;
           const workbook = XLSX.read(data, { type: 'binary' });
           const firstSheet = workbook.SheetNames[0];
-          const json = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+          const json = XLSX.utils.sheet_to_sheet_json ? {} : XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
           
           const newEntries = [];
           json.forEach(row => {
