@@ -3,6 +3,7 @@
 <!-- 20261026 v30 with Dropdown Repeat Selection & Default Daily No-Repeat -->
 <!-- 20261026 v31 with Persistent Cloud Sync for Categories and Transactions -->
 <!-- 20261026 v32 with Fixed Cloud Sync & User ID Persistence -->
+<!-- 20261026 v33 with Fixed Weekly, Monthly, Annually Stats Display & Cloud Sync -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -138,8 +139,8 @@
       </div>
 
       <div class="summary-bar">
-        <div class="summary-item-box"><div data-i18n="income">Income</div><div>£ 0.00</div></div>
-        <div class="summary-item-box"><div data-i18n="expense">Expense</div><div class="total-exp-txt">£ 0.00</div></div>
+        <div class="summary-item-box"><div data-i18n="income">Income</div><div id="trans-income-txt">£ 0.00</div></div>
+        <div class="summary-item-box"><div data-i18n="expense">Expense</div><div class="total-exp-txt" id="trans-expense-txt">£ 0.00</div></div>
         <div class="summary-item-box"><div data-i18n="total">Total</div><div class="net-total-txt">-£ 0.00</div></div>
       </div>
 
@@ -1134,8 +1135,8 @@
     function renderSummaryBar() {
       const items = getMonthExpenses();
       const totals = getMonthlyTotals(items);
-      const incomeEl = document.querySelector('.summary-item-box div:last-child');
-      const expenseEl = document.querySelector('.total-exp-txt');
+      const incomeEl = document.getElementById('trans-income-txt');
+      const expenseEl = document.getElementById('trans-expense-txt');
       const totalEl = document.querySelector('.net-total-txt');
 
       if (incomeEl) incomeEl.textContent = formatMoney(totals.income);
