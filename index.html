@@ -1,4 +1,4 @@
-<!-- 20261027 v25 Trying with Dynamic Weekly Date Range Header  -->
+<!-- 20261027 v26 Trying with Dynamic Weekly Date Range Header with Independent Screen Navigation & Context-Aware Header -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -128,9 +128,9 @@
       </div>
 
       <div class="month-nav">
-        <button class="btn-prev-m">◀</button>
-        <span class="current-month-txt">Oct 2026</span>
-        <button class="btn-next-m">▶</button>
+        <button class="btn-prev-m" data-screen="trans">◀</button>
+        <span class="current-month-txt" id="trans-month-txt">Oct 2026</span>
+        <button class="btn-next-m" data-screen="trans">▶</button>
       </div>
 
       <div class="summary-bar">
@@ -167,9 +167,9 @@
         </div>
       </div>
       <div class="month-nav">
-        <button class="btn-prev-m">◀</button>
-        <span class="current-month-txt">Oct 2026</span>
-        <button class="btn-next-m">▶</button>
+        <button class="btn-prev-m" data-screen="stats">◀</button>
+        <span class="current-month-txt" id="stats-month-txt">Oct 2026</span>
+        <button class="btn-next-m" data-screen="stats">▶</button>
       </div>
       
       <div class="stats-filter-bar">
@@ -373,7 +373,11 @@
     let currentUserEmail = (localStorage.getItem('sb_user_email') || '').toLowerCase().trim();
     let currentUserId = localStorage.getItem('sb_user_id') || null;
     let editingId = null;
-    let currentDate = new Date();
+    
+    // Separate Dates for Transaction screen vs Stats screen
+    let currentTransDate = new Date();
+    let currentStatsDate = new Date();
+
     let expensesRealtime = null;
     let activeExpenseType = 'expense';
     let currentStatsTimeframe = 'monthly';
@@ -622,7 +626,7 @@
         income: 'Inkomst', expense: 'Utgift', total: 'Totalt',
         daily: 'Dagligen', calendar: 'Kalender', monthly: 'Månadsvis', summary: 'Sammanfattning',
         statistics: 'Statistik', weekly: 'Veckovis', annually: 'Årligen',
-        settingsTitle: 'Inställningar', currencyPref: 'Valutapreferens', currencyDesc: 'Välj din valutasymbol.',
+        settingsTitle: 'Inställningar', currencyPref: 'Valutapreferens', currencyDesc: 'Valj din valutasymbol.',
         langPref: 'Språkpreferens', langDesc: 'Välj ditt gränssnittsspråk.',
         navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Inställningar',
         cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inkomst', delete: 'Radera',
@@ -966,7 +970,7 @@
         customIncomeCategories = JSON.parse(localStorage.getItem(getCustomIncomeCategoriesKey()) || '[]');
       } catch (e) { customIncomeCategories = []; }
 
-      updateMonthHeader();
+      updateHeaders();
       renderAllViews();
     }
 
@@ -975,7 +979,7 @@
       return `${currentCurrency} ${amount.toFixed(2)}`;
     }
 
-    function getMonthStart(date = currentDate) {
+    function getMonthStart(date = currentTransDate) {
       return new Date(date.getFullYear(), date.getMonth(), 1);
     }
 
@@ -996,28 +1000,35 @@
       });
     }
 
-    function updateMonthHeader() {
-      const monthTxt = document.querySelectorAll('.current-month-txt');
-      let label = '';
-      
-      if (currentStatsTimeframe === 'annually') {
-        label = currentDate.getFullYear().toString();
-      } else if (currentStatsTimeframe === 'weekly') {
-        const curr = new Date(currentDate);
-        const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1)));
-        firstDayOfWeek.setHours(0,0,0,0);
-        const lastDayOfWeek = new Date(firstDayOfWeek);
-        lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6);
-
-        const opts = { day: 'numeric', month: 'short' };
-        const startStr = firstDayOfWeek.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', opts);
-        const endStr = lastDayOfWeek.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { ...opts, year: 'numeric' });
-        label = `${startStr} - ${endStr}`;
-      } else {
-        label = currentDate.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', year: 'numeric' });
+    function updateHeaders() {
+      // Transaction Screen Header (Always Month/Year)
+      const transHeader = document.getElementById('trans-month-txt');
+      if (transHeader) {
+        transHeader.textContent = currentTransDate.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', year: 'numeric' });
       }
-      
-      monthTxt.forEach(el => el.textContent = label);
+
+      // Stats Screen Header (Context Aware based on timeframe)
+      const statsHeader = document.getElementById('stats-month-txt');
+      if (statsHeader) {
+        let label = '';
+        if (currentStatsTimeframe === 'annually') {
+          label = currentStatsDate.getFullYear().toString();
+        } else if (currentStatsTimeframe === 'weekly') {
+          const curr = new Date(currentStatsDate);
+          const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1)));
+          firstDayOfWeek.setHours(0,0,0,0);
+          const lastDayOfWeek = new Date(firstDayOfWeek);
+          lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6);
+
+          const opts = { day: 'numeric', month: 'short' };
+          const startStr = firstDayOfWeek.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', opts);
+          const endStr = lastDayOfWeek.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { ...opts, year: 'numeric' });
+          label = `${startStr} - ${endStr}`;
+        } else {
+          label = currentStatsDate.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', year: 'numeric' });
+        }
+        statsHeader.textContent = label;
+      }
     }
 
     function updateAutoSuggest() {
@@ -1244,7 +1255,7 @@
       const term = search.trim().toLowerCase();
 
       if (currentStatsTimeframe === 'annually') {
-        const year = currentDate.getFullYear();
+        const year = currentStatsDate.getFullYear();
         return expenses.filter(item => {
           const d = new Date(item.date || item.created_at || new Date());
           if (d.getFullYear() !== year) return false;
@@ -1254,7 +1265,7 @@
           return merchant.includes(term) || category.includes(term);
         });
       } else if (currentStatsTimeframe === 'weekly') {
-        const curr = new Date(currentDate);
+        const curr = new Date(currentStatsDate);
         const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1)));
         firstDayOfWeek.setHours(0,0,0,0);
         const lastDayOfWeek = new Date(firstDayOfWeek);
@@ -1269,7 +1280,16 @@
           return merchant.includes(term) || category.includes(term);
         });
       } else {
-        return getMonthExpenses();
+        const start = new Date(currentStatsDate.getFullYear(), currentStatsDate.getMonth(), 1);
+        const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+        return expenses.filter(item => {
+          const d = new Date(item.date || item.created_at || new Date());
+          if (d < start || d >= end) return false;
+          if (!term) return true;
+          const merchant = (item.merchant || item.note || '').toLowerCase();
+          const category = (item.category || '').toLowerCase();
+          return merchant.includes(term) || category.includes(term);
+        });
       }
     }
 
@@ -1354,7 +1374,7 @@
     
     function renderAllViews() {
       applyTranslations();
-      updateMonthHeader();
+      updateHeaders();
       renderSummaryBar();
       renderTransactions();
       renderCalendar();
@@ -1626,7 +1646,7 @@
         document.querySelectorAll('.stats-filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentStatsTimeframe = btn.dataset.timeframe;
-        updateMonthHeader();
+        updateHeaders();
         renderStats();
       });
     });
@@ -1645,31 +1665,44 @@
 
     document.getElementById('search-input').addEventListener('input', renderAllViews);
 
+    // Independent screen navigation handlers (Prev/Next buttons)
     document.querySelectorAll('.btn-prev-m').forEach(button => {
       button.addEventListener('click', () => {
-        if (currentStatsTimeframe === 'annually') {
-          currentDate = new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), 1);
-        } else if (currentStatsTimeframe === 'weekly') {
-          currentDate = new Date(currentDate.setDate(currentDate.getDate() - 7));
+        const screen = button.dataset.screen;
+        if (screen === 'trans') {
+          currentTransDate = new Date(currentTransDate.getFullYear(), currentTransDate.getMonth() - 1, 1);
+          renderAllViews();
         } else {
-          currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+          if (currentStatsTimeframe === 'annually') {
+            currentStatsDate = new Date(currentStatsDate.getFullYear() - 1, currentStatsDate.getMonth(), 1);
+          } else if (currentStatsTimeframe === 'weekly') {
+            currentStatsDate = new Date(currentStatsDate.setDate(currentStatsDate.getDate() - 7));
+          } else {
+            currentStatsDate = new Date(currentStatsDate.getFullYear(), currentStatsDate.getMonth() - 1, 1);
+          }
+          updateHeaders();
+          renderStats();
         }
-        updateMonthHeader();
-        renderAllViews();
       });
     });
 
     document.querySelectorAll('.btn-next-m').forEach(button => {
       button.addEventListener('click', () => {
-        if (currentStatsTimeframe === 'annually') {
-          currentDate = new Date(currentDate.getFullYear() + 1, currentDate.getMonth(), 1);
-        } else if (currentStatsTimeframe === 'weekly') {
-          currentDate = new Date(currentDate.setDate(currentDate.getDate() + 7));
+        const screen = button.dataset.screen;
+        if (screen === 'trans') {
+          currentTransDate = new Date(currentTransDate.getFullYear(), currentTransDate.getMonth() + 1, 1);
+          renderAllViews();
         } else {
-          currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+          if (currentStatsTimeframe === 'annually') {
+            currentStatsDate = new Date(currentStatsDate.getFullYear() + 1, currentStatsDate.getMonth(), 1);
+          } else if (currentStatsTimeframe === 'weekly') {
+            currentStatsDate = new Date(currentStatsDate.setDate(currentStatsDate.getDate() + 7));
+          } else {
+            currentStatsDate = new Date(currentStatsDate.getFullYear(), currentStatsDate.getMonth() + 1, 1);
+          }
+          updateHeaders();
+          renderStats();
         }
-        updateMonthHeader();
-        renderAllViews();
       });
     });
 
