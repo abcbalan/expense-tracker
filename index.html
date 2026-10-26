@@ -1,5 +1,4 @@
-<!-- 20261026 v22 with Settings, Multi-Currency & Multi-Language Support with more language and currency -->
-<!-- Work Perfectly -->
+<!-- 20261026 v23 Try with Statistics Income/Expense Summary Bar in the diagram -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -177,6 +176,12 @@
         <button class="stats-filter-btn" data-timeframe="weekly" data-i18n="weekly">Weekly</button>
         <button class="stats-filter-btn active" data-timeframe="monthly" data-i18n="monthly">Monthly</button>
         <button class="stats-filter-btn" data-timeframe="annually" data-i18n="annually">Annually</button>
+      </div>
+
+      <!-- STATS INCOME/EXPENSE SUMMARY BAR -->
+      <div class="summary-bar">
+        <div class="summary-item-box"><div data-i18n="income">Income</div><div id="stats-income-txt">£ 0.00</div></div>
+        <div class="summary-item-box"><div data-i18n="expense">Expense</div><div id="stats-expense-txt">£ 0.00</div></div>
       </div>
 
       <div class="content-area">
@@ -1221,12 +1226,19 @@
       `;
     }
 
-    function getStatsFilteredItems() {
+    function getStatsTimeframeItems() {
+      const search = (document.getElementById('search-input') || {}).value || '';
+      const term = search.trim().toLowerCase();
+
       if (currentStatsTimeframe === 'annually') {
         const year = currentDate.getFullYear();
         return expenses.filter(item => {
           const d = new Date(item.date || item.created_at || new Date());
-          return d.getFullYear() === year && (item.type || 'expense') !== 'income';
+          if (d.getFullYear() !== year) return false;
+          if (!term) return true;
+          const merchant = (item.merchant || item.note || '').toLowerCase();
+          const category = (item.category || '').toLowerCase();
+          return merchant.includes(term) || category.includes(term);
         });
       } else if (currentStatsTimeframe === 'weekly') {
         const curr = new Date(currentDate);
@@ -1237,11 +1249,19 @@
 
         return expenses.filter(item => {
           const d = new Date(item.date || item.created_at || new Date());
-          return d >= firstDayOfWeek && d < lastDayOfWeek && (item.type || 'expense') !== 'income';
+          if (d < firstDayOfWeek || d >= lastDayOfWeek) return false;
+          if (!term) return true;
+          const merchant = (item.merchant || item.note || '').toLowerCase();
+          const category = (item.category || '').toLowerCase();
+          return merchant.includes(term) || category.includes(term);
         });
       } else {
-        return getMonthExpenses().filter(item => (item.type || 'expense') !== 'income');
+        return getMonthExpenses();
       }
+    }
+
+    function getStatsFilteredItems() {
+      return getStatsTimeframeItems().filter(item => (item.type || 'expense') !== 'income');
     }
 
     function renderStats() {
@@ -1249,12 +1269,29 @@
       const svg = document.getElementById('svgPie');
       if (!container || !svg) return;
       
-      const statsItems = getStatsFilteredItems();
+      const timeframeItems = getStatsTimeframeItems();
+      
+      let statsIncome = 0;
+      let statsExpense = 0;
       const totals = {};
-      statsItems.forEach(item => {
-        const name = item.category || 'Other';
-        totals[name] = (totals[name] || 0) + (Number(item.amount) || 0);
+
+      timeframeItems.forEach(item => {
+        const amount = Number(item.amount) || 0;
+        const type = item.type || 'expense';
+        if (type === 'income') {
+          statsIncome += amount;
+        } else {
+          statsExpense += amount;
+          const name = item.category || 'Other';
+          totals[name] = (totals[name] || 0) + amount;
+        }
       });
+
+      // Update stats summary bar text
+      const statsIncomeEl = document.getElementById('stats-income-txt');
+      const statsExpenseEl = document.getElementById('stats-expense-txt');
+      if (statsIncomeEl) statsIncomeEl.textContent = formatMoney(statsIncome);
+      if (statsExpenseEl) statsExpenseEl.textContent = formatMoney(statsExpense);
 
       const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
       if (!entries.length) {
