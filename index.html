@@ -1,5 +1,5 @@
-<!-- 20261027 v27 Dynamic Weekly Date Range Header -->
-<!-- Work Perfectly -->
+<!-- 20261027 v27 Dynamic Weekly Date Range Header, this is work -->
+<!-- 20261027 v28 try to fix Recurring Future Projections + Multi-device Sync + Smart Deletion -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -310,7 +310,16 @@
         </div>
 
         <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;">
-          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="amountLabel">Amount</label>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 11px; color: #6b7280; margin-bottom: 0;" data-i18n="amountLabel">Amount</label>
+            <!-- RECURRING DROPDOWN BOX -->
+            <select id="input-repeat" style="font-size: 11px; border: 1px solid #d1d5db; border-radius: 4px; padding: 2px 4px; background: #f9fafb; color: #374151; outline: none; cursor: pointer;">
+              <option value="none">One-time</option>
+              <option value="weekly">Weekly Repeat</option>
+              <option value="monthly">Monthly Repeat</option>
+              <option value="annually">Yearly Repeat</option>
+            </select>
+          </div>
           <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 14px; text-align: left; color: #111827; outline: none; padding: 4px 0;">
         </div>       
 
@@ -374,6 +383,7 @@
     let currentUserEmail = (localStorage.getItem('sb_user_email') || '').toLowerCase().trim();
     let currentUserId = localStorage.getItem('sb_user_id') || null;
     let editingId = null;
+    let editingSelectedDate = null; // Track date clicked when editing recurring instance
     
     // Separate Dates for Transaction screen vs Stats screen
     let currentTransDate = new Date();
@@ -487,7 +497,7 @@
         settingsTitle: 'הגדרות', currencyPref: 'העדפת מטבע', currencyDesc: 'בחר את סמל המטבע שלך.',
         langPref: 'העדפת שפה', langDesc: 'בחר את שפת הממשק.',
         navTrans: 'עסקאות', navStats: 'סטטיסטיקה', navSettings: 'הגדרות',
-        cancel: 'ביטול', expenseOrIncome: 'הוצאה או הכנסה', delete: 'מחק',
+        cancel: 'ביטول', expenseOrIncome: 'הוצאה או הכנסה', delete: 'מחק',
         date: 'תאריך', category: 'קטגוריה', merchantNote: 'בית עסק / הערה', amountLabel: 'סכום',
         selectCategory: 'בחר קטגוריה', close: 'סגור', selectCategoryType: 'בחר סוג קטגוריה',
         expenseNeg: 'הוצאה (-)', incomePos: 'הכנסה (+)', noTransactions: 'אין עסקאות עדיין',
@@ -626,13 +636,13 @@
       sv: {
         income: 'Inkomst', expense: 'Utgift', total: 'Totalt',
         daily: 'Dagligen', calendar: 'Kalender', monthly: 'Månadsvis', summary: 'Sammanfattning',
-        statistics: 'Statistik', weekly: 'Veckovis', annually: 'Årligen',
+        statistics: 'Statistik', weekly: 'Veckovis', annually: 'Årlig',
         settingsTitle: 'Inställningar', currencyPref: 'Valutapreferens', currencyDesc: 'Valj din valutasymbol.',
         langPref: 'Språkpreferens', langDesc: 'Välj ditt gränssnittsspråk.',
         navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Inställningar',
         cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inkomst', delete: 'Radera',
         date: 'Datum', category: 'Kategori', merchantNote: 'Företag / Anteckning', amountLabel: 'Belopp',
-        selectCategory: 'Välj kategori', close: 'Stäng', selectCategoryType: 'Välj kategorityp',
+        selectCategory: 'Välj kategori', close: 'Stäng', selectCategoryType: 'Välj kategoritype',
         expenseNeg: 'Utgift (-)', incomePos: 'Inkomst (+)', noTransactions: 'Inga transaktioner än',
         noStats: 'Ingen statistik för denna period', noExpenseData: 'Inga utgiftsdata'
       },
@@ -984,16 +994,69 @@
       return new Date(date.getFullYear(), date.getMonth(), 1);
     }
 
+    // Helper: Expand master entries into repeating virtual instances
+    function generateRecurringVirtualEntries(baseEntries) {
+      const expanded = [];
+      const horizonYears = 3; 
+      const today = new Date();
+      const maxDate = new Date(today.getFullYear() + horizonYears, 11, 31);
+
+      baseEntries.forEach(item => {
+        // Push original master record
+        expanded.push(item);
+
+        if (!item.repeat || item.repeat === 'none') return;
+        
+        let [y, m, d] = (item.date || '').split('-').map(Number);
+        if (!y || !m || !d) return;
+
+        let currDate = new Date(y, m - 1, d);
+        let count = 0;
+
+        while (count < 250) {
+          if (item.repeat === 'weekly') {
+            currDate.setDate(currDate.getDate() + 7);
+          } else if (item.repeat === 'monthly') {
+            currDate.setMonth(currDate.getMonth() + 1);
+          } else if (item.repeat === 'annually') {
+            currDate.setFullYear(currDate.getFullYear() + 1);
+          }
+
+          if (currDate > maxDate) break;
+
+          const dateStr = currDate.toISOString().slice(0, 10);
+          
+          // Stop if past the repeat_until cutoff date
+          if (item.repeat_until && dateStr >= item.repeat_until) break;
+
+          expanded.push({
+            ...item,
+            id: `${item.id}_virt_${dateStr}`,
+            master_id: item.id,
+            date: dateStr,
+            isVirtual: true
+          });
+          count++;
+        }
+      });
+      return expanded;
+    }
+
     function getMonthExpenses() {
       const start = getMonthStart();
       const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
-      return expenses.filter(item => {
-        const d = new Date(item.date || item.created_at || new Date().toISOString());
+      const expanded = generateRecurringVirtualEntries(expenses);
+
+      return expanded.filter(item => {
+        const d = new Date(item.date + 'T00:00:00');
         const inRange = d >= start && d < end;
         if (!inRange) return false;
+        
+        if (item.repeat_until && item.date >= item.repeat_until) return false;
+
         if (!term) return true;
         const merchant = (item.merchant || item.note || '').toLowerCase();
         const category = (item.category || '').toLowerCase();
@@ -1078,7 +1141,7 @@
 
         const localMap = new Map((expenses || []).map(item => [String(item.id), item]));
         allRemote.forEach(item => {
-          if (!localMap.has(String(item.id))) localMap.set(String(item.id), item);
+          localMap.set(String(item.id), item);
         });
 
         const merged = [...localMap.values()].sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));
@@ -1142,9 +1205,9 @@
               <span>${formatMoney(total)}</span>
             </div>
             ${entries.map(item => `
-              <div class="trans-row" data-id="${item.id}" tabindex="0">
+              <div class="trans-row" data-id="${item.master_id || item.id}" data-date="${item.date}" tabindex="0">
                 <div class="trans-left">
-                  <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong></div>
+                  <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong> ${item.repeat && item.repeat !== 'none' ? '🔁' : ''}</div>
                   <div class="trans-category">${item.category || 'Other'}</div>
                 </div> 
                 <div class="trans-amount ${(item.type || 'expense') === 'income' ? 'income' : 'expense'}"> ${(item.type || 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)} </div>             
@@ -1155,7 +1218,7 @@
       }).join('');
 
       container.querySelectorAll('.trans-row').forEach(row => {
-        row.addEventListener('click', () => openEntryModal('edit', row.dataset.id));
+        row.addEventListener('click', () => openEntryModal('edit', row.dataset.id, row.dataset.date));
       });
     }
 
@@ -1255,10 +1318,17 @@
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
+      const expanded = generateRecurringVirtualEntries(expenses);
+
+      let items = expanded.filter(item => {
+        if (item.repeat_until && item.date >= item.repeat_until) return false;
+        return true;
+      });
+
       if (currentStatsTimeframe === 'annually') {
         const year = currentStatsDate.getFullYear();
-        return expenses.filter(item => {
-          const d = new Date(item.date || item.created_at || new Date());
+        return items.filter(item => {
+          const d = new Date(item.date + 'T00:00:00');
           if (d.getFullYear() !== year) return false;
           if (!term) return true;
           const merchant = (item.merchant || item.note || '').toLowerCase();
@@ -1272,8 +1342,8 @@
         const lastDayOfWeek = new Date(firstDayOfWeek);
         lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 7);
 
-        return expenses.filter(item => {
-          const d = new Date(item.date || item.created_at || new Date());
+        return items.filter(item => {
+          const d = new Date(item.date + 'T00:00:00');
           if (d < firstDayOfWeek || d >= lastDayOfWeek) return false;
           if (!term) return true;
           const merchant = (item.merchant || item.note || '').toLowerCase();
@@ -1283,8 +1353,8 @@
       } else {
         const start = new Date(currentStatsDate.getFullYear(), currentStatsDate.getMonth(), 1);
         const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
-        return expenses.filter(item => {
-          const d = new Date(item.date || item.created_at || new Date());
+        return items.filter(item => {
+          const d = new Date(item.date + 'T00:00:00');
           if (d < start || d >= end) return false;
           if (!term) return true;
           const merchant = (item.merchant || item.note || '').toLowerCase();
@@ -1292,10 +1362,6 @@
           return merchant.includes(term) || category.includes(term);
         });
       }
-    }
-
-    function getStatsFilteredItems() {
-      return getStatsTimeframeItems().filter(item => (item.type || 'expense') !== 'income');
     }
 
     function renderStats() {
@@ -1321,7 +1387,6 @@
         }
       });
 
-      // Update stats summary bar text
       const statsIncomeEl = document.getElementById('stats-income-txt');
       const statsExpenseEl = document.getElementById('stats-expense-txt');
       if (statsIncomeEl) statsIncomeEl.textContent = formatMoney(statsIncome);
@@ -1385,12 +1450,13 @@
       updateAutoSuggest();
     }
 
-    function openEntryModal(mode, idOrNull) {
+    function openEntryModal(mode, idOrNull, clickedDate = null) {
       const modal = document.getElementById('entry-modal');
       const dateInput = document.getElementById('input-date');
       const categoryInput = document.getElementById('input-category');
       const merchantInput = document.getElementById('input-merchant');
       const amountInput = document.getElementById('input-amount');
+      const repeatSelect = document.getElementById('input-repeat');
       const deleteBtn = document.getElementById('delete-btn');
       const modalTitle = document.getElementById('modal-title');
 
@@ -1398,21 +1464,25 @@
         const entry = expenses.find(item => String(item.id) === String(idOrNull));
         if (!entry) return;
         editingId = entry.id;
+        editingSelectedDate = clickedDate || entry.date;
         modalTitle.textContent = t('expenseOrIncome');
         deleteBtn.style.display = 'inline';
-        dateInput.value = entry.date || new Date().toISOString().slice(0, 10);
+        dateInput.value = clickedDate || entry.date || new Date().toISOString().slice(0, 10);
         categoryInput.value = entry.category || 'Food';
         merchantInput.value = entry.merchant || entry.note || '';
         amountInput.value = Number(entry.amount || 0).toFixed(2);
+        repeatSelect.value = entry.repeat || 'none';
         activeExpenseType = entry.type === 'income' ? 'income' : 'expense';
       } else {
         editingId = null;
+        editingSelectedDate = null;
         modalTitle.textContent = t('expenseOrIncome');
         deleteBtn.style.display = 'none';
         dateInput.value = new Date().toISOString().slice(0, 10);
         categoryInput.value = activeExpenseType === 'income' ? 'Salary' : 'Food';
         merchantInput.value = '';
         amountInput.value = '0.00';
+        repeatSelect.value = 'none';
       }
 
       modal.style.display = 'flex';
@@ -1422,6 +1492,7 @@
       document.getElementById('entry-modal').style.display = 'none';
       document.getElementById('input-amount').value = '0.00';
       editingId = null;
+      editingSelectedDate = null;
     }
 
     function openCategoryModal() {
@@ -1515,9 +1586,12 @@
       const category = document.getElementById('input-category').value || 'Food';
       const amount = Number(document.getElementById('input-amount').value || 0);
       const date = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
+      const repeat = document.getElementById('input-repeat').value || 'none';
       
       const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
       const type = isIncomeCategory ? 'income' : activeExpenseType;
+
+      const existing = editingId ? expenses.find(e => String(e.id) === String(editingId)) : null;
 
       return {
         id: editingId || (crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}`),
@@ -1528,7 +1602,9 @@
         category,
         amount: Math.abs(amount),
         type,
-        created_at: new Date().toISOString()
+        repeat,
+        repeat_until: existing ? existing.repeat_until || null : null,
+        created_at: existing ? existing.created_at : new Date().toISOString()
       };
     }
 
@@ -1537,6 +1613,7 @@
       const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
       if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
       else expenses.unshift(item);
+      
       expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       if (currentUser?.id) {
@@ -1548,6 +1625,27 @@
 
     function deleteEntry() {
       if (!editingId) return;
+      const target = expenses.find(item => String(item.id) === String(editingId));
+      
+      if (target && target.repeat && target.repeat !== 'none') {
+        const confirmFutureOnly = confirm("Do you want to stop repeating and DELETE ONLY FUTURE entries from this date forward?\n\n- Click OK to keep all previous months/weeks and delete future entries.\n- Click Cancel to delete the entire series completely.");
+        
+        if (confirmFutureOnly) {
+          // Set cutoff date to the selected date. Past entries will show, future ones from selected date will stop!
+          const cutoffDate = editingSelectedDate || document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
+          target.repeat_until = cutoffDate;
+          
+          localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+          if (currentUser?.id) {
+            supabaseClient.from('expenses').upsert(target, { onConflict: 'id' }).then(() => {}).catch(console.warn);
+          }
+          closeEntryModal();
+          renderAllViews();
+          return;
+        }
+      }
+
+      // Complete deletion
       expenses = expenses.filter(item => String(item.id) !== String(editingId));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       if (currentUser?.id) {
@@ -1799,6 +1897,7 @@
               category: row.category || 'Other',
               amount: Math.abs(Number(row.amount || row.value || 0)),
               type: (row.type || 'expense'),
+              repeat: 'none',
               created_at: new Date().toISOString()
             };
             newEntries.push(entry);
