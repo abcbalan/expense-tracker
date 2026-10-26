@@ -1,5 +1,5 @@
-<!-- 20261026 v28 Recurring Transactions (Weekly, Monthly, Annually) -->
-<!-- Work Perfectly -->
+<!-- 20261026 v29 Try to fix Weekly, Monthly, Annually new function issue -->
+<!-- 20261026 v29 with Clean Inline Repeat Icon & Fixed Persistent Storage -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -309,18 +309,13 @@
           <datalist id="merchant-list"></datalist>
         </div>
 
-        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
-          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Repeat Frequency</label>
-          <select id="input-repeat" class="form-control" style="border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 0; height: auto; cursor: pointer;">
-            <option value="none">Never (One-time)</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="annually">Annually</option>
-          </select>
-        </div>
-
         <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;">
-          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="amountLabel">Amount</label>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 11px; color: #6b7280; margin: 0;" data-i18n="amountLabel">Amount</label>
+            <button type="button" id="btn-repeat-toggle" style="background: none; border: none; cursor: pointer; font-size: 14px; color: #6b7280; display: flex; align-items: center; gap: 4px; padding: 0;" title="Click to change repeat frequency">
+              <span>🔄</span> <span id="repeat-badge" style="font-size: 11px; font-weight: 600; color: #10b981;">Daily</span>
+            </button>
+          </div>
           <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 14px; text-align: left; color: #111827; outline: none; padding: 4px 0;">
         </div>       
 
@@ -384,6 +379,7 @@
     let currentUserEmail = (localStorage.getItem('sb_user_email') || '').toLowerCase().trim();
     let currentUserId = localStorage.getItem('sb_user_id') || null;
     let editingId = null;
+    let currentRepeatFreq = 'none'; // 'none' means Daily (default), 'weekly', 'monthly', 'annually'
     
     // Separate Dates for Transaction screen vs Stats screen
     let currentTransDate = new Date();
@@ -857,8 +853,13 @@
           currentUserId = currentUser.id;
           saveAuthState();
           document.getElementById('auth-screen').style.display = 'none';
+          loadLocalForUser();
+          await mergeGuestLocalToUser();
+          await syncWithSupabase();
+          subscribeToExpenses();
         } else {
           document.getElementById('auth-screen').style.display = 'flex';
+          loadLocalForUser();
         }
 
         supabaseClient.auth.onAuthStateChange(async (_event, session) => {
@@ -869,6 +870,7 @@
             currentUserId = currentUser.id;
             saveAuthState();
             document.getElementById('auth-screen').style.display = 'none';
+            loadLocalForUser();
             await mergeGuestLocalToUser();
             await syncWithSupabase();
             subscribeToExpenses();
@@ -880,12 +882,13 @@
             unsubscribeFromExpenses();
             expenses = [];
             document.getElementById('auth-screen').style.display = 'flex';
-            renderAllViews();
+            loadLocalForUser();
           }
         });
       } catch (e) {
         console.error('initAuth error', e);
         document.getElementById('auth-screen').style.display = 'flex';
+        loadLocalForUser();
       }
     }
 
@@ -928,6 +931,7 @@
         saveAuthState();
 
         document.getElementById('auth-screen').style.display = 'none';
+        loadLocalForUser();
         await mergeGuestLocalToUser();
         await syncWithSupabase();
         subscribeToExpenses();
@@ -953,7 +957,7 @@
       }
       expenses = [];
       document.getElementById('auth-screen').style.display = 'flex';
-      renderAllViews();
+      loadLocalForUser();
     }
 
     document.getElementById('btn-login').addEventListener('click', login);
@@ -1395,15 +1399,29 @@
       updateAutoSuggest();
     }
 
+    function updateRepeatBadgeDisplay() {
+      const badge = document.getElementById('repeat-badge');
+      if (!badge) return;
+      if (currentRepeatFreq === 'none') {
+        badge.textContent = 'Daily';
+      } else if (currentRepeatFreq === 'weekly') {
+        badge.textContent = 'Weekly';
+      } else if (currentRepeatFreq === 'monthly') {
+        badge.textContent = 'Monthly';
+      } else if (currentRepeatFreq === 'annually') {
+        badge.textContent = 'Annually';
+      }
+    }
+
     function openEntryModal(mode, idOrNull) {
       const modal = document.getElementById('entry-modal');
       const dateInput = document.getElementById('input-date');
       const categoryInput = document.getElementById('input-category');
       const merchantInput = document.getElementById('input-merchant');
       const amountInput = document.getElementById('input-amount');
-      const repeatInput = document.getElementById('input-repeat');
       const deleteBtn = document.getElementById('delete-btn');
       const modalTitle = document.getElementById('modal-title');
+      const repeatToggleBtn = document.getElementById('btn-repeat-toggle');
 
       if (mode === 'edit' && idOrNull) {
         const entry = expenses.find(item => String(item.id) === String(idOrNull));
@@ -1415,8 +1433,8 @@
         categoryInput.value = entry.category || 'Food';
         merchantInput.value = entry.merchant || entry.note || '';
         amountInput.value = Number(entry.amount || 0).toFixed(2);
-        repeatInput.value = 'none'; // Editing individual instance
-        repeatInput.disabled = true; // disable changing recurrence on single edit for simplicity
+        currentRepeatFreq = 'none';
+        repeatToggleBtn.style.display = 'none'; // hide repeat toggle when editing single instance
         activeExpenseType = entry.type === 'income' ? 'income' : 'expense';
       } else {
         editingId = null;
@@ -1426,10 +1444,10 @@
         categoryInput.value = activeExpenseType === 'income' ? 'Salary' : 'Food';
         merchantInput.value = '';
         amountInput.value = '0.00';
-        repeatInput.value = 'none';
-        repeatInput.disabled = false;
+        currentRepeatFreq = 'none';
+        repeatToggleBtn.style.display = 'flex';
       }
-
+      updateRepeatBadgeDisplay();
       modal.style.display = 'flex';
     }
 
@@ -1530,7 +1548,7 @@
       const category = document.getElementById('input-category').value || 'Food';
       const amount = Number(document.getElementById('input-amount').value || 0);
       const startDateStr = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
-      const repeatFreq = document.getElementById('input-repeat').value; // 'none', 'weekly', 'monthly', 'annually'
+      const repeatFreq = currentRepeatFreq; // 'none', 'weekly', 'monthly', 'annually'
       
       const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
       const type = isIncomeCategory ? 'income' : activeExpenseType;
@@ -1671,6 +1689,17 @@
         input.value = currentVal === '0.00' ? val : currentVal + val;
       }
     }
+
+    // Repeat Frequency Toggle Trigger
+    document.getElementById('btn-repeat-toggle').addEventListener('click', () => {
+      const options = ['Daily (One-time)', 'Weekly', 'Monthly', 'Annually'];
+      const choice = prompt("Select repeat frequency:\n1. Daily (One-time)\n2. Weekly\n3. Monthly\n4. Annually\n\nEnter number (1-4):", "1");
+      if (choice === '1' || choice === 'Daily') currentRepeatFreq = 'none';
+      else if (choice === '2' || choice === 'Weekly') currentRepeatFreq = 'weekly';
+      else if (choice === '3' || choice === 'Monthly') currentRepeatFreq = 'monthly';
+      else if (choice === '4' || choice === 'Annually') currentRepeatFreq = 'annually';
+      updateRepeatBadgeDisplay();
+    });
 
     // Navigation Toggle Logic for 3 screens
     document.getElementById('nav-trans').addEventListener('click', () => {
@@ -1906,7 +1935,6 @@
     });
 
     initAuth();
-    loadLocalForUser();
   </script>
 </body>
 </html>
