@@ -193,9 +193,9 @@
         <h1 data-i18n="settingsTitle">Settings</h1>
       </div>
       <div class="content-area" style="padding: 16px;">
-        <div style="background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-          <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="currencyPref">Currency Preference</h3>
-          <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="currencyDesc">Choose your currency symbol.</p>
+        <div style="background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="countryPref">Country & Region</h3>
+          <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="countryDesc">Automatically matches your language and currency.</p>
           <select id="select-country" class="form-control" style="cursor: pointer;">
             <option value="AU">Australia (English - A$ AUD)</option>
             <option value="CA">Canada (English - C$ CAD)</option>
@@ -217,6 +217,8 @@
             <option value="US">United States (English - $ USD)</option>
           </select>
         </div>
+      </div>
+    </div>
 
         <div style="background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
           <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="langPref">Language Preference</h3>
@@ -371,8 +373,7 @@
         income: 'Income', expense: 'Expense', total: 'Total',
         daily: 'Daily', calendar: 'Calendar', monthly: 'Monthly', summary: 'Summary',
         statistics: 'Statistics', weekly: 'Weekly', annually: 'Annually',
-        settingsTitle: 'Settings', currencyPref: 'Currency Preference', currencyDesc: 'Choose your currency symbol.',
-        langPref: 'Language Preference', langDesc: 'Choose your interface language.',
+        settingsTitle: 'Settings', countryPref: 'Country & Region', countryDesc: 'Automatically matches your language and currency.',
         navTrans: 'Transaction', navStats: 'Stats', navSettings: 'Settings',
         cancel: 'Cancel', expenseOrIncome: 'Expense or Income', delete: 'Delete',
         date: 'Date', category: 'Category', merchantNote: 'Merchant / Note', amountLabel: 'Amount',
@@ -384,8 +385,7 @@
         income: '收入', expense: '支出', total: '结余',
         daily: '日明细', calendar: '日历', monthly: '月度', summary: '汇总',
         statistics: '统计', weekly: '每周', annually: '每年',
-        settingsTitle: '设置', currencyPref: '货币偏好', currencyDesc: '选择您使用的货币符号。',
-        langPref: '语言偏好', langDesc: '选择您的界面显示语言。',
+        settingsTitle: '设置', countryPref: '国家与地区', countryDesc: '自动匹配您的语言和货币。',
         navTrans: '明细', navStats: '统计', navSettings: '设置',
         cancel: '取消', expenseOrIncome: '记账', delete: '删除',
         date: '日期', category: '类别', merchantNote: '商家 / 备注', amountLabel: '金额',
@@ -397,15 +397,14 @@
         income: 'Ingresos', expense: 'Gastos', total: 'Total',
         daily: 'Diario', calendar: 'Calendario', monthly: 'Mensual', summary: 'Resumen',
         statistics: 'Estadísticas', weekly: 'Semanal', annually: 'Anual',
-        settingsTitle: 'Ajustes', currencyPref: 'Preferencia de Moneda', currencyDesc: 'Elige tu símbolo de moneda.',
-        langPref: 'Preferencia de Idioma', langDesc: 'Elige el idioma de tu interfaz.',
+        settingsTitle: 'Ajustes', countryPref: 'País y Región', countryDesc: 'Coincide automáticamente con tu idioma y moneda.',
         navTrans: 'Transacción', navStats: 'Estadísticas', navSettings: 'Ajustes',
         cancel: 'Cancelar', expenseOrIncome: 'Gasto o Ingreso', delete: 'Eliminar',
         date: 'Fecha', category: 'Categoría', merchantNote: 'Comercio / Nota', amountLabel: 'Importe',
         selectCategory: 'Seleccionar Categoría', close: 'Cerrar', selectCategoryType: 'Seleccionar Tipo de Categoría',
         expenseNeg: 'Gasto (-)', incomePos: 'Ingreso (+)', noTransactions: 'Sin transacciones aún',
         noStats: 'Sin estadísticas para este periodo', noExpenseData: 'Sin datos de gastos'
-      }
+      }, // <--- Comma is here!
       pl: {
         income: 'Przychód', expense: 'Wydatek', total: 'Suma',
         daily: 'Dziennie', calendar: 'Kalendarz', monthly: 'Miesięcznie', summary: 'Podsumowanie',
@@ -1358,7 +1357,7 @@
       });
     }
 
-    // === ADD PART 4 RIGHT HERE ===
+    // Single Country Dropdown Listener (Controls both Currency & Language)
     const countrySelect = document.getElementById('select-country');
     if (countrySelect) {
       countrySelect.value = currentCountry;
