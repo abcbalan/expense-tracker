@@ -6,6 +6,7 @@
 <!-- 20261026 v33 with Fixed Weekly, Monthly, Annually Stats Display & Cloud Sync -->
 <!-- 20261026 v34 try with Restored Transaction Timeframe Dropdown & Fully Functional Filters -->
 <!-- 20261026 v35 with Restored Entry Modal Repeat (Weekly/Monthly/Yearly) Dropdown & Cloud Sync -->
+<!-- 20261026 v36 try with Fully Functional Dynamic Recurring Transactions (Weekly, Monthly, Annually) -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -325,7 +326,7 @@
           <datalist id="merchant-list"></datalist>
         </div>
 
-        <!-- RESTORED REPEAT SELECTOR & AMOUNT FIELD -->
+        <!-- REPEAT SELECTOR & AMOUNT FIELD -->
         <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
             <label style="font-size: 11px; color: #6b7280; margin-bottom: 0;" data-i18n="amountLabel">Amount</label>
@@ -1018,48 +1019,106 @@
       return `${currentCurrency} ${amount.toFixed(2)}`;
     }
 
+    // Helper to expand recurring items dynamically into view ranges
+    function expandItemsForTimeframe(items, timeframe, refDate) {
+      let viewStart, viewEnd;
+      if (timeframe === 'annually') {
+        const year = refDate.getFullYear();
+        viewStart = new Date(year, 0, 1);
+        viewEnd = new Date(year + 1, 0, 1);
+      } else if (timeframe === 'weekly') {
+        const curr = new Date(refDate);
+        const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1)));
+        firstDayOfWeek.setHours(0,0,0,0);
+        viewStart = firstDayOfWeek;
+        viewEnd = new Date(firstDayOfWeek);
+        viewEnd.setDate(viewEnd.getDate() + 7);
+      } else {
+        viewStart = new Date(refDate.getFullYear(), refDate.getMonth(), 1);
+        viewEnd = new Date(viewStart.getFullYear(), viewStart.getMonth() + 1, 1);
+      }
+
+      const expanded = [];
+      items.forEach(item => {
+        const itemDate = new Date(item.date || item.created_at || new Date().toISOString());
+        const repeat = item.repeat || 'none';
+
+        if (repeat === 'none' || !repeat) {
+          if (itemDate >= viewStart && itemDate < viewEnd) {
+            expanded.push({ ...item, displayDate: item.date });
+          }
+        } else if (repeat === 'weekly') {
+          let currDate = new Date(itemDate);
+          if (currDate < viewStart) {
+            const diffTime = viewStart - currDate;
+            const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+            currDate.setDate(currDate.getDate() + diffWeeks * 7);
+          }
+          while (currDate < viewEnd) {
+            if (currDate >= viewStart && currDate >= itemDate) {
+              expanded.push({ ...item, displayDate: currDate.toISOString().slice(0, 10) });
+            }
+            currDate.setDate(currDate.getDate() + 7);
+            if (expanded.length > 5000) break;
+          }
+        } else if (repeat === 'monthly') {
+          let year = Math.max(itemDate.getFullYear(), viewStart.getFullYear());
+          let month = (itemDate.getFullYear() === year) ? itemDate.getMonth() : viewStart.getMonth();
+          if (itemDate < viewStart) {
+            year = viewStart.getFullYear();
+            month = viewStart.getMonth();
+          }
+          const day = itemDate.getDate();
+          while (true) {
+            const targetDate = new Date(year, month, day);
+            if (targetDate >= viewEnd) break;
+            if (targetDate >= viewStart && targetDate >= itemDate) {
+              if (targetDate.getMonth() === month) {
+                expanded.push({ ...item, displayDate: targetDate.toISOString().slice(0, 10) });
+              }
+            }
+            month++;
+            if (month > 11) {
+              month = 0;
+              year++;
+            }
+            if (expanded.length > 5000) break;
+          }
+        } else if (repeat === 'annually') {
+          let year = Math.max(itemDate.getFullYear(), viewStart.getFullYear());
+          if (itemDate < viewStart) {
+            year = viewStart.getFullYear();
+          }
+          const month = itemDate.getMonth();
+          const day = itemDate.getDate();
+          while (true) {
+            const targetDate = new Date(year, month, day);
+            if (targetDate >= viewEnd) break;
+            if (targetDate >= viewStart && targetDate >= itemDate) {
+              if (targetDate.getFullYear() === year) {
+                expanded.push({ ...item, displayDate: targetDate.toISOString().slice(0, 10) });
+              }
+            }
+            year++;
+            if (year > viewStart.getFullYear() + 50) break;
+          }
+        }
+      });
+      return expanded;
+    }
+
     function getFilteredExpenses() {
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
-      if (currentTransTimeframe === 'annually') {
-        const year = currentTransDate.getFullYear();
-        return expenses.filter(item => {
-          const d = new Date(item.date || item.created_at || new Date().toISOString());
-          if (d.getFullYear() !== year) return false;
-          if (!term) return true;
-          const merchant = (item.merchant || item.note || '').toLowerCase();
-          const category = (item.category || '').toLowerCase();
-          return merchant.includes(term) || category.includes(term);
-        });
-      } else if (currentTransTimeframe === 'weekly') {
-        const curr = new Date(currentTransDate);
-        const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1)));
-        firstDayOfWeek.setHours(0,0,0,0);
-        const lastDayOfWeek = new Date(firstDayOfWeek);
-        lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 7);
+      const expanded = expandItemsForTimeframe(expenses, currentTransTimeframe, currentTransDate);
 
-        return expenses.filter(item => {
-          const d = new Date(item.date || item.created_at || new Date().toISOString());
-          if (d < firstDayOfWeek || d >= lastDayOfWeek) return false;
-          if (!term) return true;
-          const merchant = (item.merchant || item.note || '').toLowerCase();
-          const category = (item.category || '').toLowerCase();
-          return merchant.includes(term) || category.includes(term);
-        });
-      } else {
-        const start = new Date(currentTransDate.getFullYear(), currentTransDate.getMonth(), 1);
-        const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
-        return expenses.filter(item => {
-          const d = new Date(item.date || item.created_at || new Date().toISOString());
-          const inRange = d >= start && d < end;
-          if (!inRange) return false;
-          if (!term) return true;
-          const merchant = (item.merchant || item.note || '').toLowerCase();
-          const category = (item.category || '').toLowerCase();
-          return merchant.includes(term) || category.includes(term);
-        });
-      }
+      return expanded.filter(item => {
+        if (!term) return true;
+        const merchant = (item.merchant || item.note || '').toLowerCase();
+        const category = (item.category || '').toLowerCase();
+        return merchant.includes(term) || category.includes(term);
+      });
     }
 
     function updateHeaders() {
@@ -1206,7 +1265,7 @@
       const container = document.getElementById('transaction-container');
       if (!container) return;
 
-      const filteredItems = getFilteredExpenses().sort((a, b) => new Date(b.date) - new Date(a.date));
+      const filteredItems = getFilteredExpenses().sort((a, b) => new Date(b.displayDate || b.date) - new Date(a.displayDate || a.date));
       if (!filteredItems.length) {
         container.innerHTML = `<div style="padding:20px; color:#6b7280; text-align:center;">${t('noTransactions')}</div>`;
         return;
@@ -1214,7 +1273,7 @@
 
       const grouped = {};
       filteredItems.forEach(item => {
-        const d = item.date || new Date().toISOString().slice(0, 10);
+        const d = item.displayDate || item.date || new Date().toISOString().slice(0, 10);
         if (!grouped[d]) grouped[d] = [];
         grouped[d].push(item);
       });
@@ -1232,7 +1291,7 @@
             ${entries.map(item => `
               <div class="trans-row" data-id="${item.id}" tabindex="0">
                 <div class="trans-left">
-                  <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong></div>
+                  <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong> ${item.repeat && item.repeat !== 'none' ? `<span style="font-size:10px; color:#10b981; background:#ecfdf5; padding:1px 4px; border-radius:3px; margin-left:4px;">🔄 ${item.repeat}</span>` : ''}</div>
                   <div class="trans-category">${item.category || 'Other'}</div>
                 </div> 
                 <div class="trans-amount ${(item.type || 'expense') === 'income' ? 'income' : 'expense'}"> ${(item.type || 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)} </div>             
@@ -1263,7 +1322,7 @@
       for (let i = 0; i < firstWeekday; i++) cells.push('<div class="cal-cell empty"></div>');
       const byDate = {};
       getFilteredExpenses().forEach(item => {
-        const key = (item.date || '').slice(8, 10);
+        const key = (item.displayDate || item.date || '').slice(8, 10);
         if (key) {
           if (!byDate[key]) byDate[key] = 0;
           const amount = Number(item.amount) || 0;
@@ -1343,43 +1402,14 @@
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
-      if (currentStatsTimeframe === 'annually') {
-        const year = currentStatsDate.getFullYear();
-        return expenses.filter(item => {
-          const d = new Date(item.date || item.created_at || new Date());
-          if (d.getFullYear() !== year) return false;
-          if (!term) return true;
-          const merchant = (item.merchant || item.note || '').toLowerCase();
-          const category = (item.category || '').toLowerCase();
-          return merchant.includes(term) || category.includes(term);
-        });
-      } else if (currentStatsTimeframe === 'weekly') {
-        const curr = new Date(currentStatsDate);
-        const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1)));
-        firstDayOfWeek.setHours(0,0,0,0);
-        const lastDayOfWeek = new Date(firstDayOfWeek);
-        lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 7);
+      const expanded = expandItemsForTimeframe(expenses, currentStatsTimeframe, currentStatsDate);
 
-        return expenses.filter(item => {
-          const d = new Date(item.date || item.created_at || new Date());
-          if (d < firstDayOfWeek || d >= lastDayOfWeek) return false;
-          if (!term) return true;
-          const merchant = (item.merchant || item.note || '').toLowerCase();
-          const category = (item.category || '').toLowerCase();
-          return merchant.includes(term) || category.includes(term);
-        });
-      } else {
-        const start = new Date(currentStatsDate.getFullYear(), currentStatsDate.getMonth(), 1);
-        const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
-        return expenses.filter(item => {
-          const d = new Date(item.date || item.created_at || new Date());
-          if (d < start || d >= end) return false;
-          if (!term) return true;
-          const merchant = (item.merchant || item.note || '').toLowerCase();
-          const category = (item.category || '').toLowerCase();
-          return merchant.includes(term) || category.includes(term);
-        });
-      }
+      return expanded.filter(item => {
+        if (!term) return true;
+        const merchant = (item.merchant || item.note || '').toLowerCase();
+        const category = (item.category || '').toLowerCase();
+        return merchant.includes(term) || category.includes(term);
+      });
     }
 
     function renderStats() {
