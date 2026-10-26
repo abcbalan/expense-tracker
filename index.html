@@ -197,23 +197,37 @@
           <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="currencyPref">Currency Preference</h3>
           <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="currencyDesc">Choose your currency symbol.</p>
           <select id="select-currency" class="form-control" style="cursor: pointer;">
+            <option value="AED">AED (AED - UAE Dirham)</option>
+            <option value="$">$ (ARS - Argentine Peso)</option>
             <option value="$">$ (AUD - Australian Dollar)</option>
+            <option value="R$">R$ (BRL - Brazilian Real)</option>
             <option value="$">$ (CAD - Canadian Dollar)</option>
+            <option value="CHF">CHF (CHF - Swiss Franc)</option>
             <option value="Kč">Kč (CZK - Czech Koruna)</option>
+            <option value="kr">kr (DKK - Danish Krone)</option>
             <option value="€">€ (EUR - Euro)</option>
             <option value="£">£ (GBP - British Pound)</option>
             <option value="$">$ (HKD - Hong Kong Dollar)</option>
             <option value="Ft">Ft (HUF - Hungarian Forint)</option>
+            <option value="Rp">Rp (IDR - Indonesian Rupiah)</option>
+            <option value="₹">₹ (INR - Indian Rupee)</option>
+            <option value="₪">₪ (ILS - Israeli Shekel)</option>
             <option value="¥">¥ (JPY / CNY - Yen / Yuan)</option>
             <option value="₩">₩ (KRW - South Korean Won)</option>
+            <option value="RM">RM (MYR - Malaysian Ringgit)</option>
+            <option value="kr">kr (NOK - Norwegian Krone)</option>
+            <option value="$">$ (NZD - New Zealand Dollar)</option>
             <option value="₱">₱ (PHP - Philippine Peso)</option>
             <option value="zł">zł (PLN - Polish Złoty)</option>
+            <option value="SAR">SAR (SAR - Saudi Riyal)</option>
             <option value="kr">kr (SEK - Swedish Krona)</option>
             <option value="$">$ (SGD - Singapore Dollar)</option>
             <option value="฿">฿ (THB - Thai Baht)</option>
+            <option value="₺">₺ (TRY - Turkish Lira)</option>
             <option value="$">$ (TWD - New Taiwan Dollar)</option>
             <option value="$">$ (USD / MXN - Dollar)</option>
             <option value="₫">₫ (VND - Vietnamese Đồng)</option>
+            <option value="R">R (ZAR - South African Rand)</option>
           </select>
         </div>
 
@@ -221,17 +235,27 @@
           <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="langPref">Language Preference</h3>
           <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="langDesc">Choose your interface language.</p>
           <select id="select-language" class="form-control" style="cursor: pointer;">
+            <option value="ar">العربية (Arabic)</option>
             <option value="cs">Čeština (Czech)</option>
+            <option value="da">Dansk (Danish)</option>
             <option value="de">Deutsch (German)</option>
             <option value="en">English</option>
             <option value="es">Español (Spanish)</option>
             <option value="fr">Français (French)</option>
+            <option value="he">עברית (Hebrew)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
             <option value="hu">Magyar (Hungarian)</option>
+            <option value="id">Bahasa Indonesia (Indonesian)</option>
             <option value="ja">日本語 (Japanese)</option>
             <option value="ko">한국어 (Korean)</option>
+            <option value="ms">Bahasa Melayu (Malay)</option>
+            <option value="nb">Norsk (Norwegian)</option>
             <option value="pl">Polski (Polish)</option>
+            <option value="pt">Português (Portuguese)</option>
+            <option value="ro">Română (Romanian)</option>
             <option value="sv">Svenska (Swedish)</option>
             <option value="th">ไทย (Thai)</option>
+            <option value="tr">Türkçe (Turkish)</option>
             <option value="vi">Tiếng Việt (Vietnamese)</option>
             <option value="zh-CN">简体中文 (Simplified Chinese)</option>
             <option value="zh-TW">繁體中文 (Traditional Chinese)</option>
@@ -355,7 +379,20 @@
 
     // Translations Dictionary
     const translations = {
-    cs: {
+      ar: {
+        income: 'الدخل', expense: 'المصروفات', total: 'الإجمالي',
+        daily: 'يومي', calendar: 'التقويم', monthly: 'شهري', summary: 'ملخص',
+        statistics: 'الإحصائيات', weekly: 'أسبوعي', annually: 'سنوي',
+        settingsTitle: 'الإعدادات', currencyPref: 'تفضيل العملة', currencyDesc: 'اختر رمز العملة الخاص بك.',
+        langPref: 'تفضيل اللغة', langDesc: 'اختر لغة الواجهة.',
+        navTrans: 'المعاملات', navStats: 'الإحصائيات', navSettings: 'الإعدادات',
+        cancel: 'إلغاء', expenseOrIncome: 'مصروف أو دخل', delete: 'حذف',
+        date: 'التاريخ', category: 'الفئة', merchantNote: 'التاجر / ملاحظة', amountLabel: 'المبلغ',
+        selectCategory: 'اختر الفئة', close: 'إغلاق', selectCategoryType: 'اختر نوع الفئة',
+        expenseNeg: 'مصروف (-)', incomePos: 'دخل (+)', noTransactions: 'لا توجد معاملات بعد',
+        noStats: 'لا توجد إحصائيات لهذه الفترة', noExpenseData: 'لا توجد بيانات مصروفات'
+      },
+      cs: {
         income: 'Příjem', expense: 'Výdaj', total: 'Celkem',
         daily: 'Denně', calendar: 'Kalendář', monthly: 'Měsíčně', summary: 'Shrnutí',
         statistics: 'Statistiky', weekly: 'Týdně', annually: 'Ročně',
@@ -367,6 +404,19 @@
         selectCategory: 'Vybrat kategorii', close: 'Zavřít', selectCategoryType: 'Vybrat typ kategorie',
         expenseNeg: 'Výdaj (-)', incomePos: 'Příjem (+)', noTransactions: 'Zatím žádné transakce',
         noStats: 'Žádné statistiky pro toto období', noExpenseData: 'Žádná data o výdajích'
+      },
+      da: {
+        income: 'Indkomst', expense: 'Udgift', total: 'Total',
+        daily: 'Daglig', calendar: 'Kalender', monthly: 'Månedlig', summary: 'Oversigt',
+        statistics: 'Statistik', weekly: 'Ugentlig', annually: 'Årlig',
+        settingsTitle: 'Indstillinger', currencyPref: 'Valutapræference', currencyDesc: 'Vælg dit valutasymbol.',
+        langPref: 'Sprogpræference', langDesc: 'Vælg dit grænsefladesprog.',
+        navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Indstillinger',
+        cancel: 'Annuller', expenseOrIncome: 'Udgift eller Indkomst', delete: 'Slet',
+        date: 'Dato', category: 'Kategori', merchantNote: 'Butik / Note', amountLabel: 'Beløb',
+        selectCategory: 'Vælg kategori', close: 'Luk', selectCategoryType: 'Vælg kategoritype',
+        expenseNeg: 'Udgift (-)', incomePos: 'Indkomst (+)', noTransactions: 'Ingen transaktioner endnu',
+        noStats: 'Ingen statistik for denne periode', noExpenseData: 'Ingen udgiftsdata'
       },
       de: {
         income: 'Einnahmen', expense: 'Ausgaben', total: 'Gesamt',
@@ -420,6 +470,32 @@
         expenseNeg: 'Dépense (-)', incomePos: 'Revenu (+)', noTransactions: 'Aucune transaction',
         noStats: 'Aucune statistique pour cette période', noExpenseData: 'Aucune donnée de dépense'
       },
+      he: {
+        income: 'הכנסה', expense: 'הוצאה', total: 'סה"כ',
+        daily: 'יומי', calendar: 'לוח שנה', monthly: 'חודשי', summary: 'סיכום',
+        statistics: 'סטטיסטיקה', weekly: 'שבועי', annually: 'שנתי',
+        settingsTitle: 'הגדרות', currencyPref: 'העדפת מטבע', currencyDesc: 'בחר את סמל המטבע שלך.',
+        langPref: 'העדפת שפה', langDesc: 'בחר את שפת הממשק.',
+        navTrans: 'עסקאות', navStats: 'סטטיסטיקה', navSettings: 'הגדרות',
+        cancel: 'ביטול', expenseOrIncome: 'הוצאה או הכנסה', delete: 'מחק',
+        date: 'תאריך', category: 'קטגוריה', merchantNote: 'בית עסק / הערה', amountLabel: 'סכום',
+        selectCategory: 'בחר קטגוריה', close: 'סגור', selectCategoryType: 'בחר סוג קטגוריה',
+        expenseNeg: 'הוצאה (-)', incomePos: 'הכנסה (+)', noTransactions: 'אין עסקאות עדיין',
+        noStats: 'אין סטטיסטיקה לתקופה זו', noExpenseData: 'אין נתוני הוצאות'
+      },
+      hi: {
+        income: 'आय', expense: 'व्यय', total: 'कुल',
+        daily: 'दैनिक', calendar: 'कैलेंडर', monthly: 'मासिक', summary: 'सारांश',
+        statistics: 'आंकड़े', weekly: 'साप्ताहिक', annually: 'वार्षिक',
+        settingsTitle: 'सेटिंग्स', currencyPref: 'मुद्रा प्राथमिकता', currencyDesc: 'अपना मुद्रा प्रतीक चुनें।',
+        langPref: 'भाषा प्राथमिकता', langDesc: 'अपनी इंटरफ़ेस भाषा चुनें।',
+        navTrans: 'लेन-देन', navStats: 'आंकड़े', navSettings: 'सेटिंग्स',
+        cancel: 'रद्द करें', expenseOrIncome: 'व्यय या आय', delete: 'हटाएं',
+        date: 'दिनांक', category: 'श्रेणी', merchantNote: 'व्यापारी / नोट', amountLabel: 'राशि',
+        selectCategory: 'श्रेणी चुनें', close: 'बंद करें', selectCategoryType: 'श्रेणी का प्रकार चुनें',
+        expenseNeg: 'व्यय (-)', incomePos: 'आय (+)', noTransactions: 'अभी कोई लेन-देन नहीं',
+        noStats: 'इस समय सीमा के लिए कोई आंकड़े नहीं', noExpenseData: 'कोई व्यय डेटा नहीं'
+      },
       hu: {
         income: 'Bevétel', expense: 'Költség', total: 'Összesen',
         daily: 'Napi', calendar: 'Naptár', monthly: 'Havi', summary: 'Összegzés',
@@ -432,6 +508,19 @@
         selectCategory: 'Kategória kiválasztása', close: 'Bezárás', selectCategoryType: 'Kategória típus',
         expenseNeg: 'Költség (-)', incomePos: 'Bevétel (+)', noTransactions: 'Még nincsenek tranzakciók',
         noStats: 'Nincs statisztika erre az időszakra', noExpenseData: 'Nincs kiadási adat'
+      },
+      id: {
+        income: 'Pemasukan', expense: 'Pengeluaran', total: 'Total',
+        daily: 'Harian', calendar: 'Kalender', monthly: 'Bulanan', summary: 'Ringkasan',
+        statistics: 'Statistik', weekly: 'Mingguan', annually: 'Tahunan',
+        settingsTitle: 'Pengaturan', currencyPref: 'Preferensi Mata Uang', currencyDesc: 'Pilih simbol mata uang Anda.',
+        langPref: 'Preferensi Bahasa', langDesc: 'Pilih bahasa tampilan.',
+        navTrans: 'Transaksi', navStats: 'Statistik', navSettings: 'Pengaturan',
+        cancel: 'Batal', expenseOrIncome: 'Pengeluaran atau Pemasukan', delete: 'Hapus',
+        date: 'Tanggal', category: 'Kategori', merchantNote: 'Toko / Catatan', amountLabel: 'Jumlah',
+        selectCategory: 'Pilih Kategori', close: 'Tutup', selectCategoryType: 'Pilih Tipe Kategori',
+        expenseNeg: 'Pengeluaran (-)', incomePos: 'Pemasukan (+)', noTransactions: 'Belum ada transaksi',
+        noStats: 'Tidak ada statistik untuk periode ini', noExpenseData: 'Tidak ada data pengeluaran'
       },
       ja: {
         income: '収入', expense: '支出', total: '収支合計',
@@ -459,6 +548,32 @@
         expenseNeg: '지출 (-)', incomePos: '수입 (+)', noTransactions: '내역이 없습니다',
         noStats: '해당 기간의 통계가 없습니다', noExpenseData: '지출 내역이 없습니다'
       },
+      ms: {
+        income: 'Pendapatan', expense: 'Perbelanjaan', total: 'Jumlah',
+        daily: 'Harian', calendar: 'Kalendar', monthly: 'Bulanan', summary: 'Ringkasan',
+        statistics: 'Statistik', weekly: 'Mingguan', annually: 'Tahunan',
+        settingsTitle: 'Tetapan', currencyPref: 'Pilihan Mata Wang', currencyDesc: 'Pilih simbol mata wang anda.',
+        langPref: 'Pilihan Bahasa', langDesc: 'Pilih bahasa paparan anda.',
+        navTrans: 'Transaksi', navStats: 'Statistik', navSettings: 'Tetapan',
+        cancel: 'Batal', expenseOrIncome: 'Perbelanjaan atau Pendapatan', delete: 'Padam',
+        date: 'Tarikh', category: 'Kategori', merchantNote: 'Peniaga / Nota', amountLabel: 'Jumlah',
+        selectCategory: 'Pilih Kategori', close: 'Tutup', selectCategoryType: 'Pilih Jenis Kategori',
+        expenseNeg: 'Perbelanjaan (-)', incomePos: 'Pendapatan (+)', noTransactions: 'Tiada transaksi lagi',
+        noStats: 'Tiada statistik untuk tempoh ini', noExpenseData: 'Tiada data perbelanjaan'
+      },
+      nb: {
+        income: 'Inntekt', expense: 'Utgift', total: 'Totalt',
+        daily: 'Daglig', calendar: 'Kalender', monthly: 'Månedlig', summary: 'Sammendrag',
+        statistics: 'Statistikk', weekly: 'Ukentlig', annually: 'Årlig',
+        settingsTitle: 'Innstillinger', currencyPref: 'Valutapreferanse', currencyDesc: 'Velg ditt valutasymbol.',
+        langPref: 'Språkpreferanse', langDesc: 'Velg visningsspråk.',
+        navTrans: 'Transaksjon', navStats: 'Statistikk', navSettings: 'Innstillinger',
+        cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inntekt', delete: 'Slett',
+        date: 'Dato', category: 'Kategori', merchantNote: 'Bruker / Notat', amountLabel: 'Beløp',
+        selectCategory: 'Velg kategori', close: 'Lukk', selectCategoryType: 'Velg kategoritype',
+        expenseNeg: 'Utgift (-)', incomePos: 'Inntekt (+)', noTransactions: 'Ingen transaksjoner ennå',
+        noStats: 'Ingen statistikk for denne perioden', noExpenseData: 'Ingen utgiftsdata'
+      },
       pl: {
         income: 'Przychód', expense: 'Wydatek', total: 'Suma',
         daily: 'Dziennie', calendar: 'Kalendarz', monthly: 'Miesięcznie', summary: 'Podsumowanie',
@@ -471,6 +586,32 @@
         selectCategory: 'Wybierz kategorię', close: 'Zamknij', selectCategoryType: 'Wybierz typ kategorii',
         expenseNeg: 'Wydatek (-)', incomePos: 'Przychód (+)', noTransactions: 'Brak transakcji',
         noStats: 'Brak statystyk dla tego okresu', noExpenseData: 'Brak danych o wydatkach'
+      },
+      pt: {
+        income: 'Receita', expense: 'Despesa', total: 'Total',
+        daily: 'Diário', calendar: 'Calendário', monthly: 'Mensal', summary: 'Resumo',
+        statistics: 'Estatísticas', weekly: 'Semanal', annually: 'Anual',
+        settingsTitle: 'Configurações', currencyPref: 'Preferência de Moeda', currencyDesc: 'Escolha seu símbolo de moeda.',
+        langPref: 'Preferência de Idioma', langDesc: 'Escolha o idioma da interface.',
+        navTrans: 'Transação', navStats: 'Estatísticas', navSettings: 'Configurações',
+        cancel: 'Cancelar', expenseOrIncome: 'Despesa ou Receita', delete: 'Excluir',
+        date: 'Data', category: 'Categoria', merchantNote: 'Comerciante / Nota', amountLabel: 'Valor',
+        selectCategory: 'Selecionar Categoria', close: 'Fechar', selectCategoryType: 'Selecionar Tipo',
+        expenseNeg: 'Despesa (-)', incomePos: 'Receita (+)', noTransactions: 'Nenhuma transação ainda',
+        noStats: 'Sem estatísticas para este período', noExpenseData: 'Sem dados de despesas'
+      },
+      ro: {
+        income: 'Venit', expense: 'Cheltuială', total: 'Total',
+        daily: 'Zilnic', calendar: 'Calendar', monthly: 'Lunar', summary: 'Rezumat',
+        statistics: 'Statistici', weekly: 'Săptămânal', annually: 'Anual',
+        settingsTitle: 'Setări', currencyPref: 'Preferință monedă', currencyDesc: 'Alegeți simbolul monedei.',
+        langPref: 'Preferință limbă', langDesc: 'Alegeți limba interfeței.',
+        navTrans: 'Tranzacție', navStats: 'Statistici', navSettings: 'Setări',
+        cancel: 'Anulează', expenseOrIncome: 'Cheltuială sau Venit', delete: 'Șterge',
+        date: 'Dată', category: 'Categorie', merchantNote: 'Comerciant / Notă', amountLabel: 'Sumă',
+        selectCategory: 'Selectează categoria', close: 'Închide', selectCategoryType: 'Selectează tipul',
+        expenseNeg: 'Cheltuială (-)', incomePos: 'Venit (+)', noTransactions: 'Nicio tranzacție încă',
+        noStats: 'Fără statistici pentru această perioadă', noExpenseData: 'Fără date despre cheltuieli'
       },
       sv: {
         income: 'Inkomst', expense: 'Utgift', total: 'Totalt',
@@ -498,6 +639,19 @@
         expenseNeg: 'รายจ่าย (-)', incomePos: 'รายรับ (+)', noTransactions: 'ยังไม่มีรายการ',
         noStats: 'ไม่มีข้อมูลสถิติในช่วงเวลานี้', noExpenseData: 'ไม่มีข้อมูลรายจ่าย'
       },
+      tr: {
+        income: 'Gelir', expense: 'Gider', total: 'Toplam',
+        daily: 'Günlük', calendar: 'Takvim', monthly: 'Aylık', summary: 'Özet',
+        statistics: 'İstatistikler', weekly: 'Haftalık', annually: 'Yıllık',
+        settingsTitle: 'Ayarlar', currencyPref: 'Para Birimi Tercihi', currencyDesc: 'Para birimi simgenizi seçin.',
+        langPref: 'Dil Tercihi', langDesc: 'Arayüz dilinizi seçin.',
+        navTrans: 'İşlemler', navStats: 'İstatistikler', navSettings: 'Ayarlar',
+        cancel: 'İptal', expenseOrIncome: 'Gider veya Gelir', delete: 'Sil',
+        date: 'Tarih', category: 'Kategori', merchantNote: 'Satıcı / Not', amountLabel: 'Tutar',
+        selectCategory: 'Kategori Seç', close: 'Kapat', selectCategoryType: 'Kategori Türü Seç',
+        expenseNeg: 'Gider (-)', incomePos: 'Gelir (+)', noTransactions: 'Henüz işlem yok',
+        noStats: 'Bu dönem için istatistik yok', noExpenseData: 'Gider verisi yok'
+      },
       vi: {
         income: 'Thu nhập', expense: 'Chi tiêu', total: 'Tổng số',
         daily: 'Hàng ngày', calendar: 'Lịch', monthly: 'Hàng tháng', summary: 'Tóm tắt',
@@ -513,7 +667,7 @@
       },
       'zh-CN': {
         income: '收入', expense: '支出', total: '结余',
-        daily: '日', calendar: '日历', monthly: '月', summary: '汇总',
+        daily: '每日', calendar: '日历', monthly: '每月', summary: '汇总',
         statistics: '统计', weekly: '每周', annually: '每年',
         settingsTitle: '设置', currencyPref: '货币偏好', currencyDesc: '选择您使用的货币符号。',
         langPref: '语言偏好', langDesc: '选择您的界面显示语言。',
