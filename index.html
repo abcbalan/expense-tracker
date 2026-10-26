@@ -1,5 +1,5 @@
-<!-- 20261026 v27 Dynamic Weekly Date Range Header, this work well -->
-<!-- 20261026 v28 Trying to Stable Login + Functional Weekly, Monthly & Annually Recurring Entries -->
+<!-- 20261027 v27 Dynamic Weekly Date Range Header -->
+<!-- Work Perfectly -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -310,15 +310,7 @@
         </div>
 
         <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-            <label style="font-size: 11px; color: #6b7280; margin-bottom: 0;" data-i18n="amountLabel">Amount</label>
-            <select id="input-repeat" style="font-size: 11px; border: 1px solid #d1d5db; border-radius: 4px; padding: 2px 4px; background: #f9fafb; color: #374151; outline: none; cursor: pointer;">
-              <option value="none">One-time</option>
-              <option value="weekly">Weekly Repeat</option>
-              <option value="monthly">Monthly Repeat</option>
-              <option value="annually">Annually Repeat</option>
-            </select>
-          </div>
+          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="amountLabel">Amount</label>
           <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 14px; text-align: left; color: #111827; outline: none; padding: 4px 0;">
         </div>       
 
@@ -992,59 +984,16 @@
       return new Date(date.getFullYear(), date.getMonth(), 1);
     }
 
-    function generateRecurringVirtualEntries(baseEntries) {
-      let expanded = [];
-      const horizonYears = 2; 
-      const today = new Date();
-      const maxDate = new Date(today.getFullYear() + horizonYears, today.getMonth(), today.getDate());
-
-      baseEntries.forEach(item => {
-        expanded.push(item);
-        if (!item.repeat || item.repeat === 'none') return;
-        if (item.repeatUntil && new Date(item.date) >= new Date(item.repeatUntil)) return;
-
-        let currDate = new Date(item.date);
-        let count = 0;
-        while (count < 200) {
-          if (item.repeat === 'weekly') {
-            currDate.setDate(currDate.getDate() + 7);
-          } else if (item.repeat === 'monthly') {
-            currDate.setMonth(currDate.getMonth() + 1);
-          } else if (item.repeat === 'annually') {
-            currDate.setFullYear(currDate.getFullYear() + 1);
-          }
-
-          if (currDate > maxDate) break;
-          if (item.repeatUntil && currDate > new Date(item.repeatUntil)) break;
-
-          const dateStr = currDate.toISOString().slice(0, 10);
-          expanded.push({
-            ...item,
-            id: `${item.id}_virt_${dateStr}`,
-            date: dateStr,
-            isVirtual: true
-          });
-          count++;
-        }
-      });
-      return expanded;
-    }
-
     function getMonthExpenses() {
       const start = getMonthStart();
       const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
-      const expanded = generateRecurringVirtualEntries(expenses);
-
-      return expanded.filter(item => {
+      return expenses.filter(item => {
         const d = new Date(item.date || item.created_at || new Date().toISOString());
         const inRange = d >= start && d < end;
         if (!inRange) return false;
-        
-        if (item.repeatUntil && d > new Date(item.repeatUntil)) return false;
-
         if (!term) return true;
         const merchant = (item.merchant || item.note || '').toLowerCase();
         const category = (item.category || '').toLowerCase();
@@ -1053,11 +1002,13 @@
     }
 
     function updateHeaders() {
+      // Transaction Screen Header (Always Month/Year)
       const transHeader = document.getElementById('trans-month-txt');
       if (transHeader) {
         transHeader.textContent = currentTransDate.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', year: 'numeric' });
       }
 
+      // Stats Screen Header (Context Aware based on timeframe)
       const statsHeader = document.getElementById('stats-month-txt');
       if (statsHeader) {
         let label = '';
@@ -1191,9 +1142,9 @@
               <span>${formatMoney(total)}</span>
             </div>
             ${entries.map(item => `
-              <div class="trans-row" data-id="${item.isVirtual ? item.id.split('_virt_')[0] : item.id}" tabindex="0">
+              <div class="trans-row" data-id="${item.id}" tabindex="0">
                 <div class="trans-left">
-                  <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong> ${item.repeat && item.repeat !== 'none' ? '🔁' : ''}</div>
+                  <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong></div>
                   <div class="trans-category">${item.category || 'Other'}</div>
                 </div> 
                 <div class="trans-amount ${(item.type || 'expense') === 'income' ? 'income' : 'expense'}"> ${(item.type || 'expense') === 'income' ? '+' : '-'}${formatMoney(Number(item.amount) || 0)} </div>             
@@ -1304,17 +1255,9 @@
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
-      const expanded = generateRecurringVirtualEntries(expenses);
-
-      let items = expanded.filter(item => {
-        const d = new Date(item.date || item.created_at || new Date());
-        if (item.repeatUntil && d > new Date(item.repeatUntil)) return false;
-        return true;
-      });
-
       if (currentStatsTimeframe === 'annually') {
         const year = currentStatsDate.getFullYear();
-        return items.filter(item => {
+        return expenses.filter(item => {
           const d = new Date(item.date || item.created_at || new Date());
           if (d.getFullYear() !== year) return false;
           if (!term) return true;
@@ -1329,7 +1272,7 @@
         const lastDayOfWeek = new Date(firstDayOfWeek);
         lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 7);
 
-        return items.filter(item => {
+        return expenses.filter(item => {
           const d = new Date(item.date || item.created_at || new Date());
           if (d < firstDayOfWeek || d >= lastDayOfWeek) return false;
           if (!term) return true;
@@ -1340,7 +1283,7 @@
       } else {
         const start = new Date(currentStatsDate.getFullYear(), currentStatsDate.getMonth(), 1);
         const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
-        return items.filter(item => {
+        return expenses.filter(item => {
           const d = new Date(item.date || item.created_at || new Date());
           if (d < start || d >= end) return false;
           if (!term) return true;
@@ -1349,6 +1292,10 @@
           return merchant.includes(term) || category.includes(term);
         });
       }
+    }
+
+    function getStatsFilteredItems() {
+      return getStatsTimeframeItems().filter(item => (item.type || 'expense') !== 'income');
     }
 
     function renderStats() {
@@ -1374,6 +1321,7 @@
         }
       });
 
+      // Update stats summary bar text
       const statsIncomeEl = document.getElementById('stats-income-txt');
       const statsExpenseEl = document.getElementById('stats-expense-txt');
       if (statsIncomeEl) statsIncomeEl.textContent = formatMoney(statsIncome);
@@ -1443,7 +1391,6 @@
       const categoryInput = document.getElementById('input-category');
       const merchantInput = document.getElementById('input-merchant');
       const amountInput = document.getElementById('input-amount');
-      const repeatSelect = document.getElementById('input-repeat');
       const deleteBtn = document.getElementById('delete-btn');
       const modalTitle = document.getElementById('modal-title');
 
@@ -1457,7 +1404,6 @@
         categoryInput.value = entry.category || 'Food';
         merchantInput.value = entry.merchant || entry.note || '';
         amountInput.value = Number(entry.amount || 0).toFixed(2);
-        repeatSelect.value = entry.repeat || 'none';
         activeExpenseType = entry.type === 'income' ? 'income' : 'expense';
       } else {
         editingId = null;
@@ -1467,7 +1413,6 @@
         categoryInput.value = activeExpenseType === 'income' ? 'Salary' : 'Food';
         merchantInput.value = '';
         amountInput.value = '0.00';
-        repeatSelect.value = 'none';
       }
 
       modal.style.display = 'flex';
@@ -1570,7 +1515,6 @@
       const category = document.getElementById('input-category').value || 'Food';
       const amount = Number(document.getElementById('input-amount').value || 0);
       const date = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
-      const repeat = document.getElementById('input-repeat').value || 'none';
       
       const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
       const type = isIncomeCategory ? 'income' : activeExpenseType;
@@ -1584,7 +1528,6 @@
         category,
         amount: Math.abs(amount),
         type,
-        repeat,
         created_at: new Date().toISOString()
       };
     }
@@ -1594,7 +1537,6 @@
       const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
       if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
       else expenses.unshift(item);
-      
       expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       if (currentUser?.id) {
@@ -1606,25 +1548,6 @@
 
     function deleteEntry() {
       if (!editingId) return;
-      const target = expenses.find(item => String(item.id) === String(editingId));
-      
-      if (target && target.repeat && target.repeat !== 'none') {
-        const choice = confirm("This is a recurring transaction. Delete only future occurrences (keep past history), or delete entirely?");
-        if (choice) {
-          const d = new Date(target.date);
-          d.setDate(d.getDate() - 1);
-          target.repeatUntil = d.toISOString().slice(0, 10);
-          target.repeat = 'none';
-          localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-          if (currentUser?.id) {
-            supabaseClient.from('expenses').upsert(target, { onConflict: 'id' }).then(() => {}).catch(console.warn);
-          }
-          closeEntryModal();
-          renderAllViews();
-          return;
-        }
-      }
-
       expenses = expenses.filter(item => String(item.id) !== String(editingId));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       if (currentUser?.id) {
@@ -1876,7 +1799,6 @@
               category: row.category || 'Other',
               amount: Math.abs(Number(row.amount || row.value || 0)),
               type: (row.type || 'expense'),
-              repeat: 'none',
               created_at: new Date().toISOString()
             };
             newEntries.push(entry);
