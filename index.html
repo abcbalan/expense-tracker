@@ -1,5 +1,5 @@
 <!-- 20261026 v27 Dynamic Weekly Date Range Header, this work well -->
-<!-- 20261026 v29 trying Stable Login + Recurring Transactions & Inline Repeat Dropdown -->
+<!-- 20261026 v28 Trying to Stable Login + Functional Weekly, Monthly & Annually Recurring Entries -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -992,18 +992,57 @@
       return new Date(date.getFullYear(), date.getMonth(), 1);
     }
 
+    function generateRecurringVirtualEntries(baseEntries) {
+      let expanded = [];
+      const horizonYears = 2; 
+      const today = new Date();
+      const maxDate = new Date(today.getFullYear() + horizonYears, today.getMonth(), today.getDate());
+
+      baseEntries.forEach(item => {
+        expanded.push(item);
+        if (!item.repeat || item.repeat === 'none') return;
+        if (item.repeatUntil && new Date(item.date) >= new Date(item.repeatUntil)) return;
+
+        let currDate = new Date(item.date);
+        let count = 0;
+        while (count < 200) {
+          if (item.repeat === 'weekly') {
+            currDate.setDate(currDate.getDate() + 7);
+          } else if (item.repeat === 'monthly') {
+            currDate.setMonth(currDate.getMonth() + 1);
+          } else if (item.repeat === 'annually') {
+            currDate.setFullYear(currDate.getFullYear() + 1);
+          }
+
+          if (currDate > maxDate) break;
+          if (item.repeatUntil && currDate > new Date(item.repeatUntil)) break;
+
+          const dateStr = currDate.toISOString().slice(0, 10);
+          expanded.push({
+            ...item,
+            id: `${item.id}_virt_${dateStr}`,
+            date: dateStr,
+            isVirtual: true
+          });
+          count++;
+        }
+      });
+      return expanded;
+    }
+
     function getMonthExpenses() {
       const start = getMonthStart();
       const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
-      return expenses.filter(item => {
+      const expanded = generateRecurringVirtualEntries(expenses);
+
+      return expanded.filter(item => {
         const d = new Date(item.date || item.created_at || new Date().toISOString());
         const inRange = d >= start && d < end;
         if (!inRange) return false;
         
-        // Respect repeatUntil if present
         if (item.repeatUntil && d > new Date(item.repeatUntil)) return false;
 
         if (!term) return true;
@@ -1152,7 +1191,7 @@
               <span>${formatMoney(total)}</span>
             </div>
             ${entries.map(item => `
-              <div class="trans-row" data-id="${item.id}" tabindex="0">
+              <div class="trans-row" data-id="${item.isVirtual ? item.id.split('_virt_')[0] : item.id}" tabindex="0">
                 <div class="trans-left">
                   <div class="trans-details"><strong>${item.merchant || item.note || 'New expense'}</strong> ${item.repeat && item.repeat !== 'none' ? '🔁' : ''}</div>
                   <div class="trans-category">${item.category || 'Other'}</div>
@@ -1265,7 +1304,9 @@
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
-      let items = expenses.filter(item => {
+      const expanded = generateRecurringVirtualEntries(expenses);
+
+      let items = expanded.filter(item => {
         const d = new Date(item.date || item.created_at || new Date());
         if (item.repeatUntil && d > new Date(item.repeatUntil)) return false;
         return true;
@@ -1524,44 +1565,6 @@
       document.getElementById('category-modal').style.display = 'none';
     }
 
-    function generateRecurringVirtualEntries(baseEntries) {
-      let expanded = [];
-      const horizonYears = 2; 
-      const today = new Date();
-      const maxDate = new Date(today.getFullYear() + horizonYears, today.getMonth(), today.getDate());
-
-      baseEntries.forEach(item => {
-        expanded.push(item);
-        if (!item.repeat || item.repeat === 'none') return;
-        if (item.repeatUntil && new Date(item.date) >= new Date(item.repeatUntil)) return;
-
-        let currDate = new Date(item.date);
-        let count = 0;
-        while (count < 200) {
-          if (item.repeat === 'weekly') {
-            currDate.setDate(currDate.getDate() + 7);
-          } else if (item.repeat === 'monthly') {
-            currDate.setMonth(currDate.getMonth() + 1);
-          } else if (item.repeat === 'annually') {
-            currDate.setFullYear(currDate.getFullYear() + 1);
-          }
-
-          if (currDate > maxDate) break;
-          if (item.repeatUntil && currDate > new Date(item.repeatUntil)) break;
-
-          const dateStr = currDate.toISOString().slice(0, 10);
-          expanded.push({
-            ...item,
-            id: `${item.id}_virt_${dateStr}`,
-            date: dateStr,
-            isVirtual: true
-          });
-          count++;
-        }
-      });
-      return expanded;
-    }
-
     function buildEntryObject() {
       const merchant = document.getElementById('input-merchant').value.trim();
       const category = document.getElementById('input-category').value || 'Food';
@@ -1603,12 +1606,11 @@
 
     function deleteEntry() {
       if (!editingId) return;
-      const target = expenses.find(item => String(item.id) === String(editingId) || String(editingId).includes(String(item.id)));
+      const target = expenses.find(item => String(item.id) === String(editingId));
       
       if (target && target.repeat && target.repeat !== 'none') {
         const choice = confirm("This is a recurring transaction. Delete only future occurrences (keep past history), or delete entirely?");
         if (choice) {
-          // Keep past, cut off future by setting repeatUntil to yesterday relative to selected date
           const d = new Date(target.date);
           d.setDate(d.getDate() - 1);
           target.repeatUntil = d.toISOString().slice(0, 10);
