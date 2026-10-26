@@ -1,5 +1,4 @@
-<!-- 20261027 v27 Dynamic Weekly Date Range Header -->
-<!-- Work Perfectly -->
+<!-- 20261027 v28 Try with Recurring Transactions (Weekly, Monthly, Annually -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -307,6 +306,16 @@
             <button type="button" id="btn-clear-merchant" style="width:auto; background:none; border:none; cursor:pointer; font-size: 16px;" title="Hide suggestions">🚫</button>
           </div>
           <datalist id="merchant-list"></datalist>
+        </div>
+
+        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
+          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Repeat Frequency</label>
+          <select id="input-repeat" class="form-control" style="border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 0; height: auto; cursor: pointer;">
+            <option value="none">Never (One-time)</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="annually">Annually</option>
+          </select>
         </div>
 
         <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;">
@@ -632,7 +641,7 @@
         navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Inställningar',
         cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inkomst', delete: 'Radera',
         date: 'Datum', category: 'Kategori', merchantNote: 'Företag / Anteckning', amountLabel: 'Belopp',
-        selectCategory: 'Välj kategori', close: 'Stäng', selectCategoryType: 'Välj kategorityp',
+        selectCategory: 'Välj kategori', close: 'Stäng', selectCategoryType: 'Valj kategorityp',
         expenseNeg: 'Utgift (-)', incomePos: 'Inkomst (+)', noTransactions: 'Inga transaktioner än',
         noStats: 'Ingen statistik för denna period', noExpenseData: 'Inga utgiftsdata'
       },
@@ -1391,6 +1400,7 @@
       const categoryInput = document.getElementById('input-category');
       const merchantInput = document.getElementById('input-merchant');
       const amountInput = document.getElementById('input-amount');
+      const repeatInput = document.getElementById('input-repeat');
       const deleteBtn = document.getElementById('delete-btn');
       const modalTitle = document.getElementById('modal-title');
 
@@ -1404,6 +1414,8 @@
         categoryInput.value = entry.category || 'Food';
         merchantInput.value = entry.merchant || entry.note || '';
         amountInput.value = Number(entry.amount || 0).toFixed(2);
+        repeatInput.value = 'none'; // Editing individual instance
+        repeatInput.disabled = true; // disable changing recurrence on single edit for simplicity
         activeExpenseType = entry.type === 'income' ? 'income' : 'expense';
       } else {
         editingId = null;
@@ -1413,6 +1425,8 @@
         categoryInput.value = activeExpenseType === 'income' ? 'Salary' : 'Food';
         merchantInput.value = '';
         amountInput.value = '0.00';
+        repeatInput.value = 'none';
+        repeatInput.disabled = false;
       }
 
       modal.style.display = 'flex';
@@ -1510,48 +1524,113 @@
       document.getElementById('category-modal').style.display = 'none';
     }
 
-    function buildEntryObject() {
+    function saveEntry() {
       const merchant = document.getElementById('input-merchant').value.trim();
       const category = document.getElementById('input-category').value || 'Food';
       const amount = Number(document.getElementById('input-amount').value || 0);
-      const date = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
+      const startDateStr = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
+      const repeatFreq = document.getElementById('input-repeat').value; // 'none', 'weekly', 'monthly', 'annually'
       
       const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
       const type = isIncomeCategory ? 'income' : activeExpenseType;
 
-      return {
-        id: editingId || (crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}`),
-        user_id: currentUser?.id || null,
-        date,
-        merchant,
-        note: merchant,
-        category,
-        amount: Math.abs(amount),
-        type,
-        created_at: new Date().toISOString()
-      };
-    }
+      if (editingId) {
+        const idx = expenses.findIndex(entry => String(entry.id) === String(editingId));
+        if (idx >= 0) {
+          expenses[idx] = {
+            ...expenses[idx],
+            date: startDateStr,
+            merchant,
+            note: merchant,
+            category,
+            amount: Math.abs(amount),
+            type
+          };
+          const item = expenses[idx];
+          localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+          if (currentUser?.id) {
+            supabaseClient.from('expenses').upsert(item, { onConflict: 'id' }).then(() => {}).catch(console.warn);
+          }
+        }
+      } else {
+        const seriesId = repeatFreq !== 'none' ? (crypto.randomUUID ? crypto.randomUUID() : `series_${Date.now()}`) : null;
+        const newItems = [];
+        
+        let baseDate = new Date(startDateStr + 'T00:00:00');
+        let count = 1;
+        if (repeatFreq === 'weekly') count = 52; // 1 year of weekly repeats
+        else if (repeatFreq === 'monthly') count = 36; // 3 years of monthly repeats
+        else if (repeatFreq === 'annually') count = 10; // 10 years of annual repeats
 
-    function saveEntry() {
-      const item = buildEntryObject();
-      const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
-      if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
-      else expenses.unshift(item);
-      expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
-      localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-      if (currentUser?.id) {
-        supabaseClient.from('expenses').upsert(item, { onConflict: 'id' }).then(() => {}).catch(console.warn);
+        for (let i = 0; i < count; i++) {
+          let currDate = new Date(baseDate);
+          if (repeatFreq === 'weekly') {
+            currDate.setDate(baseDate.getDate() + (i * 7));
+          } else if (repeatFreq === 'monthly') {
+            currDate.setMonth(baseDate.getMonth() + i);
+          } else if (repeatFreq === 'annually') {
+            currDate.setFullYear(baseDate.getFullYear() + i);
+          }
+
+          const dateStr = currDate.toISOString().slice(0, 10);
+          const item = {
+            id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${i}`,
+            seriesId: seriesId,
+            user_id: currentUser?.id || null,
+            date: dateStr,
+            merchant,
+            note: merchant,
+            category,
+            amount: Math.abs(amount),
+            type,
+            created_at: new Date().toISOString()
+          };
+          newItems.push(item);
+          if (repeatFreq === 'none') break;
+        }
+
+        expenses = [...newItems, ...expenses];
+        expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.date));
+        localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+
+        if (currentUser?.id) {
+          supabaseClient.from('expenses').upsert(newItems, { onConflict: 'id' }).then(() => {}).catch(console.warn);
+        }
       }
+
       closeEntryModal();
       renderAllViews();
     }
 
     function deleteEntry() {
       if (!editingId) return;
-      expenses = expenses.filter(item => String(item.id) !== String(editingId));
-      localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-      if (currentUser?.id) {
-        supabaseClient.from('expenses').delete().eq('id', editingId).then(() => {}).catch(console.warn);
+      const target = expenses.find(item => String(item.id) === String(editingId));
+      
+      if (target && target.seriesId) {
+        const confirmDeleteFuture = confirm("Stop future repeats? Click OK to delete this and all upcoming repeats, or Cancel to delete only this single entry.");
+        if (confirmDeleteFuture) {
+          const seriesId = target.seriesId;
+          const targetDate = target.date;
+          const idsToDelete = expenses.filter(item => item.seriesId === seriesId && item.date >= targetDate).map(item => item.id);
+          
+          expenses = expenses.filter(item => !idsToDelete.includes(item.id));
+          localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+          if (currentUser?.id) {
+            supabaseClient.from('expenses').delete().in('id', idsToDelete).then(() => {}).catch(console.warn);
+          }
+        } else {
+          expenses = expenses.filter(item => String(item.id) !== String(editingId));
+          localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+          if (currentUser?.id) {
+            supabaseClient.from('expenses').delete().eq('id', editingId).then(() => {}).catch(console.warn);
+          }
+        }
+      } else {
+        expenses = expenses.filter(item => String(item.id) !== String(editingId));
+        localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+        if (currentUser?.id) {
+          supabaseClient.from('expenses').delete().eq('id', editingId).then(() => {}).catch(console.warn);
+        }
       }
       closeEntryModal();
       renderAllViews();
