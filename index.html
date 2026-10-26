@@ -2,6 +2,7 @@
 <!-- 20261026 v29 with Clean Inline Repeat Icon & Fixed Persistent Storage -->
 <!-- 20261026 v30 with Dropdown Repeat Selection & Default Daily No-Repeat -->
 <!-- 20261026 v31 with Persistent Cloud Sync for Categories and Transactions -->
+<!-- 20261026 v32 with Fixed Cloud Sync & User ID Persistence -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -312,15 +313,7 @@
         </div>
 
         <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-            <label style="font-size: 11px; color: #6b7280; margin: 0;" data-i18n="amountLabel">Amount</label>
-            <select id="select-repeat-freq" style="background: transparent; border: 1px solid #d1d5db; border-radius: 6px; font-size: 11px; font-weight: 600; color: #10b981; padding: 2px 6px; cursor: pointer; outline: none;">
-              <option value="none">Daily (No Repeat)</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="annually">Annually</option>
-            </select>
-          </div>
+          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="amountLabel">Amount</label>
           <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 14px; text-align: left; color: #111827; outline: none; padding: 4px 0;">
         </div>       
 
@@ -1105,7 +1098,7 @@
         expenses = merged;
         localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
-        // Pull unique categories from remote items so they appear across devices/browsers automatically
+        // Pull unique categories from remote items automatically across devices
         const remoteExpCats = new Set();
         const remoteIncCats = new Set();
         merged.forEach(item => {
@@ -1330,10 +1323,6 @@
       }
     }
 
-    function getStatsFilteredItems() {
-      return getStatsTimeframeItems().filter(item => (item.type || 'expense') !== 'income');
-    }
-
     function renderStats() {
       const container = document.getElementById('stats-list-container');
       const svg = document.getElementById('svgPie');
@@ -1428,8 +1417,6 @@
       const amountInput = document.getElementById('input-amount');
       const deleteBtn = document.getElementById('delete-btn');
       const modalTitle = document.getElementById('modal-title');
-      const repeatSelect = document.getElementById('select-repeat-freq');
-      const repeatGroupContainer = repeatSelect.closest('div');
 
       if (mode === 'edit' && idOrNull) {
         const entry = expenses.find(item => String(item.id) === String(idOrNull));
@@ -1441,8 +1428,6 @@
         categoryInput.value = entry.category || 'Food';
         merchantInput.value = entry.merchant || entry.note || '';
         amountInput.value = Number(entry.amount || 0).toFixed(2);
-        repeatSelect.value = 'none';
-        if (repeatGroupContainer) repeatGroupContainer.style.display = 'none';
         activeExpenseType = entry.type === 'income' ? 'income' : 'expense';
       } else {
         editingId = null;
@@ -1452,8 +1437,6 @@
         categoryInput.value = activeExpenseType === 'income' ? 'Salary' : 'Food';
         merchantInput.value = '';
         amountInput.value = '0.00';
-        repeatSelect.value = 'none';
-        if (repeatGroupContainer) repeatGroupContainer.style.display = 'flex';
       }
       modal.style.display = 'flex';
     }
@@ -1550,82 +1533,40 @@
       document.getElementById('category-modal').style.display = 'none';
     }
 
-    function saveEntry() {
+    function buildEntryObject() {
       const merchant = document.getElementById('input-merchant').value.trim();
       const category = document.getElementById('input-category').value || 'Food';
       const amount = Number(document.getElementById('input-amount').value || 0);
-      const startDateStr = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
-      const repeatFreq = document.getElementById('select-repeat-freq').value;
+      const date = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
       
       const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
       const type = isIncomeCategory ? 'income' : activeExpenseType;
 
-      if (editingId) {
-        const idx = expenses.findIndex(entry => String(entry.id) === String(editingId));
-        if (idx >= 0) {
-          expenses[idx] = {
-            ...expenses[idx],
-            date: startDateStr,
-            merchant,
-            note: merchant,
-            category,
-            amount: Math.abs(amount),
-            type
-          };
-          const item = expenses[idx];
-          localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-          if (currentUser?.id) {
-            supabaseClient.from('expenses').upsert(item, { onConflict: 'id' }).then(({ error }) => {
-              if (error) console.error('Cloud save failed:', error);
-            }).catch(console.warn);
-          }
-        }
-      } else {
-        const seriesId = repeatFreq !== 'none' ? (crypto.randomUUID ? crypto.randomUUID() : `series_${Date.now()}`) : null;
-        const newItems = [];
-        
-        let baseDate = new Date(startDateStr + 'T00:00:00');
-        let count = 1;
-        if (repeatFreq === 'weekly') count = 52;
-        else if (repeatFreq === 'monthly') count = 36;
-        else if (repeatFreq === 'annually') count = 10;
+      return {
+        id: editingId || (crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}`),
+        user_id: currentUserId || currentUser?.id || null,
+        date,
+        merchant,
+        note: merchant,
+        category,
+        amount: Math.abs(amount),
+        type,
+        created_at: new Date().toISOString()
+      };
+    }
 
-        for (let i = 0; i < count; i++) {
-          let currDate = new Date(baseDate);
-          if (repeatFreq === 'weekly') {
-            currDate.setDate(baseDate.getDate() + (i * 7));
-          } else if (repeatFreq === 'monthly') {
-            currDate.setMonth(baseDate.getMonth() + i);
-          } else if (repeatFreq === 'annually') {
-            currDate.setFullYear(baseDate.getFullYear() + i);
-          }
+    function saveEntry() {
+      const item = buildEntryObject();
+      const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
+      if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
+      else expenses.unshift(item);
+      expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+      localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
-          const dateStr = currDate.toISOString().slice(0, 10);
-          const item = {
-            id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${i}`,
-            seriesId: seriesId,
-            user_id: currentUser?.id || null,
-            date: dateStr,
-            merchant,
-            note: merchant,
-            category,
-            amount: Math.abs(amount),
-            type,
-            created_at: new Date().toISOString()
-          };
-          newItems.push(item);
-          if (repeatFreq === 'none') break;
-        }
-
-        expenses = [...newItems, ...expenses];
-        expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.date));
-        localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-
-        if (currentUser?.id) {
-          supabaseClient.from('expenses').upsert(newItems, { onConflict: 'id' }).then(({ error }) => {
-            if (error) console.error('Cloud batch save failed:', error);
-          }).catch(console.warn);
-        }
+      if (currentUser?.id || currentUserId) {
+        supabaseClient.from('expenses').upsert(item, { onConflict: 'id' }).then(({ error }) => {
+          if (error) console.error('Cloud save failed:', error);
+        }).catch(console.warn);
       }
 
       closeEntryModal();
@@ -1634,33 +1575,10 @@
 
     function deleteEntry() {
       if (!editingId) return;
-      const target = expenses.find(item => String(item.id) === String(editingId));
-      
-      if (target && target.seriesId) {
-        const confirmDeleteFuture = confirm("Stop future repeats? Click OK to delete this and all upcoming repeats, or Cancel to delete only this single entry.");
-        if (confirmDeleteFuture) {
-          const seriesId = target.seriesId;
-          const targetDate = target.date;
-          const idsToDelete = expenses.filter(item => item.seriesId === seriesId && item.date >= targetDate).map(item => item.id);
-          
-          expenses = expenses.filter(item => !idsToDelete.includes(item.id));
-          localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-          if (currentUser?.id) {
-            supabaseClient.from('expenses').delete().in('id', idsToDelete).then(() => {}).catch(console.warn);
-          }
-        } else {
-          expenses = expenses.filter(item => String(item.id) !== String(editingId));
-          localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-          if (currentUser?.id) {
-            supabaseClient.from('expenses').delete().eq('id', editingId).then(() => {}).catch(console.warn);
-          }
-        }
-      } else {
-        expenses = expenses.filter(item => String(item.id) !== String(editingId));
-        localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-        if (currentUser?.id) {
-          supabaseClient.from('expenses').delete().eq('id', editingId).then(() => {}).catch(console.warn);
-        }
+      expenses = expenses.filter(item => String(item.id) !== String(editingId));
+      localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+      if (currentUser?.id || currentUserId) {
+        supabaseClient.from('expenses').delete().eq('id', editingId).then(() => {}).catch(console.warn);
       }
       closeEntryModal();
       renderAllViews();
@@ -1848,7 +1766,7 @@
         }
       });
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-      if (currentUser?.id) {
+      if (currentUser?.id || currentUserId) {
         for (const item of updatedItems) {
           try {
             await supabaseClient.from('expenses').update({ merchant: merchantName, note: merchantName }).eq('id', item.id);
@@ -1892,13 +1810,13 @@
           const data = evt.target.result;
           const workbook = XLSX.read(data, { type: 'binary' });
           const firstSheet = workbook.SheetNames[0];
-          const json = XLSX.utils.sheet_to_sheet_json ? {} : XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+          const json = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
           
           const newEntries = [];
           json.forEach(row => {
             const entry = {
               id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
-              user_id: currentUser?.id || null,
+              user_id: currentUserId || currentUser?.id || null,
               date: (row.date && new Date(row.date).toISOString().slice(0,10)) || new Date().toISOString().slice(0,10),
               merchant: row.merchant || row.note || '',
               note: row.merchant || row.note || '',
@@ -1913,7 +1831,7 @@
           expenses = [...newEntries, ...expenses];
           localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
-          if (currentUser?.id) {
+          if (currentUser?.id || currentUserId) {
             const batchSize = 200;
             for (let i = 0; i < newEntries.length; i += batchSize) {
               const batch = newEntries.slice(i, i + batchSize);
