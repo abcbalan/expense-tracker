@@ -1,6 +1,8 @@
 <!-- 20261027 v27 Dynamic Weekly Date Range Header, this is work -->
 <!-- 20261027 v28 try to fix Recurring Future Projections + Multi-device Sync + Smart Deletion -->
 <!-- 20261027 v29 try to Custom Categories & Transactions Cloud Sync Across Devices & Logins -->
+<!-- 20261027 v30 try to fixed Supabase RLS user_id Binding for Transaction Cloud Sync across Devices & Logins -->
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -779,7 +781,6 @@
 
     function getGuestStorageKey() { return 'expenses_data_guest'; }
 
-    // Load custom categories from Supabase user metadata or localStorage fallback
     function loadCategoriesFromUser(user) {
       if (user && user.user_metadata) {
         if (user.user_metadata.custom_categories && Array.isArray(user.user_metadata.custom_categories)) {
@@ -806,7 +807,6 @@
       localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories));
     }
 
-    // Save custom categories to localStorage and sync to Supabase user metadata
     async function saveCustomCategoriesToCloud() {
       localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories));
       localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories));
@@ -905,6 +905,9 @@
           saveAuthState();
           loadCategoriesFromUser(currentUser);
           document.getElementById('auth-screen').style.display = 'none';
+          await mergeGuestLocalToUser();
+          await syncWithSupabase();
+          subscribeToExpenses();
         } else {
           document.getElementById('auth-screen').style.display = 'flex';
           loadLocalForUser();
@@ -1043,7 +1046,6 @@
       return new Date(date.getFullYear(), date.getMonth(), 1);
     }
 
-    // Helper: Expand master entries into repeating virtual instances
     function generateRecurringVirtualEntries(baseEntries) {
       const expanded = [];
       const horizonYears = 3; 
@@ -1051,7 +1053,6 @@
       const maxDate = new Date(today.getFullYear() + horizonYears, 11, 31);
 
       baseEntries.forEach(item => {
-        // Push original master record
         expanded.push(item);
 
         if (!item.repeat || item.repeat === 'none') return;
@@ -1075,7 +1076,6 @@
 
           const dateStr = currDate.toISOString().slice(0, 10);
           
-          // Stop if past the repeat_until cutoff date
           if (item.repeat_until && dateStr >= item.repeat_until) break;
 
           expanded.push({
@@ -1114,13 +1114,11 @@
     }
 
     function updateHeaders() {
-      // Transaction Screen Header (Always Month/Year)
       const transHeader = document.getElementById('trans-month-txt');
       if (transHeader) {
         transHeader.textContent = currentTransDate.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', year: 'numeric' });
       }
 
-      // Stats Screen Header (Context Aware based on timeframe)
       const statsHeader = document.getElementById('stats-month-txt');
       if (statsHeader) {
         let label = '';
@@ -1162,7 +1160,6 @@
       }
 
       try {
-        // Also fetch latest user metadata for categories
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (user) {
           currentUser = user;
@@ -1648,9 +1645,12 @@
 
       const existing = editingId ? expenses.find(e => String(e.id) === String(editingId)) : null;
 
+      // FIXED: Strictly bind user_id to current session user id to comply with RLS policies
+      const currentAuthUserId = currentUser?.id || currentUserId || null;
+
       return {
         id: editingId || (crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}`),
-        user_id: currentUser?.id || null,
+        user_id: currentAuthUserId,
         date,
         merchant,
         note: merchant,
@@ -1663,22 +1663,35 @@
       };
     }
 
-    function saveEntry() {
+    async function saveEntry() {
       const item = buildEntryObject();
+      if (!item.user_id) {
+        alert('Error: You must be signed in to save entries to the cloud.');
+        return;
+      }
+
       const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
       if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
       else expenses.unshift(item);
       
       expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-      if (currentUser?.id) {
-        supabaseClient.from('expenses').upsert(item, { onConflict: 'id' }).then(() => {}).catch(console.warn);
+
+      try {
+        const { error } = await supabaseClient.from('expenses').upsert(item, { onConflict: 'id' });
+        if (error) {
+          console.error('Supabase upsert error:', error);
+          alert('Saved locally, but failed to sync to cloud: ' + error.message);
+        }
+      } catch (err) {
+        console.error('Network exception during upsert:', err);
       }
+
       closeEntryModal();
       renderAllViews();
     }
 
-    function deleteEntry() {
+    async function deleteEntry() {
       if (!editingId) return;
       const target = expenses.find(item => String(item.id) === String(editingId));
       
@@ -1691,7 +1704,9 @@
           
           localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
           if (currentUser?.id) {
-            supabaseClient.from('expenses').upsert(target, { onConflict: 'id' }).then(() => {}).catch(console.warn);
+            try {
+              await supabaseClient.from('expenses').upsert(target, { onConflict: 'id' });
+            } catch (e) { console.warn(e); }
           }
           closeEntryModal();
           renderAllViews();
@@ -1699,11 +1714,12 @@
         }
       }
 
-      // Complete deletion
       expenses = expenses.filter(item => String(item.id) !== String(editingId));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       if (currentUser?.id) {
-        supabaseClient.from('expenses').delete().eq('id', editingId).then(() => {}).catch(console.warn);
+        try {
+          await supabaseClient.from('expenses').delete().eq('id', editingId);
+        } catch (e) { console.warn(e); }
       }
       closeEntryModal();
       renderAllViews();
@@ -1744,7 +1760,6 @@
       }
     }
 
-    // Navigation Toggle Logic for 3 screens
     document.getElementById('nav-trans').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.add('active');
       document.getElementById('screen-stats').classList.remove('active');
@@ -1773,7 +1788,6 @@
       document.getElementById('nav-settings').classList.add('active');
     });
 
-    // Settings Dropdowns Listeners
     const currencySelect = document.getElementById('select-currency');
     if (currencySelect) {
       currencySelect.value = currentCurrency;
@@ -1818,7 +1832,6 @@
 
     document.getElementById('search-input').addEventListener('input', renderAllViews);
 
-    // Independent screen navigation handlers (Prev/Next buttons)
     document.querySelectorAll('.btn-prev-m').forEach(button => {
       button.addEventListener('click', () => {
         const screen = button.dataset.screen;
@@ -1940,11 +1953,12 @@
           const firstSheet = workbook.SheetNames[0];
           const json = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
           
+          const currentAuthUserId = currentUser?.id || currentUserId || null;
           const newEntries = [];
           json.forEach(row => {
             const entry = {
               id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
-              user_id: currentUser?.id || null,
+              user_id: currentAuthUserId,
               date: (row.date && new Date(row.date).toISOString().slice(0,10)) || new Date().toISOString().slice(0,10),
               merchant: row.merchant || row.note || '',
               note: row.merchant || row.note || '',
@@ -1960,7 +1974,7 @@
           expenses = [...newEntries, ...expenses];
           localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
-          if (currentUser?.id) {
+          if (currentAuthUserId) {
             const batchSize = 200;
             for (let i = 0; i < newEntries.length; i += batchSize) {
               const batch = newEntries.slice(i, i + batchSize);
