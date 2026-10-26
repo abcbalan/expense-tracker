@@ -4,7 +4,7 @@
 <!-- 20261026 v31 with Persistent Cloud Sync for Categories and Transactions -->
 <!-- 20261026 v32 with Fixed Cloud Sync & User ID Persistence -->
 <!-- 20261026 v33 with Fixed Weekly, Monthly, Annually Stats Display & Cloud Sync -->
-<!-- This works only missing weekly, monthlly and annually drop down list -->
+<!-- 20261026 v34 try with Restored Transaction Timeframe Dropdown & Fully Functional Filters -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -139,9 +139,19 @@
         <button class="btn-next-m" data-screen="trans">▶</button>
       </div>
 
+      <!-- TRANSACTION TIMEFRAME SELECTOR DROPDOWN (RESTORED TO LEFT OF 0.00 / SUMMARY BAR) -->
+      <div style="background: #ecfdf5; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb;">
+        <select id="select-trans-timeframe" style="background: #fff; border: 1px solid #d1d5db; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; color: #374151; cursor: pointer;">
+          <option value="weekly" data-i18n="weekly">Weekly</option>
+          <option value="monthly" selected data-i18n="monthly">Monthly</option>
+          <option value="annually" data-i18n="annually">Annually</option>
+        </select>
+        <span style="font-size: 11px; color: #6b7280;" id="trans-timeframe-range-txt"></span>
+      </div>
+
       <div class="summary-bar">
         <div class="summary-item-box"><div data-i18n="income">Income</div><div id="trans-income-txt">£ 0.00</div></div>
-        <div class="summary-item-box"><div data-i18n="expense">Expense</div><div class="total-exp-txt" id="trans-expense-txt">£ 0.00</div></div>
+        <div class="summary-item-box"><div data-i18n="expense">Expense</div><div class="total-exp-txt">£ 0.00</div></div>
         <div class="summary-item-box"><div data-i18n="total">Total</div><div class="net-total-txt">-£ 0.00</div></div>
       </div>
 
@@ -387,6 +397,7 @@
     let expensesRealtime = null;
     let activeExpenseType = 'expense';
     let currentStatsTimeframe = 'monthly';
+    let currentTransTimeframe = 'monthly'; // Added state for Transaction Timeframe Dropdown
 
     // Settings State
     let currentCurrency = localStorage.getItem('user_currency') || '£';
@@ -997,31 +1008,68 @@
       return `${currentCurrency} ${amount.toFixed(2)}`;
     }
 
-    function getMonthStart(date = currentTransDate) {
-      return new Date(date.getFullYear(), date.getMonth(), 1);
-    }
-
-    function getMonthExpenses() {
-      const start = getMonthStart();
-      const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+    function getFilteredExpenses() {
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
-      return expenses.filter(item => {
-        const d = new Date(item.date || item.created_at || new Date().toISOString());
-        const inRange = d >= start && d < end;
-        if (!inRange) return false;
-        if (!term) return true;
-        const merchant = (item.merchant || item.note || '').toLowerCase();
-        const category = (item.category || '').toLowerCase();
-        return merchant.includes(term) || category.includes(term);
-      });
+      if (currentTransTimeframe === 'annually') {
+        const year = currentTransDate.getFullYear();
+        return expenses.filter(item => {
+          const d = new Date(item.date || item.created_at || new Date().toISOString());
+          if (d.getFullYear() !== year) return false;
+          if (!term) return true;
+          const merchant = (item.merchant || item.note || '').toLowerCase();
+          const category = (item.category || '').toLowerCase();
+          return merchant.includes(term) || category.includes(term);
+        });
+      } else if (currentTransTimeframe === 'weekly') {
+        const curr = new Date(currentTransDate);
+        const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1)));
+        firstDayOfWeek.setHours(0,0,0,0);
+        const lastDayOfWeek = new Date(firstDayOfWeek);
+        lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 7);
+
+        return expenses.filter(item => {
+          const d = new Date(item.date || item.created_at || new Date().toISOString());
+          if (d < firstDayOfWeek || d >= lastDayOfWeek) return false;
+          if (!term) return true;
+          const merchant = (item.merchant || item.note || '').toLowerCase();
+          const category = (item.category || '').toLowerCase();
+          return merchant.includes(term) || category.includes(term);
+        });
+      } else {
+        const start = new Date(currentTransDate.getFullYear(), currentTransDate.getMonth(), 1);
+        const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+        return expenses.filter(item => {
+          const d = new Date(item.date || item.created_at || new Date().toISOString());
+          const inRange = d >= start && d < end;
+          if (!inRange) return false;
+          if (!term) return true;
+          const merchant = (item.merchant || item.note || '').toLowerCase();
+          const category = (item.category || '').toLowerCase();
+          return merchant.includes(term) || category.includes(term);
+        });
+      }
     }
 
     function updateHeaders() {
       const transHeader = document.getElementById('trans-month-txt');
       if (transHeader) {
-        transHeader.textContent = currentTransDate.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', year: 'numeric' });
+        if (currentTransTimeframe === 'annually') {
+          transHeader.textContent = currentTransDate.getFullYear().toString();
+        } else if (currentTransTimeframe === 'weekly') {
+          const curr = new Date(currentTransDate);
+          const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1)));
+          firstDayOfWeek.setHours(0,0,0,0);
+          const lastDayOfWeek = new Date(firstDayOfWeek);
+          lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6);
+          const opts = { day: 'numeric', month: 'short' };
+          const startStr = firstDayOfWeek.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', opts);
+          const endStr = lastDayOfWeek.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { ...opts, year: 'numeric' });
+          transHeader.textContent = `${startStr} - ${endStr}`;
+        } else {
+          transHeader.textContent = currentTransDate.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', year: 'numeric' });
+        }
       }
 
       const statsHeader = document.getElementById('stats-month-txt');
@@ -1134,10 +1182,10 @@
     }
 
     function renderSummaryBar() {
-      const items = getMonthExpenses();
+      const items = getFilteredExpenses();
       const totals = getMonthlyTotals(items);
       const incomeEl = document.getElementById('trans-income-txt');
-      const expenseEl = document.getElementById('trans-expense-txt');
+      const expenseEl = document.querySelector('.total-exp-txt');
       const totalEl = document.querySelector('.net-total-txt');
 
       if (incomeEl) incomeEl.textContent = formatMoney(totals.income);
@@ -1149,14 +1197,14 @@
       const container = document.getElementById('transaction-container');
       if (!container) return;
 
-      const monthItems = getMonthExpenses().sort((a, b) => new Date(b.date) - new Date(a.date));
-      if (!monthItems.length) {
+      const filteredItems = getFilteredExpenses().sort((a, b) => new Date(b.date) - new Date(a.date));
+      if (!filteredItems.length) {
         container.innerHTML = `<div style="padding:20px; color:#6b7280; text-align:center;">${t('noTransactions')}</div>`;
         return;
       }
 
       const grouped = {};
-      monthItems.forEach(item => {
+      filteredItems.forEach(item => {
         const d = item.date || new Date().toISOString().slice(0, 10);
         if (!grouped[d]) grouped[d] = [];
         grouped[d].push(item);
@@ -1193,7 +1241,7 @@
     function renderCalendar() {
       const container = document.getElementById('calendar-container');
       if (!container) return;
-      const month = getMonthStart();
+      const month = new Date(currentTransDate.getFullYear(), currentTransDate.getMonth(), 1);
       const year = month.getFullYear();
       const monthIndex = month.getMonth();
       const firstDay = new Date(year, monthIndex, 1);
@@ -1205,7 +1253,7 @@
       dayNames.forEach(name => cells.push(`<div class="cal-day-name">${name}</div>`));
       for (let i = 0; i < firstWeekday; i++) cells.push('<div class="cal-cell empty"></div>');
       const byDate = {};
-      getMonthExpenses().forEach(item => {
+      getFilteredExpenses().forEach(item => {
         const key = (item.date || '').slice(8, 10);
         if (key) {
           if (!byDate[key]) byDate[key] = 0;
@@ -1237,9 +1285,9 @@
     function renderMonthlySummary() {
       const container = document.getElementById('monthly-container');
       if (!container) return;
-      const monthItems = getMonthExpenses();
+      const filteredItems = getFilteredExpenses();
       const groups = {};
-      monthItems.forEach(item => {
+      filteredItems.forEach(item => {
         const cat = item.category || 'Other';
         groups[cat] = (groups[cat] || 0) + (Number(item.amount) || 0);
       });
@@ -1257,10 +1305,10 @@
     function renderSummaryPanel() {
       const container = document.getElementById('summary-container');
       if (!container) return;
-      const monthItems = getMonthExpenses();
-      const totals = getMonthlyTotals(monthItems);
+      const filteredItems = getFilteredExpenses();
+      const totals = getMonthlyTotals(filteredItems);
       const categoryGroups = {};
-      monthItems.forEach(item => {
+      filteredItems.forEach(item => {
         if ((item.type || 'expense') === 'income') return;
         const cat = item.category || 'Other';
         categoryGroups[cat] = (categoryGroups[cat] || 0) + (Number(item.amount) || 0);
@@ -1669,6 +1717,15 @@
       });
     }
 
+    // Event listener for Transaction Timeframe Dropdown selection change
+    const transTimeframeSelect = document.getElementById('select-trans-timeframe');
+    if (transTimeframeSelect) {
+      transTimeframeSelect.addEventListener('change', (e) => {
+        currentTransTimeframe = e.target.value;
+        renderAllViews();
+      });
+    }
+
     document.querySelectorAll('.stats-filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.stats-filter-btn').forEach(b => b.classList.remove('active'));
@@ -1697,7 +1754,13 @@
       button.addEventListener('click', () => {
         const screen = button.dataset.screen;
         if (screen === 'trans') {
-          currentTransDate = new Date(currentTransDate.getFullYear(), currentTransDate.getMonth() - 1, 1);
+          if (currentTransTimeframe === 'annually') {
+            currentTransDate = new Date(currentTransDate.getFullYear() - 1, currentTransDate.getMonth(), 1);
+          } else if (currentTransTimeframe === 'weekly') {
+            currentTransDate = new Date(currentTransDate.setDate(currentTransDate.getDate() - 7));
+          } else {
+            currentTransDate = new Date(currentTransDate.getFullYear(), currentTransDate.getMonth() - 1, 1);
+          }
           renderAllViews();
         } else {
           if (currentStatsTimeframe === 'annually') {
@@ -1717,7 +1780,13 @@
       button.addEventListener('click', () => {
         const screen = button.dataset.screen;
         if (screen === 'trans') {
-          currentTransDate = new Date(currentTransDate.getFullYear(), currentTransDate.getMonth() + 1, 1);
+          if (currentTransTimeframe === 'annually') {
+            currentTransDate = new Date(currentTransDate.getFullYear() + 1, currentTransDate.getMonth(), 1);
+          } else if (currentTransTimeframe === 'weekly') {
+            currentTransDate = new Date(currentTransDate.setDate(currentTransDate.getDate() + 7));
+          } else {
+            currentTransDate = new Date(currentTransDate.getFullYear(), currentTransDate.getMonth() + 1, 1);
+          }
           renderAllViews();
         } else {
           if (currentStatsTimeframe === 'annually') {
