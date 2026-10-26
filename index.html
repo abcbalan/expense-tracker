@@ -1,5 +1,5 @@
-<!-- 20261025 v19 work perfectly. Reformat entering Date,Category, Merchant and Amount -->
-<!-- This is the working version before trying to add language and currency -->
+<!-- 20261025 v20 with Settings, Multi-Currency & Multi-Language Support -->
+<!-- Testing version -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -72,7 +72,7 @@
     .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; cursor: pointer; z-index: 50; }
     @media (max-width: 480px) { .fab { right: 20px; } }
     .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; padding-bottom: env(safe-area-inset-bottom); background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; z-index: 50; }
-    .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 50%; }
+    .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 33.33%; }
     .nav-item.active { color: #10b981; font-weight: 600; }
     .nav-item span:first-child { font-size: 20px; }
     .modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: center; padding: 12px; }
@@ -115,6 +115,7 @@
       <div id="auth-error" class="auth-error"></div>
     </div>
 
+    <!-- TRANSACTION SCREEN -->
     <div id="screen-trans" class="main-screen active">
       <div class="top-bar">
         <h1>ExpenseTracker</h1>
@@ -134,16 +135,16 @@
       </div>
 
       <div class="summary-bar">
-        <div class="summary-item-box"><div>Income</div><div>£ 0.00</div></div>
-        <div class="summary-item-box"><div>Expense</div><div class="total-exp-txt">£ 0.00</div></div>
-        <div class="summary-item-box"><div>Total</div><div class="net-total-txt">-£ 0.00</div></div>
+        <div class="summary-item-box"><div data-i18n="income">Income</div><div>£ 0.00</div></div>
+        <div class="summary-item-box"><div data-i18n="expense">Expense</div><div class="total-exp-txt">£ 0.00</div></div>
+        <div class="summary-item-box"><div data-i18n="total">Total</div><div class="net-total-txt">-£ 0.00</div></div>
       </div>
 
       <div class="view-tabs">
-        <div class="view-tab active" data-tab="daily">Daily</div>
-        <div class="view-tab" data-tab="calendar">Calendar</div>
-        <div class="view-tab" data-tab="monthly">Monthly</div>
-        <div class="view-tab" data-tab="summary">Summary</div>
+        <div class="view-tab active" data-tab="daily" data-i18n="daily">Daily</div>
+        <div class="view-tab" data-tab="calendar" data-i18n="calendar">Calendar</div>
+        <div class="view-tab" data-tab="monthly" data-i18n="monthly">Monthly</div>
+        <div class="view-tab" data-tab="summary" data-i18n="summary">Summary</div>
       </div>
 
       <div id="search-box" style="display:none; padding:8px; background:#fff; border-bottom:1px solid #e5e7eb;">
@@ -158,9 +159,10 @@
       </div>
     </div>
 
+    <!-- STATS SCREEN -->
     <div id="screen-stats" class="main-screen">
       <div class="top-bar">
-        <h1>Statistics</h1>
+        <h1 data-i18n="statistics">Statistics</h1>
         <div class="top-actions">
           <button class="icon-btn" id="btn-stats-sync" title="Sync Cloud">🔄</button>
         </div>
@@ -171,11 +173,10 @@
         <button class="btn-next-m">▶</button>
       </div>
       
-      <!-- Weekly / Monthly / Annually Toggle Selector -->
       <div class="stats-filter-bar">
-        <button class="stats-filter-btn" data-timeframe="weekly">Weekly</button>
-        <button class="stats-filter-btn active" data-timeframe="monthly">Monthly</button>
-        <button class="stats-filter-btn" data-timeframe="annually">Annually</button>
+        <button class="stats-filter-btn" data-timeframe="weekly" data-i18n="weekly">Weekly</button>
+        <button class="stats-filter-btn active" data-timeframe="monthly" data-i18n="monthly">Monthly</button>
+        <button class="stats-filter-btn" data-timeframe="annually" data-i18n="annually">Annually</button>
       </div>
 
       <div class="content-area">
@@ -186,35 +187,69 @@
       </div>
     </div>
 
-    <button class="fab" id="add-fab">+</button>
+    <!-- SETTINGS SCREEN -->
+    <div id="screen-settings" class="main-screen">
+      <div class="top-bar">
+        <h1 data-i18n="settingsTitle">Settings</h1>
+      </div>
+      <div class="content-area" style="padding: 16px;">
+        <div style="background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="currencyPref">Currency Preference</h3>
+          <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="currencyDesc">Choose your currency symbol.</p>
+          <select id="select-currency" class="form-control" style="cursor: pointer;">
+            <option value="£">£ (GBP - British Pound)</option>
+            <option value="$">$ (USD - US Dollar)</option>
+            <option value="€">€ (EUR - Euro)</option>
+            <option value="¥">¥ (JPY/CNY - Yen/Yuan)</option>
+            <option value="A$">A$ (AUD - Australian Dollar)</option>
+            <option value="C$">C$ (CAD - Canadian Dollar)</option>
+          </select>
+        </div>
 
-    <div class="bottom-nav">
-      <button class="nav-item active" id="nav-trans"><span>📝</span><span>Transaction</span></button>
-      <button class="nav-item" id="nav-stats"><span>📊</span><span>Stats</span></button>
+        <div style="background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="langPref">Language Preference</h3>
+          <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="langDesc">Choose your interface language.</p>
+          <select id="select-language" class="form-control" style="cursor: pointer;">
+            <option value="en">English</option>
+            <option value="zh">中文 (Chinese)</option>
+            <option value="es">Español (Spanish)</option>
+          </select>
+        </div>
+      </div>
     </div>
 
+    <button class="fab" id="add-fab">+</button>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+      <button class="nav-item active" id="nav-trans"><span>📝</span><span data-i18n="navTrans">Transaction</span></button>
+      <button class="nav-item" id="nav-stats"><span>📊</span><span data-i18n="navStats">Stats</span></button>
+      <button class="nav-item" id="nav-settings"><span>⚙️</span><span data-i18n="navSettings">Settings</span></button>
+    </div>
+
+    <!-- ENTRY MODAL -->
     <div class="modal" id="entry-modal">
       <div class="modal-content">
         <div class="modal-header">
-          <button class="icon-btn" style="color:#333;font-size:16px;" id="close-modal-top">Cancel</button>
-          <span id="modal-title">Expense or Income</span>
-          <button class="icon-btn" style="color:#ef4444;font-size:14px;display:none;" id="delete-btn">Delete</button>
+          <button class="icon-btn" style="color:#333;font-size:16px;font-weight:600;" id="close-modal-top" data-i18n="cancel">Cancel</button>
+          <span id="modal-title" data-i18n="expenseOrIncome">Expense or Income</span>
+          <button class="icon-btn" style="color:#ef4444;font-size:14px;display:none;" id="delete-btn" data-i18n="delete">Delete</button>
         </div>
 
         <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
-          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Date</label>
+          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="date">Date</label>
           <div style="display: flex; align-items: center; width: 100%;">
             <input type="date" id="input-date" style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 4px 0; -webkit-appearance: none; text-align: left; text-align-last: left;">
           </div>
         </div>
 
         <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
-          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Category</label>
+          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="category">Category</label>
           <input type="text" id="input-category" readonly style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; cursor: pointer; padding: 4px 0;" value="Food">
         </div>
 
         <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
-          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Merchant / Note</label>
+          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="merchantNote">Merchant / Note</label>
           <div style="display:flex; gap:6px; align-items: center;">
             <input type="text" id="input-merchant" list="merchant-list" placeholder="e.g. Tesco, Starbucks" style="flex:1; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 4px 0;" autocomplete="off">
             <button type="button" id="btn-clear-merchant" style="width:auto; background:none; border:none; cursor:pointer; font-size: 16px;" title="Hide suggestions">🚫</button>
@@ -223,8 +258,8 @@
         </div>
 
         <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;">
-          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Amount (£)</label>
-          <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 20px; font-weight: 600; text-align: left; color: #111827; outline: none; padding: 4px 0;">
+          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="amountLabel">Amount</label>
+          <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 14px; text-align: left; color: #111827; outline: none; padding: 4px 0;">
         </div>       
 
         <div class="keypad">
@@ -247,32 +282,33 @@
       </div>
     </div>
 
-<div class="modal" id="category-modal" style="z-index: 150;">
+    <!-- CATEGORY MODAL -->
+    <div class="modal" id="category-modal" style="z-index: 150;">
       <div class="modal-content" style="height:60vh;">
         <div class="modal-header">
-          <span>Select Category</span>
-          <button class="icon-btn" style="color:#333;font-size:14px;" id="close-cat-modal">Close</button>
+          <span data-i18n="selectCategory">Select Category</span>
+          <button class="icon-btn" style="color:#333;font-size:14px;" id="close-cat-modal" data-i18n="close">Close</button>
         </div>
         <div class="cat-grid" id="cat-grid-container"></div>
       </div>
     </div>
 
-    <!-- NEW CHOICE MODAL INSIDE APP-CONTAINER -->
+    <!-- CATEGORY TYPE MODAL -->
     <div class="modal" id="category-type-modal" style="z-index: 200;">
       <div class="modal-content" style="max-width: 320px; text-align: center;">
         <div class="modal-header">
-          <span>Select Category Type</span>
-          <button class="icon-btn" style="color:#333;font-size:14px;" id="close-type-modal">Cancel</button>
+          <span data-i18n="selectCategoryType">Select Category Type</span>
+          <button class="icon-btn" style="color:#333;font-size:14px;" id="close-type-modal" data-i18n="cancel">Cancel</button>
         </div>
         <p id="type-modal-title" style="margin: 10px 0 20px 0; font-size: 14px; color: #4b5563; font-weight: 500;"></p>
         <div style="display: flex; gap: 10px;">
-          <button type="button" id="btn-type-expense" class="auth-btn" style="background: #ef4444; flex: 1;">Expense (-)</button>
-          <button type="button" id="btn-type-income" class="auth-btn" style="background: #10b981; flex: 1;">Income (+)</button>
+          <button type="button" id="btn-type-expense" class="auth-btn" style="background: #ef4444; flex: 1;" data-i18n="expenseNeg">Expense (-)</button>
+          <button type="button" id="btn-type-income" class="auth-btn" style="background: #10b981; flex: 1;" data-i18n="incomePos">Income (+)</button>
         </div>
       </div>
     </div>
 
-  </div> <!-- NOW this single </div> closes your .app-container -->
+  </div>
   
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
@@ -289,11 +325,69 @@
     let currentDate = new Date();
     let expensesRealtime = null;
     let activeExpenseType = 'expense';
-    let currentStatsTimeframe = 'monthly'; // 'weekly', 'monthly', 'annually'
+    let currentStatsTimeframe = 'monthly';
+
+    // Settings State
+    let currentCurrency = localStorage.getItem('user_currency') || '£';
+    let currentLang = localStorage.getItem('user_lang') || 'en';
+
+    // Translations Dictionary
+    const translations = {
+      en: {
+        income: 'Income', expense: 'Expense', total: 'Total',
+        daily: 'Daily', calendar: 'Calendar', monthly: 'Monthly', summary: 'Summary',
+        statistics: 'Statistics', weekly: 'Weekly', annually: 'Annually',
+        settingsTitle: 'Settings', currencyPref: 'Currency Preference', currencyDesc: 'Choose your currency symbol.',
+        langPref: 'Language Preference', langDesc: 'Choose your interface language.',
+        navTrans: 'Transaction', navStats: 'Stats', navSettings: 'Settings',
+        cancel: 'Cancel', expenseOrIncome: 'Expense or Income', delete: 'Delete',
+        date: 'Date', category: 'Category', merchantNote: 'Merchant / Note', amountLabel: 'Amount',
+        selectCategory: 'Select Category', close: 'Close', selectCategoryType: 'Select Category Type',
+        expenseNeg: 'Expense (-)', incomePos: 'Income (+)', noTransactions: 'No transactions yet',
+        noStats: 'No statistics for this timeframe', noExpenseData: 'No expense data'
+      },
+      zh: {
+        income: '收入', expense: '支出', total: '结余',
+        daily: '日明细', calendar: '日历', monthly: '月度', summary: '汇总',
+        statistics: '统计', weekly: '每周', annually: '每年',
+        settingsTitle: '设置', currencyPref: '货币偏好', currencyDesc: '选择您使用的货币符号。',
+        langPref: '语言偏好', langDesc: '选择您的界面显示语言。',
+        navTrans: '明细', navStats: '统计', navSettings: '设置',
+        cancel: '取消', expenseOrIncome: '记账', delete: '删除',
+        date: '日期', category: '类别', merchantNote: '商家 / 备注', amountLabel: '金额',
+        selectCategory: '选择类别', close: '关闭', selectCategoryType: '选择类别类型',
+        expenseNeg: '支出 (-)', incomePos: '收入 (+)', noTransactions: '暂无交易记录',
+        noStats: '该时间段无统计数据', noExpenseData: '无支出数据'
+      },
+      es: {
+        income: 'Ingresos', expense: 'Gastos', total: 'Total',
+        daily: 'Diario', calendar: 'Calendario', monthly: 'Mensual', summary: 'Resumen',
+        statistics: 'Estadísticas', weekly: 'Semanal', annually: 'Anual',
+        settingsTitle: 'Ajustes', currencyPref: 'Preferencia de Moneda', currencyDesc: 'Elige tu símbolo de moneda.',
+        langPref: 'Preferencia de Idioma', langDesc: 'Elige el idioma de tu interfaz.',
+        navTrans: 'Transacción', navStats: 'Estadísticas', navSettings: 'Ajustes',
+        cancel: 'Cancelar', expenseOrIncome: 'Gasto o Ingreso', delete: 'Eliminar',
+        date: 'Fecha', category: 'Categoría', merchantNote: 'Comercio / Nota', amountLabel: 'Importe',
+        selectCategory: 'Seleccionar Categoría', close: 'Cerrar', selectCategoryType: 'Seleccionar Tipo de Categoría',
+        expenseNeg: 'Gasto (-)', incomePos: 'Ingreso (+)', noTransactions: 'Sin transacciones aún',
+        noStats: 'Sin estadísticas para este periodo', noExpenseData: 'Sin datos de gastos'
+      }
+    };
+
+    function t(key) {
+      return (translations[currentLang] && translations[currentLang][key]) || translations['en'][key] || key;
+    }
+
+    function applyTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const k = el.dataset.i18n;
+        el.textContent = t(k);
+      });
+    }
 
     const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Salary','Other'];
     let customCategories = JSON.parse(localStorage.getItem('custom_categories') || '[]');
-    let customIncomeCategories = JSON.parse(localStorage.getItem('custom_income_categories') || '[]'); // <-- ADD THIS LINE HERE
+    let customIncomeCategories = JSON.parse(localStorage.getItem('custom_income_categories') || '[]');
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
 
     const categoryColors = {
@@ -540,7 +634,6 @@
         expenses = [];
       }
 
-      // Load user-specific custom categories
       try {
         customCategories = JSON.parse(localStorage.getItem(getCustomCategoriesKey()) || '[]');
       } catch (e) { customCategories = []; }
@@ -555,7 +648,7 @@
 
     function formatMoney(value) {
       const amount = Number(value) || 0;
-      return `£ ${amount.toFixed(2)}`;
+      return `${currentCurrency} ${amount.toFixed(2)}`;
     }
 
     function getMonthStart(date = currentDate) {
@@ -585,7 +678,7 @@
       if (currentStatsTimeframe === 'annually') {
         label = currentDate.getFullYear().toString();
       } else {
-        label = currentDate.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+        label = currentDate.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', year: 'numeric' });
       }
       monthTxt.forEach(el => el.textContent = label);
     }
@@ -601,7 +694,7 @@
       datalist.innerHTML = merchants.map(name => `<option value="${name}"></option>`).join('');
     }
 
-async function syncWithSupabase() {
+    async function syncWithSupabase() {
       if (!currentUser || !currentUser.id) {
         renderAllViews();
         return;
@@ -613,7 +706,6 @@ async function syncWithSupabase() {
         const step = 1000;
         let fetchMore = true;
 
-        // Paginate to fetch all records beyond Supabase's 1000-row default limit
         while (fetchMore) {
           const { data, error } = await supabaseClient
             .from('expenses')
@@ -649,6 +741,7 @@ async function syncWithSupabase() {
 
       renderAllViews();
     }
+
     function getMonthlyTotals(items) {
       let income = 0;
       let expense = 0;
@@ -678,7 +771,7 @@ async function syncWithSupabase() {
 
       const monthItems = getMonthExpenses().sort((a, b) => new Date(b.date) - new Date(a.date));
       if (!monthItems.length) {
-        container.innerHTML = '<div style="padding:20px; color:#6b7280; text-align:center;">No transactions yet</div>';
+        container.innerHTML = `<div style="padding:20px; color:#6b7280; text-align:center;">${t('noTransactions')}</div>`;
         return;
       }
 
@@ -696,7 +789,7 @@ async function syncWithSupabase() {
         return `
           <div class="day-group">
             <div class="day-header">
-              <span>${new Date(date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+              <span>${new Date(date + 'T00:00:00').toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
               <span>${formatMoney(total)}</span>
             </div>
             ${entries.map(item => `
@@ -802,10 +895,10 @@ async function syncWithSupabase() {
       `).join('');
 
       container.innerHTML = `
-        <div class="summary-item"><div class="summary-label"><span>Income</span><span>${formatMoney(totals.income)}</span></div></div>
-        <div class="summary-item"><div class="summary-label"><span>Expenses</span><span>${formatMoney(totals.expense)}</span></div></div>
-        <div class="summary-item"><div class="summary-label"><span>Net</span><span>${totals.total >= 0 ? '' : '-'}${formatMoney(Math.abs(totals.total))}</span></div></div>
-        ${rows || '<div class="summary-item"><div class="summary-label"><span>No expense data</span></div></div>'}
+        <div class="summary-item"><div class="summary-label"><span>${t('income')}</span><span>${formatMoney(totals.income)}</span></div></div>
+        <div class="summary-item"><div class="summary-label"><span>${t('expense')}</span><span>${formatMoney(totals.expense)}</span></div></div>
+        <div class="summary-item"><div class="summary-label"><span>${t('total')}</span><span>${totals.total >= 0 ? '' : '-'}${formatMoney(Math.abs(totals.total))}</span></div></div>
+        ${rows || `<div class="summary-item"><div class="summary-label"><span>${t('noExpenseData')}</span></div></div>`}
       `;
     }
 
@@ -817,9 +910,8 @@ async function syncWithSupabase() {
           return d.getFullYear() === year && (item.type || 'expense') !== 'income';
         });
       } else if (currentStatsTimeframe === 'weekly') {
-        // Current week based on currentDate
         const curr = new Date(currentDate);
-        const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1))); // Monday
+        const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + (curr.getDay() === 0 ? -6 : 1)));
         firstDayOfWeek.setHours(0,0,0,0);
         const lastDayOfWeek = new Date(firstDayOfWeek);
         lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 7);
@@ -829,7 +921,6 @@ async function syncWithSupabase() {
           return d >= firstDayOfWeek && d < lastDayOfWeek && (item.type || 'expense') !== 'income';
         });
       } else {
-        // Monthly
         return getMonthExpenses().filter(item => (item.type || 'expense') !== 'income');
       }
     }
@@ -848,7 +939,7 @@ async function syncWithSupabase() {
 
       const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
       if (!entries.length) {
-        container.innerHTML = '<div style="padding:20px; color:#6b7280; text-align:center;">No statistics for this timeframe</div>';
+        container.innerHTML = `<div style="padding:20px; color:#6b7280; text-align:center;">${t('noStats')}</div>`;
         svg.innerHTML = '';
         return;
       }
@@ -893,6 +984,7 @@ async function syncWithSupabase() {
     }
     
     function renderAllViews() {
+      applyTranslations();
       updateMonthHeader();
       renderSummaryBar();
       renderTransactions();
@@ -916,7 +1008,7 @@ async function syncWithSupabase() {
         const entry = expenses.find(item => String(item.id) === String(idOrNull));
         if (!entry) return;
         editingId = entry.id;
-        modalTitle.textContent = 'Edit Transaction';
+        modalTitle.textContent = t('expenseOrIncome');
         deleteBtn.style.display = 'inline';
         dateInput.value = entry.date || new Date().toISOString().slice(0, 10);
         categoryInput.value = entry.category || 'Food';
@@ -925,7 +1017,7 @@ async function syncWithSupabase() {
         activeExpenseType = entry.type === 'income' ? 'income' : 'expense';
       } else {
         editingId = null;
-        modalTitle.textContent = 'Expense / Income';
+        modalTitle.textContent = t('expenseOrIncome');
         deleteBtn.style.display = 'none';
         dateInput.value = new Date().toISOString().slice(0, 10);
         categoryInput.value = activeExpenseType === 'income' ? 'Salary' : 'Food';
@@ -942,7 +1034,7 @@ async function syncWithSupabase() {
       editingId = null;
     }
 
-function openCategoryModal() {
+    function openCategoryModal() {
       const container = document.getElementById('cat-grid-container');
       if (!container) return;
       const categories = [
@@ -975,31 +1067,25 @@ function openCategoryModal() {
                 return;
               }
 
-              // Close category list modal first
               document.getElementById('category-modal').style.display = 'none';
-
-              // Open custom type selection modal
               const typeModal = document.getElementById('category-type-modal');
               document.getElementById('type-modal-title').textContent = `Is "${catName}" an Expense or Income?`;
               typeModal.style.display = 'flex';
 
-              // Handle Expense button click
               document.getElementById('btn-type-expense').onclick = () => {
                 customCategories.push(catName);
-                localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories)); // Updated key
+                localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories));
                 document.getElementById('input-category').value = catName;
                 typeModal.style.display = 'none';
               };
 
-              // Handle Income button click
               document.getElementById('btn-type-income').onclick = () => {
                 customIncomeCategories.push(catName);
-                localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories)); // Updated key
+                localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories));
                 document.getElementById('input-category').value = catName;
                 typeModal.style.display = 'none';
               };
 
-              // Handle Cancel button click
               document.getElementById('close-type-modal').onclick = () => {
                 typeModal.style.display = 'none';
               };
@@ -1008,17 +1094,15 @@ function openCategoryModal() {
           } else if (name === '🗑 Delete Category') {
             const deleteCategory = prompt('Enter category name to delete:');
             if (deleteCategory && deleteCategory.trim()) {
-              const catToDelete = deleteCategory.trim()  ;
+              const catToDelete = deleteCategory.trim();
               expenses.forEach(item => {
                 if (item.category === catToDelete) { item.category = 'Other'; }
               });
-              // === PLACE IT RIGHT HERE ===
               customCategories = customCategories.filter(c => c !== catToDelete);
               customIncomeCategories = customIncomeCategories.filter(c => c !== catToDelete);
 
               localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories)); 
               localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories)); 
-              // ===========================
               localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
               alert(`"${catToDelete}" deleted and existing records changed to Other.`);
               openCategoryModal();
@@ -1042,7 +1126,6 @@ function openCategoryModal() {
       const amount = Number(document.getElementById('input-amount').value || 0);
       const date = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
       
-      // Check if category is Salary or part of your custom income categories list
       const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
       const type = isIncomeCategory ? 'income' : activeExpenseType;
 
@@ -1099,7 +1182,7 @@ function openCategoryModal() {
 
       if (val === '+' || val === '-') {
         activeExpenseType = val === '+' ? 'income' : 'expense';
-        document.getElementById('modal-title').textContent = 'Expense / Income';
+        document.getElementById('modal-title').textContent = t('expenseOrIncome');
         return;
       }
 
@@ -1119,22 +1202,56 @@ function openCategoryModal() {
       }
     }
 
+    // Navigation Toggle Logic for 3 screens
     document.getElementById('nav-trans').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.add('active');
       document.getElementById('screen-stats').classList.remove('active');
+      document.getElementById('screen-settings').classList.remove('active');
       document.getElementById('nav-trans').classList.add('active');
       document.getElementById('nav-stats').classList.remove('active');
+      document.getElementById('nav-settings').classList.remove('active');
     });
 
     document.getElementById('nav-stats').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.remove('active');
       document.getElementById('screen-stats').classList.add('active');
+      document.getElementById('screen-settings').classList.remove('active');
       document.getElementById('nav-trans').classList.remove('active');
       document.getElementById('nav-stats').classList.add('active');
+      document.getElementById('nav-settings').classList.remove('active');
       renderStats();
     });
 
-    // Timeframe button click listeners
+    document.getElementById('nav-settings').addEventListener('click', () => {
+      document.getElementById('screen-trans').classList.remove('active');
+      document.getElementById('screen-stats').classList.remove('active');
+      document.getElementById('screen-settings').classList.add('active');
+      document.getElementById('nav-trans').classList.remove('active');
+      document.getElementById('nav-stats').classList.remove('active');
+      document.getElementById('nav-settings').classList.add('active');
+    });
+
+    // Settings Dropdowns Listeners
+    const currencySelect = document.getElementById('select-currency');
+    if (currencySelect) {
+      currencySelect.value = currentCurrency;
+      currencySelect.addEventListener('change', (e) => {
+        currentCurrency = e.target.value;
+        localStorage.setItem('user_currency', currentCurrency);
+        renderAllViews();
+      });
+    }
+
+    const languageSelect = document.getElementById('select-language');
+    if (languageSelect) {
+      languageSelect.value = currentLang;
+      languageSelect.addEventListener('change', (e) => {
+        currentLang = e.target.value;
+        localStorage.setItem('user_lang', currentLang);
+        renderAllViews();
+      });
+    }
+
     document.querySelectorAll('.stats-filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.stats-filter-btn').forEach(b => b.classList.remove('active'));
