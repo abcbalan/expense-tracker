@@ -1,5 +1,5 @@
-<!-- 20261025 v20 with Settings, Multi-Currency & Multi-Language Support -->
-<!-- Work Perfectly -->
+<!-- 20261025 v21 with Settings, Multi-Currency & Multi-Language Support -->
+<!-- Trying to add more language and currency -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -197,12 +197,23 @@
           <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="currencyPref">Currency Preference</h3>
           <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="currencyDesc">Choose your currency symbol.</p>
           <select id="select-currency" class="form-control" style="cursor: pointer;">
-            <option value="£">£ (GBP - British Pound)</option>
-            <option value="$">$ (USD - US Dollar)</option>
-            <option value="€">€ (EUR - Euro)</option>
-            <option value="¥">¥ (JPY/CNY - Yen/Yuan)</option>
             <option value="A$">A$ (AUD - Australian Dollar)</option>
             <option value="C$">C$ (CAD - Canadian Dollar)</option>
+            <option value="Kč">Kč (CZK - Czech Koruna)</option>
+            <option value="€">€ (EUR - Euro)</option>
+            <option value="£">£ (GBP - British Pound)</option>
+            <option value="HK$">HK$ (HKD - Hong Kong Dollar)</option>
+            <option value="Ft">Ft (HUF - Hungarian Forint)</option>
+            <option value="¥">¥ (JPY / CNY - Yen / Yuan)</option>
+            <option value="₩">₩ (KRW - South Korean Won)</option>
+            <option value="₱">₱ (PHP - Philippine Peso)</option>
+            <option value="zł">zł (PLN - Polish Złoty)</option>
+            <option value="S$">S$ (SGD - Singapore Dollar)</option>
+            <option value="kr">kr (SEK - Swedish Krona)</option>
+            <option value="฿">฿ (THB - Thai Baht)</option>
+            <option value="NT$">NT$ (TWD - New Taiwan Dollar)</option>
+            <option value="$">$ (USD / MXN - Dollar)</option>
+            <option value="₫">₫ (VND - Vietnamese Đồng)</option>
           </select>
         </div>
 
@@ -210,9 +221,20 @@
           <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="langPref">Language Preference</h3>
           <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="langDesc">Choose your interface language.</p>
           <select id="select-language" class="form-control" style="cursor: pointer;">
+            <option value="cs">Čeština (Czech)</option>
+            <option value="de">Deutsch (German)</option>
             <option value="en">English</option>
-            <option value="zh">中文 (Chinese)</option>
             <option value="es">Español (Spanish)</option>
+            <option value="fr">Français (French)</option>
+            <option value="hu">Magyar (Hungarian)</option>
+            <option value="ja">日本語 (Japanese)</option>
+            <option value="ko">한국어 (Korean)</option>
+            <option value="pl">Polski (Polish)</option>
+            <option value="sv">Svenska (Swedish)</option>
+            <option value="th">ไทย (Thai)</option>
+            <option value="vi">Tiếng Việt (Vietnamese)</option>
+            <option value="zh-CN">简体中文 (Simplified Chinese)</option>
+            <option value="zh-TW">繁體中文 (Traditional Chinese)</option>
           </select>
         </div>
       </div>
@@ -333,6 +355,32 @@
 
     // Translations Dictionary
     const translations = {
+    cs: {
+        income: 'Příjem', expense: 'Výdaj', total: 'Celkem',
+        daily: 'Denně', calendar: 'Kalendář', monthly: 'Měsíčně', summary: 'Shrnutí',
+        statistics: 'Statistiky', weekly: 'Týdně', annually: 'Ročně',
+        settingsTitle: 'Nastavení', currencyPref: 'Preference měny', currencyDesc: 'Vyberte symbol měny.',
+        langPref: 'Preference jazyka', langDesc: 'Vyberte jazyk rozhraní.',
+        navTrans: 'Transakce', navStats: 'Statistiky', navSettings: 'Nastavení',
+        cancel: 'Zrušit', expenseOrIncome: 'Výdaj nebo Příjem', delete: 'Smazat',
+        date: 'Datum', category: 'Kategorie', merchantNote: 'Obchodník / Poznámka', amountLabel: 'Částka',
+        selectCategory: 'Vybrat kategorii', close: 'Zavřít', selectCategoryType: 'Vybrat typ kategorie',
+        expenseNeg: 'Výdaj (-)', incomePos: 'Příjem (+)', noTransactions: 'Zatím žádné transakce',
+        noStats: 'Žádné statistiky pro toto období', noExpenseData: 'Žádná data o výdajích'
+      },
+      de: {
+        income: 'Einnahmen', expense: 'Ausgaben', total: 'Gesamt',
+        daily: 'Täglich', calendar: 'Kalender', monthly: 'Monatlich', summary: 'Zusammenfassung',
+        statistics: 'Statistiken', weekly: 'Wöchentlich', annually: 'Jährlich',
+        settingsTitle: 'Einstellungen', currencyPref: 'Währungseinstellung', currencyDesc: 'Wählen Sie Ihr Währungssymbol.',
+        langPref: 'Spracheinstellung', langDesc: 'Wählen Sie Ihre Displaysprache.',
+        navTrans: 'Transaktion', navStats: 'Statistiken', navSettings: 'Einstellungen',
+        cancel: 'Abbrechen', expenseOrIncome: 'Ausgabe oder Einnahme', delete: 'Löschen',
+        date: 'Datum', category: 'Kategorie', merchantNote: 'Händler / Notiz', amountLabel: 'Betrag',
+        selectCategory: 'Kategorie auswählen', close: 'Schließen', selectCategoryType: 'Kategorie-Typ auswählen',
+        expenseNeg: 'Ausgabe (-)', incomePos: 'Einnahme (+)', noTransactions: 'Noch keine Transaktionen',
+        noStats: 'Keine Statistiken für diesen Zeitraum', noExpenseData: 'Keine Ausgabendaten'
+      },
       en: {
         income: 'Income', expense: 'Expense', total: 'Total',
         daily: 'Daily', calendar: 'Calendar', monthly: 'Monthly', summary: 'Summary',
@@ -346,19 +394,6 @@
         expenseNeg: 'Expense (-)', incomePos: 'Income (+)', noTransactions: 'No transactions yet',
         noStats: 'No statistics for this timeframe', noExpenseData: 'No expense data'
       },
-      zh: {
-        income: '收入', expense: '支出', total: '结余',
-        daily: '日明细', calendar: '日历', monthly: '月度', summary: '汇总',
-        statistics: '统计', weekly: '每周', annually: '每年',
-        settingsTitle: '设置', currencyPref: '货币偏好', currencyDesc: '选择您使用的货币符号。',
-        langPref: '语言偏好', langDesc: '选择您的界面显示语言。',
-        navTrans: '明细', navStats: '统计', navSettings: '设置',
-        cancel: '取消', expenseOrIncome: '记账', delete: '删除',
-        date: '日期', category: '类别', merchantNote: '商家 / 备注', amountLabel: '金额',
-        selectCategory: '选择类别', close: '关闭', selectCategoryType: '选择类别类型',
-        expenseNeg: '支出 (-)', incomePos: '收入 (+)', noTransactions: '暂无交易记录',
-        noStats: '该时间段无统计数据', noExpenseData: '无支出数据'
-      },
       es: {
         income: 'Ingresos', expense: 'Gastos', total: 'Total',
         daily: 'Diario', calendar: 'Calendario', monthly: 'Mensual', summary: 'Resumen',
@@ -371,6 +406,136 @@
         selectCategory: 'Seleccionar Categoría', close: 'Cerrar', selectCategoryType: 'Seleccionar Tipo de Categoría',
         expenseNeg: 'Gasto (-)', incomePos: 'Ingreso (+)', noTransactions: 'Sin transacciones aún',
         noStats: 'Sin estadísticas para este periodo', noExpenseData: 'Sin datos de gastos'
+      },
+      fr: {
+        income: 'Revenu', expense: 'Dépense', total: 'Total',
+        daily: 'Quotidien', calendar: 'Calendrier', monthly: 'Mensuel', summary: 'Résumé',
+        statistics: 'Statistiques', weekly: 'Hebdomadaire', annually: 'Annuel',
+        settingsTitle: 'Paramètres', currencyPref: 'Préférence de devise', currencyDesc: 'Choisissez votre symbole de devise.',
+        langPref: 'Préférence de langue', langDesc: 'Choisissez la langue de votre interface.',
+        navTrans: 'Transaction', navStats: 'Statistiques', navSettings: 'Paramètres',
+        cancel: 'Annuler', expenseOrIncome: 'Dépense ou Revenu', delete: 'Supprimer',
+        date: 'Date', category: 'Catégorie', merchantNote: 'Marchand / Note', amountLabel: 'Montant',
+        selectCategory: 'Sélectionner la catégorie', close: 'Fermer', selectCategoryType: 'Sélectionner le type',
+        expenseNeg: 'Dépense (-)', incomePos: 'Revenu (+)', noTransactions: 'Aucune transaction',
+        noStats: 'Aucune statistique pour cette période', noExpenseData: 'Aucune donnée de dépense'
+      },
+      hu: {
+        income: 'Bevétel', expense: 'Költség', total: 'Összesen',
+        daily: 'Napi', calendar: 'Naptár', monthly: 'Havi', summary: 'Összegzés',
+        statistics: 'Statisztika', weekly: 'Heti', annually: 'Éves',
+        settingsTitle: 'Beállítások', currencyPref: 'Pénznem beállítása', currencyDesc: 'Válassza ki a pénznem szimbólumát.',
+        langPref: 'Nyelvi beállítás', langDesc: 'Válassza ki a felület nyelvét.',
+        navTrans: 'Tranzakció', navStats: 'Statisztika', navSettings: 'Beállítások',
+        cancel: 'Mégse', expenseOrIncome: 'Költség vagy Bevétel', delete: 'Törlés',
+        date: 'Dátum', category: 'Kategória', merchantNote: 'Kereskedő / Megjegyzés', amountLabel: 'Összeg',
+        selectCategory: 'Kategória kiválasztása', close: 'Bezárás', selectCategoryType: 'Kategória típus',
+        expenseNeg: 'Költség (-)', incomePos: 'Bevétel (+)', noTransactions: 'Még nincsenek tranzakciók',
+        noStats: 'Nincs statisztika erre az időszakra', noExpenseData: 'Nincs kiadási adat'
+      },
+      ja: {
+        income: '収入', expense: '支出', total: '収支合計',
+        daily: '日別', calendar: 'カレンダー', monthly: '月別', summary: '概要',
+        statistics: '統計', weekly: '週間', annually: '年間',
+        settingsTitle: '設定', currencyPref: '通貨の設定', currencyDesc: '表示する通貨記号を選択します。',
+        langPref: '言語の設定', langDesc: 'アプリの表示言語を選択します。',
+        navTrans: '取引履歴', navStats: '統計', navSettings: '設定',
+        cancel: 'キャンセル', expenseOrIncome: '収支の登録', delete: '削除',
+        date: '日付', category: 'カテゴリー', merchantNote: '店舗 / メモ', amountLabel: '金額',
+        selectCategory: 'カテゴリーを選択', close: '閉じる', selectCategoryType: 'タイプを選択',
+        expenseNeg: '支出 (-)', incomePos: '収入 (+)', noTransactions: 'まだ取引がありません',
+        noStats: 'この期間のデータはありません', noExpenseData: '支出データがありません'
+      },
+      ko: {
+        income: '수입', expense: '지출', total: '잔액',
+        daily: '일별', calendar: '달력', monthly: '월별', summary: '요약',
+        statistics: '통계', weekly: '주간', annually: '연간',
+        settingsTitle: '설정', currencyPref: '통화 설정', currencyDesc: '사용할 통화 기호를 선택하세요.',
+        langPref: '언어 설정', langDesc: '표시 언어를 선택하세요.',
+        navTrans: '내역', navStats: '통계', navSettings: '설정',
+        cancel: '취소', expenseOrIncome: '수입 / 지출 입력', delete: '삭제',
+        date: '날짜', category: '카테고리', merchantNote: '사용처 / 메모', amountLabel: '금액',
+        selectCategory: '카테고리 선택', close: '닫기', selectCategoryType: '유형 선택',
+        expenseNeg: '지출 (-)', incomePos: '수입 (+)', noTransactions: '내역이 없습니다',
+        noStats: '해당 기간의 통계가 없습니다', noExpenseData: '지출 내역이 없습니다'
+      },
+      pl: {
+        income: 'Przychód', expense: 'Wydatek', total: 'Suma',
+        daily: 'Dziennie', calendar: 'Kalendarz', monthly: 'Miesięcznie', summary: 'Podsumowanie',
+        statistics: 'Statystyki', weekly: 'Tygodniowo', annually: 'Rocznie',
+        settingsTitle: 'Ustawienia', currencyPref: 'Preferencja waluty', currencyDesc: 'Wybierz symbol waluty.',
+        langPref: 'Preferencja języka', langDesc: 'Wybierz język interfejsu.',
+        navTrans: 'Transakcje', navStats: 'Statystyki', navSettings: 'Ustawienia',
+        cancel: 'Anuluj', expenseOrIncome: 'Wydatek lub Przychód', delete: 'Usuń',
+        date: 'Data', category: 'Kategoria', merchantNote: 'Sklep / Notatka', amountLabel: 'Kwota',
+        selectCategory: 'Wybierz kategorię', close: 'Zamknij', selectCategoryType: 'Wybierz typ kategorii',
+        expenseNeg: 'Wydatek (-)', incomePos: 'Przychód (+)', noTransactions: 'Brak transakcji',
+        noStats: 'Brak statystyk dla tego okresu', noExpenseData: 'Brak danych o wydatkach'
+      },
+      sv: {
+        income: 'Inkomst', expense: 'Utgift', total: 'Totalt',
+        daily: 'Dagligen', calendar: 'Kalender', monthly: 'Månadsvis', summary: 'Sammanfattning',
+        statistics: 'Statistik', weekly: 'Veckovis', annually: 'Årligen',
+        settingsTitle: 'Inställningar', currencyPref: 'Valutapreferens', currencyDesc: 'Välj din valutasymbol.',
+        langPref: 'Språkpreferens', langDesc: 'Välj ditt gränssnittsspråk.',
+        navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Inställningar',
+        cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inkomst', delete: 'Radera',
+        date: 'Datum', category: 'Kategori', merchantNote: 'Företag / Anteckning', amountLabel: 'Belopp',
+        selectCategory: 'Välj kategori', close: 'Stäng', selectCategoryType: 'Välj kategorityp',
+        expenseNeg: 'Utgift (-)', incomePos: 'Inkomst (+)', noTransactions: 'Inga transaktioner än',
+        noStats: 'Ingen statistik för denna period', noExpenseData: 'Inga utgiftsdata'
+      },
+      th: {
+        income: 'รายรับ', expense: 'รายจ่าย', total: 'คงเหลือ',
+        daily: 'รายวัน', calendar: 'ปฏิทิน', monthly: 'รายเดือน', summary: 'สรุป',
+        statistics: 'สถิติ', weekly: 'รายสัปดาห์', annually: 'รายปี',
+        settingsTitle: 'ตั้งค่า', currencyPref: 'สกุลเงิน', currencyDesc: 'เลือกสัญลักษณ์สกุลเงินของคุณ',
+        langPref: 'ภาษา', langDesc: 'เลือกภาษาของแอปพลิเคชัน',
+        navTrans: 'รายการ', navStats: 'สถิติ', navSettings: 'ตั้งค่า',
+        cancel: 'ยกเลิก', expenseOrIncome: 'บันทึกรายรับ-รายจ่าย', delete: 'ลบ',
+        date: 'วันที่', category: 'หมวดหมู่', merchantNote: 'ร้านค้า / บันทึก', amountLabel: 'จำนวนเงิน',
+        selectCategory: 'เลือกหมวดหมู่', close: 'ปิด', selectCategoryType: 'เลือกประเภทหมวดหมู่',
+        expenseNeg: 'รายจ่าย (-)', incomePos: 'รายรับ (+)', noTransactions: 'ยังไม่มีรายการ',
+        noStats: 'ไม่มีข้อมูลสถิติในช่วงเวลานี้', noExpenseData: 'ไม่มีข้อมูลรายจ่าย'
+      },
+      vi: {
+        income: 'Thu nhập', expense: 'Chi tiêu', total: 'Tổng số',
+        daily: 'Hàng ngày', calendar: 'Lịch', monthly: 'Hàng tháng', summary: 'Tóm tắt',
+        statistics: 'Thống kê', weekly: 'Hàng tuần', annually: 'Hàng năm',
+        settingsTitle: 'Cài đặt', currencyPref: 'Tiền tệ', currencyDesc: 'Chọn ký hiệu tiền tệ của bạn.',
+        langPref: 'Ngôn ngữ', langDesc: 'Chọn ngôn ngữ giao diện.',
+        navTrans: 'Giao dịch', navStats: 'Thống kê', navSettings: 'Cài đặt',
+        cancel: 'Hủy', expenseOrIncome: 'Chi tiêu hoặc Thu nhập', delete: 'Xóa',
+        date: 'Ngày', category: 'Danh mục', merchantNote: 'Cửa hàng / Ghi chú', amountLabel: 'Số tiền',
+        selectCategory: 'Chọn danh mục', close: 'Đóng', selectCategoryType: 'Chọn loại danh mục',
+        expenseNeg: 'Chi tiêu (-)', incomePos: 'Thu nhập (+)', noTransactions: 'Chưa có giao dịch nào',
+        noStats: 'Không có thống kê cho khoảng thời gian này', noExpenseData: 'Không có dữ liệu chi tiêu'
+      },
+      'zh-CN': {
+        income: '收入', expense: '支出', total: '结余',
+        daily: '日明细', calendar: '日历', monthly: '月度', summary: '汇总',
+        statistics: '统计', weekly: '每周', annually: '每年',
+        settingsTitle: '设置', currencyPref: '货币偏好', currencyDesc: '选择您使用的货币符号。',
+        langPref: '语言偏好', langDesc: '选择您的界面显示语言。',
+        navTrans: '明细', navStats: '统计', navSettings: '设置',
+        cancel: '取消', expenseOrIncome: '记账', delete: '删除',
+        date: '日期', category: '类别', merchantNote: '商家 / 备注', amountLabel: '金额',
+        selectCategory: '选择类别', close: '关闭', selectCategoryType: '选择类别类型',
+        expenseNeg: '支出 (-)', incomePos: '收入 (+)', noTransactions: '暂无交易记录',
+        noStats: '该时间段无统计数据', noExpenseData: '无支出数据'
+      },
+      'zh-TW': {
+        income: '收入', expense: '支出', total: '結餘',
+        daily: '日明細', calendar: '日曆', monthly: '月度', summary: '彙總',
+        statistics: '統計', weekly: '每週', annually: '每年',
+        settingsTitle: '設定', currencyPref: '貨幣偏好', currencyDesc: '選擇您使用的貨幣符號。',
+        langPref: '語言偏好', langDesc: '選擇您的介面顯示語言。',
+        navTrans: '明細', navStats: '統計', navSettings: '設定',
+        cancel: '取消', expenseOrIncome: '記帳', delete: '刪除',
+        date: '日期', category: '類別', merchantNote: '商家 / 備註', amountLabel: '金額',
+        selectCategory: '選擇類別', close: '關閉', selectCategoryType: '選擇類別類型',
+        expenseNeg: '支出 (-)', incomePos: '收入 (+)', noTransactions: '暫無交易記錄',
+        noStats: '該時間段無統計數據', noExpenseData: '無支出數據'
       }
     };
 
