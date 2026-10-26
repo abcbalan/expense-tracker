@@ -5,6 +5,7 @@
 <!-- 20261026 v32 with Fixed Cloud Sync & User ID Persistence -->
 <!-- 20261026 v33 with Fixed Weekly, Monthly, Annually Stats Display & Cloud Sync -->
 <!-- 20261026 v34 try with Restored Transaction Timeframe Dropdown & Fully Functional Filters -->
+<!-- 20261026 v35 with Restored Entry Modal Repeat (Weekly/Monthly/Yearly) Dropdown & Cloud Sync -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -139,7 +140,7 @@
         <button class="btn-next-m" data-screen="trans">▶</button>
       </div>
 
-      <!-- TRANSACTION TIMEFRAME SELECTOR DROPDOWN (RESTORED TO LEFT OF 0.00 / SUMMARY BAR) -->
+      <!-- TRANSACTION TIMEFRAME SELECTOR DROPDOWN -->
       <div style="background: #ecfdf5; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb;">
         <select id="select-trans-timeframe" style="background: #fff; border: 1px solid #d1d5db; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; color: #374151; cursor: pointer;">
           <option value="weekly" data-i18n="weekly">Weekly</option>
@@ -324,8 +325,17 @@
           <datalist id="merchant-list"></datalist>
         </div>
 
+        <!-- RESTORED REPEAT SELECTOR & AMOUNT FIELD -->
         <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;">
-          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="amountLabel">Amount</label>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 11px; color: #6b7280; margin-bottom: 0;" data-i18n="amountLabel">Amount</label>
+            <select id="input-repeat" style="border: 1px solid #d1d5db; border-radius: 6px; font-size: 11px; padding: 2px 6px; background: #f9fafb; color: #374151; cursor: pointer; font-weight: 500;">
+              <option value="none">No Repeat</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="annually">Annually</option>
+            </select>
+          </div>
           <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 14px; text-align: left; color: #111827; outline: none; padding: 4px 0;">
         </div>       
 
@@ -397,7 +407,7 @@
     let expensesRealtime = null;
     let activeExpenseType = 'expense';
     let currentStatsTimeframe = 'monthly';
-    let currentTransTimeframe = 'monthly'; // Added state for Transaction Timeframe Dropdown
+    let currentTransTimeframe = 'monthly';
 
     // Settings State
     let currentCurrency = localStorage.getItem('user_currency') || '£';
@@ -1148,7 +1158,6 @@
         expenses = merged;
         localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
-        // Pull unique categories from remote items automatically across devices
         const remoteExpCats = new Set();
         const remoteIncCats = new Set();
         merged.forEach(item => {
@@ -1465,6 +1474,7 @@
       const categoryInput = document.getElementById('input-category');
       const merchantInput = document.getElementById('input-merchant');
       const amountInput = document.getElementById('input-amount');
+      const repeatSelect = document.getElementById('input-repeat');
       const deleteBtn = document.getElementById('delete-btn');
       const modalTitle = document.getElementById('modal-title');
 
@@ -1478,6 +1488,7 @@
         categoryInput.value = entry.category || 'Food';
         merchantInput.value = entry.merchant || entry.note || '';
         amountInput.value = Number(entry.amount || 0).toFixed(2);
+        if (repeatSelect) repeatSelect.value = entry.repeat || 'none';
         activeExpenseType = entry.type === 'income' ? 'income' : 'expense';
       } else {
         editingId = null;
@@ -1487,6 +1498,7 @@
         categoryInput.value = activeExpenseType === 'income' ? 'Salary' : 'Food';
         merchantInput.value = '';
         amountInput.value = '0.00';
+        if (repeatSelect) repeatSelect.value = 'none';
       }
       modal.style.display = 'flex';
     }
@@ -1588,6 +1600,7 @@
       const category = document.getElementById('input-category').value || 'Food';
       const amount = Number(document.getElementById('input-amount').value || 0);
       const date = document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
+      const repeat = document.getElementById('input-repeat').value || 'none';
       
       const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
       const type = isIncomeCategory ? 'income' : activeExpenseType;
@@ -1601,6 +1614,7 @@
         category,
         amount: Math.abs(amount),
         type,
+        repeat,
         created_at: new Date().toISOString()
       };
     }
@@ -1717,7 +1731,6 @@
       });
     }
 
-    // Event listener for Transaction Timeframe Dropdown selection change
     const transTimeframeSelect = document.getElementById('select-trans-timeframe');
     if (transTimeframeSelect) {
       transTimeframeSelect.addEventListener('change', (e) => {
@@ -1861,6 +1874,7 @@
         merchant: item.merchant || item.note || '',
         category: item.category || 'Other',
         type: item.type || 'expense',
+        repeat: item.repeat || 'none',
         amount: Number(item.amount || 0)
       }));
       const wb = XLSX.utils.book_new();
@@ -1894,6 +1908,7 @@
               category: row.category || 'Other',
               amount: Math.abs(Number(row.amount || row.value || 0)),
               type: (row.type || 'expense'),
+              repeat: row.repeat || 'none',
               created_at: new Date().toISOString()
             };
             newEntries.push(entry);
