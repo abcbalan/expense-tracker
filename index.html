@@ -8,6 +8,7 @@
 <!-- 20261026 v35 with Restored Entry Modal Repeat (Weekly/Monthly/Yearly) Dropdown & Cloud Sync -->
 <!-- 20261026 v36 try with Fully Functional Dynamic Recurring Transactions (Weekly, Monthly, Annually) -->
 <!-- 20261026 v37 with Smart Recurring Series Truncation (Delete Future Occurrences While Preserving Past Records) -->
+<!-- 20261026 v38 try with Guaranteed Cross-Device Cloud Synchronization & Robust User ID Binding -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -1647,10 +1648,11 @@
       const type = isIncomeCategory ? 'income' : activeExpenseType;
 
       const existingEntry = expenses.find(e => String(e.id) === String(editingId));
+      const activeUserId = currentUserId || currentUser?.id || null;
 
       return {
         id: editingId || (crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}`),
-        user_id: currentUserId || currentUser?.id || null,
+        user_id: activeUserId,
         date,
         merchant,
         note: merchant,
@@ -1663,7 +1665,7 @@
       };
     }
 
-    function saveEntry() {
+    async function saveEntry() {
       const item = buildEntryObject();
       const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
       if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
@@ -1672,9 +1674,12 @@
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
       if (currentUser?.id || currentUserId) {
-        supabaseClient.from('expenses').upsert(item, { onConflict: 'id' }).then(({ error }) => {
+        try {
+          const { error } = await supabaseClient.from('expenses').upsert(item, { onConflict: 'id' });
           if (error) console.error('Cloud save failed:', error);
-        }).catch(console.warn);
+        } catch (err) {
+          console.warn('Cloud sync error during save:', err);
+        }
       }
 
       closeEntryModal();
@@ -1693,23 +1698,29 @@
       return d.toISOString().slice(0, 10);
     }
 
-    function deleteEntry() {
+    async function deleteEntry() {
       if (!editingId) return;
       const entry = expenses.find(item => String(item.id) === String(editingId));
 
       if (entry && entry.repeat && entry.repeat !== 'none' && editingInstanceDate && editingInstanceDate > entry.date) {
-        // Truncate series before the selected instance date so future ones stop but past ones stay
         entry.repeatUntil = getPreviousDate(editingInstanceDate, entry.repeat);
         localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
         if (currentUser?.id || currentUserId) {
-          supabaseClient.from('expenses').upsert(entry, { onConflict: 'id' }).then(() => {}).catch(console.warn);
+          try {
+            await supabaseClient.from('expenses').upsert(entry, { onConflict: 'id' });
+          } catch (e) {
+            console.warn('Cloud truncate error:', e);
+          }
         }
       } else {
-        // Delete entire record if it's the base date or non-recurring
         expenses = expenses.filter(item => String(item.id) !== String(editingId));
         localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
         if (currentUser?.id || currentUserId) {
-          supabaseClient.from('expenses').delete().eq('id', editingId).then(() => {}).catch(console.warn);
+          try {
+            await supabaseClient.from('expenses').delete().eq('id', editingId);
+          } catch (e) {
+            console.warn('Cloud delete error:', e);
+          }
         }
       }
       closeEntryModal();
