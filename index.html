@@ -1,5 +1,5 @@
 <!-- 20261027 v32 More Lanugage & Currency, Stats with Total, Repeatly entry, fixed delete past repeat entry -->
-<!-- Works Perfectly-->
+<!-- Trying to remove abcbalan.github.io says issue -->
 
 
 <!DOCTYPE html>
@@ -355,6 +355,20 @@
       </div>
     </div>
 
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div class="modal" id="delete-confirm-modal" style="z-index: 250;">
+      <div class="modal-content" style="max-width: 320px; text-align: center;">
+        <div class="modal-header">
+          <span data-i18n="delete">Delete</span>
+          <button class="icon-btn" style="color:#333;font-size:14px;" id="close-delete-modal">Cancel</button>
+        </div>
+        <p id="delete-modal-text" style="margin: 10px 0 20px 0; font-size: 14px; color: #4b5563; font-weight: 500; line-height: 1.4;"></p>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" id="btn-confirm-delete" class="auth-btn" style="background: #ef4444; flex: 1;">Yes, Stop & Delete</button>
+        </div>
+      </div>
+    </div>
+    
     <!-- CATEGORY TYPE MODAL -->
     <div class="modal" id="category-type-modal" style="z-index: 200;">
       <div class="modal-content" style="max-width: 320px; text-align: center;">
@@ -1694,14 +1708,14 @@
       const target = expenses.find(item => String(item.id) === String(editingId));
       if (!target) return;
       
-      // If it's a repeating entry, clicking delete should ONLY stop/cut off future entries.
-      // Past paid entries are completely safe and untouched. Clicking cancel aborts deletion entirely.
+      // If repeating entry, open our custom modal instead of browser confirm()
       if (target.repeat && target.repeat !== 'none') {
-        const confirmStopFuture = window.confirm("Do you want to stop this recurring entry and delete only future occurrences from this date forward?\n\n(Your past entries will be kept safely).");
+        const confirmed = await showCustomConfirm(
+          "Do you want to stop this recurring entry and delete only future occurrences from this date forward?<br><br><span style='font-size:12px; font-weight:normal; color:#6b7280;'>(Your past entries will be kept safely).</span>"
+        );
         
-        if (!confirmStopFuture) {
-          // User clicked Cancel -> Safe! Do nothing and close modal.
-          closeEntryModal();
+        if (!confirmed) {
+          // User clicked Cancel -> Do nothing, close popups safely
           return;
         }
 
@@ -1731,6 +1745,29 @@
       renderAllViews();
     }
 
+    // Custom dialog helper that replaces window.confirm()
+    function showCustomConfirm(messageHtml) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('delete-confirm-modal');
+        const textEl = document.getElementById('delete-modal-text');
+        const btnConfirm = document.getElementById('btn-confirm-delete');
+        const btnClose = document.getElementById('close-delete-modal');
+
+        textEl.innerHTML = messageHtml;
+        modal.style.display = 'flex';
+
+        function cleanup(result) {
+          modal.style.display = 'none';
+          btnConfirm.onclick = null;
+          btnClose.onclick = null;
+          resolve(result);
+        }
+
+        btnConfirm.onclick = () => cleanup(true);
+        btnClose.onclick = () => cleanup(false);
+      });
+    }
+    
     function applyKeyInput(val) {
       const input = document.getElementById('input-amount');
       if (!input) return;
