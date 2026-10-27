@@ -1,5 +1,5 @@
-<!-- 20261027 v30 More Lanugage & Currency, Stats with Total, Repeatly entry -->
-<!-- Work Perfectly -->
+<!-- 20261027 v31 More Lanugage & Currency, Stats with Total, Repeatly entry -->
+<!-- Trying to fix delete past repeating entry issue -->
 
 
 <!DOCTYPE html>
@@ -1692,26 +1692,34 @@
     async function deleteEntry() {
       if (!editingId) return;
       const target = expenses.find(item => String(item.id) === String(editingId));
+      if (!target) return;
       
-      if (target && target.repeat && target.repeat !== 'none') {
-        const confirmFutureOnly = confirm("Do you want to stop repeating and DELETE ONLY FUTURE entries from this date forward?\n\n- Click OK to keep all previous months/weeks and delete future entries.\n- Click Cancel to delete the entire series completely.");
+      // If it's a repeating entry, clicking delete should ONLY stop/cut off future entries.
+      // Past paid entries are completely safe and untouched. Clicking cancel aborts deletion entirely.
+      if (target.repeat && target.repeat !== 'none') {
+        const confirmStopFuture = window.confirm("Do you want to stop this recurring entry and delete only future occurrences from this date forward?\n\n(Your past entries will be kept safely).");
         
-        if (confirmFutureOnly) {
-          const cutoffDate = editingSelectedDate || document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
-          target.repeat_until = cutoffDate;
-          
-          localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-          if (currentUser?.id) {
-            try {
-              await supabaseClient.from('expenses').upsert(target, { onConflict: 'id' });
-            } catch (e) { console.warn(e); }
-          }
+        if (!confirmStopFuture) {
+          // User clicked Cancel -> Safe! Do nothing and close modal.
           closeEntryModal();
-          renderAllViews();
           return;
         }
+
+        const cutoffDate = editingSelectedDate || document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
+        target.repeat_until = cutoffDate;
+        
+        localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+        if (currentUser?.id) {
+          try {
+            await supabaseClient.from('expenses').upsert(target, { onConflict: 'id' });
+          } catch (e) { console.warn(e); }
+        }
+        closeEntryModal();
+        renderAllViews();
+        return;
       }
 
+      // For normal one-time entries
       expenses = expenses.filter(item => String(item.id) !== String(editingId));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       if (currentUser?.id) {
