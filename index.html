@@ -1,5 +1,5 @@
 <!-- 20261027 v33 More Lanugage & Currency, Stats with Total, Repeatly entry, removed abcbalan.github.io says -->
-<!-- Works Perfectly -->
+<!-- Trying to fix import showing abcbalan.github.io says -->
 
 
 <!DOCTYPE html>
@@ -355,6 +355,9 @@
       </div>
     </div>
 
+<!-- TOAST NOTIFICATION -->
+    <div id="app-toast" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #111827; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; z-index: 1000; transition: transform 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; max-width: 90%; pointer-events: none; font-weight: 500;"></div>
+    
     <!-- DELETE CONFIRMATION MODAL -->
     <div class="modal" id="delete-confirm-modal" style="z-index: 250;">
       <div class="modal-content" style="max-width: 320px; text-align: center;">
@@ -739,6 +742,17 @@
       });
     }
 
+    // Modern toast notification replacing browser alerts
+    function showToast(message) {
+      const toast = document.getElementById('app-toast');
+      if (!toast) return;
+      toast.innerHTML = message;
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+      setTimeout(() => {
+        toast.style.transform = 'translateX(-50%) translateY(-100px)';
+      }, 3500);
+    }  
+    
     const baseCategories = ['Food', 'Social Life', 'Self-development', 'Transportation', 'Culture', 'Household', 'Apparel', 'Beauty', 'Health', 'Education', 'Gift', 'Salary','Other'];
     let customCategories = [];
     let customIncomeCategories = [];
@@ -1589,7 +1603,8 @@
               const catName = newCategory.trim();
               
               if (customCategories.includes(catName) || customIncomeCategories.includes(catName) || baseCategories.includes(catName)) {
-                alert('Category already exists!');
+                //alert('Category already exists!');
+                showToast('Category already exists!');
                 return;
               }
 
@@ -1629,7 +1644,8 @@
 
               await saveCustomCategoriesToCloud();
               localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-              alert(`"${catToDelete}" deleted and existing records changed to Other.`);
+              //alert(`"${catToDelete}" deleted and existing records changed to Other.`);
+              showToast(`"${catToDelete}" deleted and existing records changed to Other.`);
               openCategoryModal();
               return;
             }
@@ -1678,7 +1694,7 @@
     async function saveEntry() {
       const item = buildEntryObject();
       if (!item.user_id) {
-        alert('Error: You must be signed in to save entries to the cloud.');
+        showToast('Saved locally, but failed to sync to cloud: ' + error.message);
         return;
       }
 
@@ -1693,7 +1709,7 @@
         const { error } = await supabaseClient.from('expenses').upsert(item, { onConflict: 'id' });
         if (error) {
           console.error('Supabase upsert error:', error);
-          alert('Saved locally, but failed to sync to cloud: ' + error.message);
+          showToast('Saved locally, but failed to sync to cloud: ' + error.message);
         }
       } catch (err) {
         console.error('Network exception during upsert:', err);
@@ -1961,12 +1977,12 @@
       }
       document.getElementById('input-merchant').value = merchantName;
       renderAllViews();
-      alert(`Merchant renamed to "${merchantName}"`);
+      showToast(`Merchant renamed to "${merchantName}"`);
     });
 
     document.getElementById('btn-export-excel').addEventListener('click', () => {
       if (!expenses.length) {
-        alert('No data to export');
+        showToast('No data to export');
         return;
       }
       const data = expenses.map(item => ({
@@ -2026,10 +2042,10 @@
           }
 
           renderAllViews();
-          alert(`Successfully imported and synced ${newEntries.length} records!`);
+          showToast(`Successfully imported and synced ${newEntries.length} records!`);
         } catch (e) {
           console.error('Import failed', e);
-          alert('Failed to import file');
+          showToast('Failed to import file');
         }
       };
       reader.readAsBinaryString(file);
