@@ -28,81 +28,83 @@
     body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
     .app-container { width: 100%; max-width: 480px; background: #fff; height: 100vh; height: 100dvh; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     
-    #auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24px; }
-    #auth-screen h2 { margin-bottom: 20px; color: #10b981; }
-    .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-    .auth-btn { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
-    .auth-btn:disabled { background: #a7f3d0; cursor: not-allowed; }
-    .auth-error { color: #ef4444; font-size: 14px; margin-top: 10px; text-align: center; }
-    .top-bar { background: #10b981; color: white; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
-    .top-bar h1 { font-size: 18px; font-weight: 600; }
-    .top-actions { display: flex; gap: 12px; align-items: center; }
-    .icon-btn { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
-    .month-nav { background: #059669; color: white; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500; }
-    .month-nav button { background: none; border: none; color: white; font-size: 16px; cursor: pointer; padding: 0 8px; }
-    
-    /* Stats timeframe selector styling */
-    .stats-filter-bar { display: flex; background: #ecfdf5; padding: 8px 16px; justify-content: center; gap: 8px; border-bottom: 1px solid #e5e7eb; }
-    .stats-filter-btn { background: #fff; border: 1px solid #d1d5db; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; color: #374151; cursor: pointer; }
-    .stats-filter-btn.active { background: #10b981; color: white; border-color: #10b981; }
+#auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24px; }
+#auth-screen h2 { margin-bottom: 20px; color: #10b981; }
+.auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+.auth-btn { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.auth-btn:disabled { background: #a7f3d0; cursor: not-allowed; }
+.auth-error { color: #ef4444; font-size: 14px; margin-top: 10px; text-align: center; }
+.top-bar { background: #10b981; color: white; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
+.top-bar h1 { font-size: 18px; font-weight: 600; }
+.top-actions { display: flex; gap: 12px; align-items: center; }
+.icon-btn { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
+.month-nav { background: #059669; color: white; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500; }
+.month-nav button { background: none; border: none; color: white; font-size: 16px; cursor: pointer; padding: 0 8px; }
 
-    .summary-bar { background: #ecfdf5; padding: 10px 16px; display: flex; justify-content: space-around; border-bottom: 1px solid #e5e7eb; font-size: 13px; text-align: center; }
-    .summary-item-box div:first-child { color: #6b7280; font-size: 11px; }
-    .summary-item-box div:last-child { font-weight: 600; color: #111827; margin-top: 2px; }
-    .view-tabs { display: flex; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
-    .view-tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: 500; color: #4b5563; cursor: pointer; border-bottom: 2px solid transparent; }
-    .view-tab.active { color: #10b981; border-bottom-color: #10b981; background: #fff; }
-    .main-screen { display: none; flex-direction: column; height: 100%; width: 100%; }
-    .main-screen.active { display: flex; }
-    .content-area { flex: 1; overflow-y: auto; background: #f9fafb; padding-bottom: 80px; }
-    .view-panel { display: none; }
-    .view-panel.active { display: block; }
-    .day-group { margin-bottom: 12px; background: #fff; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
-    .day-header { padding: 8px 16px; background: #f3f4f6; display: flex; justify-content: space-between; font-size: 12px; color: #4b5563; }
-    .trans-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; cursor: pointer; }
-    .trans-row:active { background: #f9fafb; }
-    .trans-left { display: flex; flex-direction: column; gap: 2px; }
-    .trans-category { font-size: 11px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; width: fit-content; color: #374151; font-weight: 500; }
-    .trans-details strong { font-size: 14px; color: #111827; }
-    .trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
-    .trans-amount.income { color: #10b981; }
-    .trans-amount.expense { color: #ef4444; }
-    .cal-spend.income { color: #10b981; }
-    .cal-spend.expense { color: #ef4444; }
-    .fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; cursor: pointer; z-index: 50; }
-    @media (max-width: 480px) { .fab { right: 20px; } }
-    .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; padding-bottom: env(safe-area-inset-bottom); background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; z-index: 50; }
-    .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 33.33%; }
-    .nav-item.active { color: #10b981; font-weight: 600; }
-    .nav-item span:first-child { font-size: 20px; }
-    .modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: center; padding: 12px; }
-    .modal-content { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 16px; font-weight: 600; }
-    .form-group { margin-bottom: 10px; width: 100%; }
-    .form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
-    .form-control { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; background: #fff; height: 42px; }
-    .row-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; align-items: start; } 
-    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
-    .key-btn { padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; text-align: center; color: #1f2937; }
-    .key-btn:active { background: #e5e7eb; }
-    .key-btn.ok { background: #10b981; color: white; grid-row: span 2; height: 100%; display: flex; align-items: center; justify-content: center; }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #e5e7eb; padding: 2px; }
-    .cal-day-name { background: #f3f4f6; text-align: center; padding: 8px 0; font-size: 11px; font-weight: 600; color: #4b5563; }
-    .cal-cell { background: #fff; min-height: 60px; padding: 4px; display: flex; flex-direction: column; justify-content: space-between; }
-    .cal-cell.empty { background: #fafafa; }
-    .cal-date-num { font-size: 11px; font-weight: 500; color: #374151; }
-    .cal-spend { font-size: 10px; color: #ef4444; font-weight: 600; text-align: right; }
-    .summary-item { padding: 12px 16px; background: #fff; border-bottom: 1px solid #f3f4f6; }
-    .summary-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
-    .progress-bg { background: #f3f4f6; height: 6px; border-radius: 3px; overflow: hidden; }
-    .progress-fill { height: 100%; border-radius: 3px; }
-    .stats-container { padding: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; }
-    .pie-chart { width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 16px 0; position: relative; }
-    .stats-row { width: 100%; display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
-    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; max-height: 300px; overflow-y: auto; }
-    .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; }
-    .cat-tile:active { background: #e5e7eb; }
-    .cat-tile span { font-size: 20px; }
+/* Stats timeframe selector styling */
+.stats-filter-bar { display: flex; background: #ecfdf5; padding: 8px 16px; justify-content: center; gap: 8px; border-bottom: 1px solid #e5e7eb; }
+.stats-filter-btn { background: #fff; border: 1px solid #d1d5db; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; color: #374151; cursor: pointer; }
+.stats-filter-btn.active { background: #10b981; color: white; border-color: #10b981; }
+
+.summary-bar { background: #ecfdf5; padding: 10px 16px; display: flex; justify-content: space-around; border-bottom: 1px solid #e5e7eb; font-size: 13px; text-align: center; }
+.summary-item-box div:first-child { color: #6b7280; font-size: 11px; }
+.summary-item-box div:last-child { font-weight: 600; color: #111827; margin-top: 2px; }
+.view-tabs { display: flex; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+.view-tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: 500; color: #4b5563; cursor: pointer; border-bottom: 2px solid transparent; }
+.view-tab.active { color: #10b981; border-bottom-color: #10b981; background: #fff; }
+.main-screen { display: none; flex-direction: column; height: 100%; width: 100%; }
+.main-screen.active { display: flex; }
+.content-area { flex: 1; overflow-y: auto; background: #f9fafb; padding-bottom: 80px; }
+.view-panel { display: none; }
+.view-panel.active { display: block; }
+.day-group { margin-bottom: 12px; background: #fff; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
+.day-header { padding: 8px 16px; background: #f3f4f6; display: flex; justify-content: space-between; font-size: 12px; color: #4b5563; }
+.trans-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6; cursor: pointer; }
+.trans-row:active { background: #f9fafb; }
+.trans-left { display: flex; flex-direction: column; gap: 2px; }
+.trans-category { font-size: 11px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; width: fit-content; color: #374151; font-weight: 500; }
+.trans-details strong { font-size: 14px; color: #111827; }
+.trans-amount { font-size: 15px; font-weight: 600; color: #ef4444; }
+.trans-amount.income { color: #10b981; }
+.trans-amount.expense { color: #ef4444; }
+.cal-spend.income { color: #10b981; }
+.cal-spend.expense { color: #ef4444; }
+.fab { position: fixed; bottom: 75px; right: calc(50% - 240px + 20px); width: 56px; height: 56px; background: #10b981; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; border: none; cursor: pointer; z-index: 50; }
+@media (max-width: 480px) { .fab { right: 20px; } }
+.bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; padding-bottom: env(safe-area-inset-bottom); background: #fff; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-around; align-items: center; z-index: 50; }
+.nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #9ca3af; cursor: pointer; width: 33.33%; }
+.nav-item.active { color: #10b981; font-weight: 600; }
+.nav-item span:first-child { font-size: 20px; }
+.modal { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: none; justify-content: center; align-items: center; padding: 12px; }
+.modal-content { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 16px; font-weight: 600; }
+.form-group { margin-bottom: 10px; width: 100%; }
+.form-group label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+.form-control { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; background: #fff; height: 42px; }
+.row-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; align-items: start; } 
+.keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+.key-btn { padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; text-align: center; color: #1f2937; }
+.key-btn:active { background: #e5e7eb; }
+.key-btn.ok { background: #10b981; color: white; grid-row: span 2; height: 100%; display: flex; align-items: center; justify-content: center; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #e5e7eb; padding: 2px; }
+.cal-day-name { background: #f3f4f6; text-align: center; padding: 8px 0; font-size: 11px; font-weight: 600; color: #4b5563; }
+.cal-cell { background: #fff; min-height: 60px; padding: 4px; display: flex; flex-direction: column; justify-content: space-between; }
+.cal-cell.empty { background: #fafafa; }
+.cal-date-num { font-size: 11px; font-weight: 500; color: #374151; }
+.cal-spend { font-size: 10px; color: #ef4444; font-weight: 600; text-align: right; }
+.summary-item { padding: 12px 16px; background: #fff; border-bottom: 1px solid #f3f4f6; }
+.summary-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+.progress-bg { background: #f3f4f6; height: 6px; border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; }
+.stats-container { padding: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; }
+.pie-chart { width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 16px 0; position: relative; }
+.stats-row { width: 100%; display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+.cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; max-height: 300px; overflow-y: auto; }
+.cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.cat-tile:active { background: #e5e7eb; }
+.cat-tile span { font-size: 20px; }
+
+    
   </style>
 </head>
 <body>
@@ -116,275 +118,276 @@
     </div>
 
     <!-- TRANSACTION SCREEN -->
-    <div id="screen-trans" class="main-screen active">
-      <div class="top-bar">
-        <h1>ExpenseTracker</h1>
-        <div class="top-actions">
-          <button class="icon-btn" id="btn-search" title="Search">🔍</button>
-          <label class="icon-btn" title="Import Excel/CSV" style="cursor:pointer;">📂<input type="file" id="import-file-input" accept=".xlsx, .xls, .csv" style="display:none;"></label>
-          <button class="icon-btn" id="btn-export-excel" title="Export CSV">📥</button>
-          <button class="icon-btn" id="btn-sync" title="Sync Cloud">🔄</button>
-          <button class="icon-btn" id="btn-logout" title="Logout">🚪</button>
-        </div>
-      </div>
+<div id="screen-trans" class="main-screen active">
+  <div class="top-bar">
+    <h1>ExpenseTracker</h1>
+    <div class="top-actions">
+      <button class="icon-btn" id="btn-search" title="Search">🔍</button>
+      <label class="icon-btn" title="Import Excel/CSV" style="cursor:pointer;">📂<input type="file" id="import-file-input" accept=".xlsx, .xls, .csv" style="display:none;"></label>
+      <button class="icon-btn" id="btn-export-excel" title="Export CSV">📥</button>
+      <button class="icon-btn" id="btn-sync" title="Sync Cloud">🔄</button>
+      <button class="icon-btn" id="btn-logout" title="Logout">🚪</button>
+    </div>
+  </div>
 
-      <div class="month-nav">
-        <button class="btn-prev-m" data-screen="trans">◀</button>
-        <span class="current-month-txt" id="trans-month-txt">Oct 2026</span>
-        <button class="btn-next-m" data-screen="trans">▶</button>
-      </div>
+  <div class="month-nav">
+    <button class="btn-prev-m" data-screen="trans">◀</button>
+    <span class="current-month-txt" id="trans-month-txt">Oct 2026</span>
+    <button class="btn-next-m" data-screen="trans">▶</button>
+  </div>
 
-      <div class="summary-bar">
-        <div class="summary-item-box"><div data-i18n="income">Income</div><div>£ 0.00</div></div>
-        <div class="summary-item-box"><div data-i18n="expense">Expense</div><div class="total-exp-txt">£ 0.00</div></div>
-        <div class="summary-item-box"><div data-i18n="total">Total</div><div class="net-total-txt">-£ 0.00</div></div>
-      </div>
+  <div class="summary-bar">
+    <div class="summary-item-box"><div data-i18n="income">Income</div><div>£ 0.00</div></div>
+    <div class="summary-item-box"><div data-i18n="expense">Expense</div><div class="total-exp-txt">£ 0.00</div></div>
+    <div class="summary-item-box"><div data-i18n="total">Total</div><div class="net-total-txt">-£ 0.00</div></div>
+  </div>
 
-      <div class="view-tabs">
-        <div class="view-tab active" data-tab="daily" data-i18n="daily">Daily</div>
-        <div class="view-tab" data-tab="calendar" data-i18n="calendar">Calendar</div>
-        <div class="view-tab" data-tab="monthly" data-i18n="monthly">Monthly</div>
-        <div class="view-tab" data-tab="summary" data-i18n="summary">Summary</div>
-      </div>
+  <div class="view-tabs">
+    <div class="view-tab active" data-tab="daily" data-i18n="daily">Daily</div>
+    <div class="view-tab" data-tab="calendar" data-i18n="calendar">Calendar</div>
+    <div class="view-tab" data-tab="monthly" data-i18n="monthly">Monthly</div>
+    <div class="view-tab" data-tab="summary" data-i18n="summary">Summary</div>
+  </div>
 
-      <div id="search-box" style="display:none; padding:8px; background:#fff; border-bottom:1px solid #e5e7eb;">
-        <input type="text" id="search-input" class="form-control" placeholder="Search merchant or category...">
-      </div>
+  <div id="search-box" style="display:none; padding:8px; background:#fff; border-bottom:1px solid #e5e7eb;">
+    <input type="text" id="search-input" class="form-control" placeholder="Search merchant or category...">
+  </div>
 
-      <div class="content-area">
-        <div id="panel-daily" class="view-panel active"><div id="transaction-container"></div></div>
-        <div id="panel-calendar" class="view-panel"><div class="cal-grid" id="calendar-container"></div></div>
-        <div id="panel-monthly" class="view-panel"><div id="monthly-container" style="padding:12px;"></div></div>
-        <div id="panel-summary" class="view-panel"><div id="summary-container"></div></div>
+  <div class="content-area">
+    <div id="panel-daily" class="view-panel active"><div id="transaction-container"></div></div>
+    <div id="panel-calendar" class="view-panel"><div class="cal-grid" id="calendar-container"></div></div>
+    <div id="panel-monthly" class="view-panel"><div id="monthly-container" style="padding:12px;"></div></div>
+    <div id="panel-summary" class="view-panel"><div id="summary-container"></div></div>
+  </div>
+</div>
+
+<!-- STATS SCREEN -->
+<div id="screen-stats" class="main-screen">
+  <div class="top-bar">
+    <h1 data-i18n="statistics">Statistics</h1>
+    <div class="top-actions">
+      <button class="icon-btn" id="btn-stats-sync" title="Sync Cloud">🔄</button>
+    </div>
+  </div>
+  <div class="month-nav">
+    <button class="btn-prev-m" data-screen="stats">◀</button>
+    <span class="current-month-txt" id="stats-month-txt">Oct 2026</span>
+    <button class="btn-next-m" data-screen="stats">▶</button>
+  </div>
+  
+  <div class="stats-filter-bar">
+    <button class="stats-filter-btn" data-timeframe="weekly" data-i18n="weekly">Weekly</button>
+    <button class="stats-filter-btn active" data-timeframe="monthly" data-i18n="monthly">Monthly</button>
+    <button class="stats-filter-btn" data-timeframe="annually" data-i18n="annually">Annually</button>
+  </div>
+
+  <!-- STATS INCOME/EXPENSE SUMMARY BAR -->
+  <div class="summary-bar">
+    <div class="summary-item-box"><div data-i18n="income">Income</div><div id="stats-income-txt">£ 0.00</div></div>
+    <div class="summary-item-box"><div data-i18n="expense">Expense</div><div id="stats-expense-txt">£ 0.00</div></div>
+  </div>
+
+  <div class="content-area">
+    <div class="stats-container">
+      <div class="pie-chart"><svg id="svgPie" viewBox="0 0 100 100" style="width:100%;height:100%;transform:rotate(-90deg);"></svg></div>
+      <div id="stats-list-container" style="width:100%;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS SCREEN -->
+<div id="screen-settings" class="main-screen">
+  <div class="top-bar">
+    <h1 data-i18n="settingsTitle">Settings</h1>
+  </div>
+  <div class="content-area" style="padding: 16px;">
+    <div style="background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="currencyPref">Currency Preference</h3>
+      <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="currencyDesc">Choose your currency symbol.</p>
+      <select id="select-currency" class="form-control" style="cursor: pointer;">
+        <option value="AED">AED (AED - UAE Dirham)</option>
+        <option value="$">$ (ARS - Argentine Peso)</option>
+        <option value="$">$ (AUD - Australian Dollar)</option>
+        <option value="R$">R$ (BRL - Brazilian Real)</option>
+        <option value="$">$ (CAD - Canadian Dollar)</option>
+        <option value="CHF">CHF (CHF - Swiss Franc)</option>
+        <option value="Kč">Kč (CZK - Czech Koruna)</option>
+        <option value="kr">kr (DKK - Danish Krone)</option>
+        <option value="€">€ (EUR - Euro)</option>
+        <option value="£">£ (GBP - British Pound)</option>
+        <option value="$">$ (HKD - Hong Kong Dollar)</option>
+        <option value="Ft">Ft (HUF - Hungarian Forint)</option>
+        <option value="Rp">Rp (IDR - Indonesian Rupiah)</option>
+        <option value="₹">₹ (INR - Indian Rupee)</option>
+        <option value="₪">₪ (ILS - Israeli New Shekel)</option>
+        <option value="¥">¥ (JPY / CNY - Yen / Yuan)</option>
+        <option value="₩">₩ (KRW - South Korean Won)</option>
+        <option value="RM">RM (MYR - Malaysian Ringgit)</option>
+        <option value="kr">kr (NOK - Norwegian Krone)</option>
+        <option value="$">$ (NZD - New Zealand Dollar)</option>
+        <option value="₱">₱ (PHP - Philippine Peso)</option>
+        <option value="zł">zł (PLN - Polish Złoty)</option>
+        <option value="SAR">SAR (SAR - Saudi Riyal)</option>
+        <option value="kr">kr (SEK - Swedish Krona)</option>
+        <option value="$">$ (SGD - Singapore Dollar)</option>
+        <option value="฿">฿ (THB - Thai Baht)</option>
+        <option value="₺">₺ (TRY - Turkish Lira)</option>
+        <option value="$">$ (TWD - New Taiwan Dollar)</option>
+        <option value="$">$ (USD / MXN - Dollar)</option>
+        <option value="₫">₫ (VND - Vietnamese Đồng)</option>
+        <option value="R">R (ZAR - South African Rand)</option>
+      </select>
+    </div>
+
+    <div style="background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="langPref">Language Preference</h3>
+      <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="langDesc">Choose your interface language.</p>
+      <select id="select-language" class="form-control" style="cursor: pointer;">
+        <option value="ar">العربية (Arabic)</option>
+        <option value="cs">Čeština (Czech)</option>
+        <option value="da">Dansk (Danish)</option>
+        <option value="de">Deutsch (German)</option>
+        <option value="en">English</option>
+        <option value="es">Español (Spanish)</option>
+        <option value="fr">Français (French)</option>
+        <option value="he">עברית (Hebrew)</option>
+        <option value="hi">हिन्दी (Hindi)</option>
+        <option value="hu">Magyar (Hungarian)</option>
+        <option value="id">Bahasa Indonesia (Indonesian)</option>
+        <option value="ja">日本語 (Japanese)</option>
+        <option value="ko">한국어 (Korean)</option>
+        <option value="ms">Bahasa Melayu (Malay)</option>
+        <option value="nb">Norsk (Norwegian)</option>
+        <option value="pl">Polski (Polish)</option>
+        <option value="pt">Português (Portuguese)</option>
+        <option value="ro">Română (Romanian)</option>
+        <option value="sv">Svenska (Swedish)</option>
+        <option value="th">ไทย (Thai)</option>
+        <option value="tr">Türkçe (Turkish)</option>
+        <option value="vi">Tiếng Việt (Vietnamese)</option>
+        <option value="zh-CN">简体中文 (Simplified Chinese)</option>
+        <option value="zh-TW">繁體中文 (Traditional Chinese)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="add-fab">+</button>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-item active" id="nav-trans"><span>📝</span><span data-i18n="navTrans">Transaction</span></button>
+  <button class="nav-item" id="nav-stats"><span>📊</span><span data-i18n="navStats">Stats</span></button>
+  <button class="nav-item" id="nav-settings"><span>⚙️</span><span data-i18n="navSettings">Settings</span></button>
+</div>
+
+<!-- ENTRY MODAL -->
+<div class="modal" id="entry-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <button class="icon-btn" style="color:#333;font-size:16px;font-weight:600;" id="close-modal-top" data-i18n="cancel">Cancel</button>
+      <span id="modal-title" data-i18n="expenseOrIncome">Expense or Income</span>
+      <button class="icon-btn" style="color:#ef4444;font-size:14px;display:none;" id="delete-btn" data-i18n="delete">Delete</button>
+    </div>
+
+    <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
+      <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="date">Date</label>
+      <div style="display: flex; align-items: center; width: 100%;">
+        <input type="date" id="input-date" style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 4px 0; -webkit-appearance: none; text-align: left; text-align-last: left;">
       </div>
     </div>
 
-    <!-- STATS SCREEN -->
-    <div id="screen-stats" class="main-screen">
-      <div class="top-bar">
-        <h1 data-i18n="statistics">Statistics</h1>
-        <div class="top-actions">
-          <button class="icon-btn" id="btn-stats-sync" title="Sync Cloud">🔄</button>
-        </div>
-      </div>
-      <div class="month-nav">
-        <button class="btn-prev-m" data-screen="stats">◀</button>
-        <span class="current-month-txt" id="stats-month-txt">Oct 2026</span>
-        <button class="btn-next-m" data-screen="stats">▶</button>
-      </div>
-      
-      <div class="stats-filter-bar">
-        <button class="stats-filter-btn" data-timeframe="weekly" data-i18n="weekly">Weekly</button>
-        <button class="stats-filter-btn active" data-timeframe="monthly" data-i18n="monthly">Monthly</button>
-        <button class="stats-filter-btn" data-timeframe="annually" data-i18n="annually">Annually</button>
-      </div>
-
-      <!-- STATS INCOME/EXPENSE SUMMARY BAR -->
-      <div class="summary-bar">
-        <div class="summary-item-box"><div data-i18n="income">Income</div><div id="stats-income-txt">£ 0.00</div></div>
-        <div class="summary-item-box"><div data-i18n="expense">Expense</div><div id="stats-expense-txt">£ 0.00</div></div>
-      </div>
-
-      <div class="content-area">
-        <div class="stats-container">
-          <div class="pie-chart"><svg id="svgPie" viewBox="0 0 100 100" style="width:100%;height:100%;transform:rotate(-90deg);"></svg></div>
-          <div id="stats-list-container" style="width:100%;"></div>
-        </div>
-      </div>
+    <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
+      <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="category">Category</label>
+      <input type="text" id="input-category" readonly style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; cursor: pointer; padding: 4px 0;" value="Food">
     </div>
 
-    <!-- SETTINGS SCREEN -->
-    <div id="screen-settings" class="main-screen">
-      <div class="top-bar">
-        <h1 data-i18n="settingsTitle">Settings</h1>
+    <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
+      <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="merchantNote">Merchant / Note</label>
+      <div style="display:flex; gap:6px; align-items: center;">
+        <input type="text" id="input-merchant" list="merchant-list" placeholder="e.g. Tesco, Starbucks" style="flex:1; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 4px 0;" autocomplete="off">
+        <button type="button" id="btn-clear-merchant" style="width:auto; background:none; border:none; cursor:pointer; font-size: 16px;" title="Hide suggestions">🚫</button>
       </div>
-      <div class="content-area" style="padding: 16px;">
-        <div style="background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-          <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="currencyPref">Currency Preference</h3>
-          <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="currencyDesc">Choose your currency symbol.</p>
-          <select id="select-currency" class="form-control" style="cursor: pointer;">
-            <option value="AED">AED (AED - UAE Dirham)</option>
-            <option value="$">$ (ARS - Argentine Peso)</option>
-            <option value="$">$ (AUD - Australian Dollar)</option>
-            <option value="R$">R$ (BRL - Brazilian Real)</option>
-            <option value="$">$ (CAD - Canadian Dollar)</option>
-            <option value="CHF">CHF (CHF - Swiss Franc)</option>
-            <option value="Kč">Kč (CZK - Czech Koruna)</option>
-            <option value="kr">kr (DKK - Danish Krone)</option>
-            <option value="€">€ (EUR - Euro)</option>
-            <option value="£">£ (GBP - British Pound)</option>
-            <option value="$">$ (HKD - Hong Kong Dollar)</option>
-            <option value="Ft">Ft (HUF - Hungarian Forint)</option>
-            <option value="Rp">Rp (IDR - Indonesian Rupiah)</option>
-            <option value="₹">₹ (INR - Indian Rupee)</option>
-            <option value="₪">₪ (ILS - Israeli New Shekel)</option>
-            <option value="¥">¥ (JPY / CNY - Yen / Yuan)</option>
-            <option value="₩">₩ (KRW - South Korean Won)</option>
-            <option value="RM">RM (MYR - Malaysian Ringgit)</option>
-            <option value="kr">kr (NOK - Norwegian Krone)</option>
-            <option value="$">$ (NZD - New Zealand Dollar)</option>
-            <option value="₱">₱ (PHP - Philippine Peso)</option>
-            <option value="zł">zł (PLN - Polish Złoty)</option>
-            <option value="SAR">SAR (SAR - Saudi Riyal)</option>
-            <option value="kr">kr (SEK - Swedish Krona)</option>
-            <option value="$">$ (SGD - Singapore Dollar)</option>
-            <option value="฿">฿ (THB - Thai Baht)</option>
-            <option value="₺">₺ (TRY - Turkish Lira)</option>
-            <option value="$">$ (TWD - New Taiwan Dollar)</option>
-            <option value="$">$ (USD / MXN - Dollar)</option>
-            <option value="₫">₫ (VND - Vietnamese Đồng)</option>
-            <option value="R">R (ZAR - South African Rand)</option>
-          </select>
-        </div>
-
-        <div style="background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-          <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="langPref">Language Preference</h3>
-          <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="langDesc">Choose your interface language.</p>
-          <select id="select-language" class="form-control" style="cursor: pointer;">
-            <option value="ar">العربية (Arabic)</option>
-            <option value="cs">Čeština (Czech)</option>
-            <option value="da">Dansk (Danish)</option>
-            <option value="de">Deutsch (German)</option>
-            <option value="en">English</option>
-            <option value="es">Español (Spanish)</option>
-            <option value="fr">Français (French)</option>
-            <option value="he">עברית (Hebrew)</option>
-            <option value="hi">हिन्दी (Hindi)</option>
-            <option value="hu">Magyar (Hungarian)</option>
-            <option value="id">Bahasa Indonesia (Indonesian)</option>
-            <option value="ja">日本語 (Japanese)</option>
-            <option value="ko">한국어 (Korean)</option>
-            <option value="ms">Bahasa Melayu (Malay)</option>
-            <option value="nb">Norsk (Norwegian)</option>
-            <option value="pl">Polski (Polish)</option>
-            <option value="pt">Português (Portuguese)</option>
-            <option value="ro">Română (Romanian)</option>
-            <option value="sv">Svenska (Swedish)</option>
-            <option value="th">ไทย (Thai)</option>
-            <option value="tr">Türkçe (Turkish)</option>
-            <option value="vi">Tiếng Việt (Vietnamese)</option>
-            <option value="zh-CN">简体中文 (Simplified Chinese)</option>
-            <option value="zh-TW">繁體中文 (Traditional Chinese)</option>
-          </select>
-        </div>
-      </div>
+      <datalist id="merchant-list"></datalist>
     </div>
 
-    <button class="fab" id="add-fab">+</button>
-
-    <!-- BOTTOM NAV -->
-    <div class="bottom-nav">
-      <button class="nav-item active" id="nav-trans"><span>📝</span><span data-i18n="navTrans">Transaction</span></button>
-      <button class="nav-item" id="nav-stats"><span>📊</span><span data-i18n="navStats">Stats</span></button>
-      <button class="nav-item" id="nav-settings"><span>⚙️</span><span data-i18n="navSettings">Settings</span></button>
-    </div>
-
-    <!-- ENTRY MODAL -->
-    <div class="modal" id="entry-modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button class="icon-btn" style="color:#333;font-size:16px;font-weight:600;" id="close-modal-top" data-i18n="cancel">Cancel</button>
-          <span id="modal-title" data-i18n="expenseOrIncome">Expense or Income</span>
-          <button class="icon-btn" style="color:#ef4444;font-size:14px;display:none;" id="delete-btn" data-i18n="delete">Delete</button>
-        </div>
-
-        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
-          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="date">Date</label>
-          <div style="display: flex; align-items: center; width: 100%;">
-            <input type="date" id="input-date" style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 4px 0; -webkit-appearance: none; text-align: left; text-align-last: left;">
-          </div>
-        </div>
-
-        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
-          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="category">Category</label>
-          <input type="text" id="input-category" readonly style="width: 100%; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; cursor: pointer; padding: 4px 0;" value="Food">
-        </div>
-
-        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 10px;">
-          <label style="font-size: 11px; color: #6b7280; margin-bottom: 2px;" data-i18n="merchantNote">Merchant / Note</label>
-          <div style="display:flex; gap:6px; align-items: center;">
-            <input type="text" id="input-merchant" list="merchant-list" placeholder="e.g. Tesco, Starbucks" style="flex:1; border: none; background: transparent; font-size: 14px; color: #111827; outline: none; padding: 4px 0;" autocomplete="off">
-            <button type="button" id="btn-clear-merchant" style="width:auto; background:none; border:none; cursor:pointer; font-size: 16px;" title="Hide suggestions">🚫</button>
-          </div>
-          <datalist id="merchant-list"></datalist>
-        </div>
-
-        <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-            <label style="font-size: 11px; color: #6b7280; margin-bottom: 0;" data-i18n="amountLabel">Amount</label>
-            <!-- RECURRING DROPDOWN BOX -->
-            <select id="input-repeat" style="font-size: 11px; border: 1px solid #d1d5db; border-radius: 4px; padding: 2px 4px; background: #f9fafb; color: #374151; outline: none; cursor: pointer;">
-              <option value="none">One-time</option>
-              <option value="weekly">Weekly Repeat</option>
-              <option value="monthly">Monthly Repeat</option>
-              <option value="annually">Yearly Repeat</option>
-            </select>
-          </div>
-          <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 14px; text-align: left; color: #111827; outline: none; padding: 4px 0;">
-        </div>       
-
-        <div class="keypad">
-          <button class="key-btn" data-key="7">7</button>
-          <button class="key-btn" data-key="8">8</button>
-          <button class="key-btn" data-key="9">9</button>
-          <button class="key-btn" data-key="+">+</button>
-          <button class="key-btn" data-key="4">4</button>
-          <button class="key-btn" data-key="5">5</button>
-          <button class="key-btn" data-key="6">6</button>
-          <button class="key-btn" data-key="-">-</button>
-          <button class="key-btn" data-key="1">1</button>
-          <button class="key-btn" data-key="2">2</button>
-          <button class="key-btn" data-key="3">3</button>
-          <button class="key-btn ok" id="key-ok">OK</button>
-          <button class="key-btn" data-key=".">.</button>
-          <button class="key-btn" data-key="0">0</button>
-          <button class="key-btn" id="key-backspace">⌫</button>
-        </div>
+    <div class="form-group" style="border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-bottom: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+        <label style="font-size: 11px; color: #6b7280; margin-bottom: 0;" data-i18n="amountLabel">Amount</label>
+        <!-- RECURRING DROPDOWN BOX -->
+        <select id="input-repeat" style="font-size: 11px; border: 1px solid #d1d5db; border-radius: 4px; padding: 2px 4px; background: #f9fafb; color: #374151; outline: none; cursor: pointer;">
+          <option value="none">One-time</option>
+          <option value="weekly">Weekly Repeat</option>
+          <option value="monthly">Monthly Repeat</option>
+          <option value="annually">Yearly Repeat</option>
+        </select>
       </div>
-    </div>
+      <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 14px; text-align: left; color: #111827; outline: none; padding: 4px 0;">
+    </div>       
 
-    <!-- CATEGORY MODAL -->
-    <div class="modal" id="category-modal" style="z-index: 150;">
-      <div class="modal-content" style="height:60vh;">
-        <div class="modal-header">
-          <span data-i18n="selectCategory">Select Category</span>
-          <button class="icon-btn" style="color:#333;font-size:14px;" id="close-cat-modal" data-i18n="close">Close</button>
-        </div>
-        <div class="cat-grid" id="cat-grid-container"></div>
-      </div>
+    <div class="keypad">
+      <button class="key-btn" data-key="7">7</button>
+      <button class="key-btn" data-key="8">8</button>
+      <button class="key-btn" data-key="9">9</button>
+      <button class="key-btn" data-key="+">+</button>
+      <button class="key-btn" data-key="4">4</button>
+      <button class="key-btn" data-key="5">5</button>
+      <button class="key-btn" data-key="6">6</button>
+      <button class="key-btn" data-key="-">-</button>
+      <button class="key-btn" data-key="1">1</button>
+      <button class="key-btn" data-key="2">2</button>
+      <button class="key-btn" data-key="3">3</button>
+      <button class="key-btn ok" id="key-ok">OK</button>
+      <button class="key-btn" data-key=".">.</button>
+      <button class="key-btn" data-key="0">0</button>
+      <button class="key-btn" id="key-backspace">⌫</button>
     </div>
+  </div>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div class="modal" id="category-modal" style="z-index: 150;">
+  <div class="modal-content" style="height:60vh;">
+    <div class="modal-header">
+      <span data-i18n="selectCategory">Select Category</span>
+      <button class="icon-btn" style="color:#333;font-size:14px;" id="close-cat-modal" data-i18n="close">Close</button>
+    </div>
+    <div class="cat-grid" id="cat-grid-container"></div>
+  </div>
+</div>
 
 <!-- TOAST NOTIFICATION -->
-    <div id="app-toast" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #111827; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; z-index: 1000; transition: transform 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; max-width: 90%; pointer-events: none; font-weight: 500;"></div>
-    
-    <!-- DELETE CONFIRMATION MODAL -->
-    <div class="modal" id="delete-confirm-modal" style="z-index: 250;">
-      <div class="modal-content" style="max-width: 320px; text-align: center;">
-        <div class="modal-header">
-          <span data-i18n="delete">Delete</span>
-          <button class="icon-btn" style="color:#333;font-size:14px;" id="close-delete-modal">Cancel</button>
-        </div>
-        <p id="delete-modal-text" style="margin: 10px 0 20px 0; font-size: 14px; color: #4b5563; font-weight: 500; line-height: 1.4;"></p>
-        <div style="display: flex; gap: 10px;">
-          <button type="button" id="btn-confirm-delete" class="auth-btn" style="background: #ef4444; flex: 1;">Yes, Stop & Delete</button>
-        </div>
-      </div>
+<div id="app-toast" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #111827; color: white; padding: 12px 20px; border-radius: 8px; font-size: 13px; z-index: 1000; transition: transform 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; max-width: 90%; pointer-events: none; font-weight: 500;"></div>
+
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="modal" id="delete-confirm-modal" style="z-index: 250;">
+  <div class="modal-content" style="max-width: 320px; text-align: center;">
+    <div class="modal-header">
+      <span data-i18n="delete">Delete</span>
+      <button class="icon-btn" style="color:#333;font-size:14px;" id="close-delete-modal">Cancel</button>
     </div>
-    
-    <!-- CATEGORY TYPE MODAL -->
-    <div class="modal" id="category-type-modal" style="z-index: 200;">
-      <div class="modal-content" style="max-width: 320px; text-align: center;">
-        <div class="modal-header">
-          <span data-i18n="selectCategoryType">Select Category Type</span>
-          <button class="icon-btn" style="color:#333;font-size:14px;" id="close-type-modal" data-i18n="cancel">Cancel</button>
-        </div>
-        <p id="type-modal-title" style="margin: 10px 0 20px 0; font-size: 14px; color: #4b5563; font-weight: 500;"></p>
-        <div style="display: flex; gap: 10px;">
-          <button type="button" id="btn-type-expense" class="auth-btn" style="background: #ef4444; flex: 1;" data-i18n="expenseNeg">Expense (-)</button>
-          <button type="button" id="btn-type-income" class="auth-btn" style="background: #10b981; flex: 1;" data-i18n="incomePos">Income (+)</button>
-        </div>
-      </div>
+    <p id="delete-modal-text" style="margin: 10px 0 20px 0; font-size: 14px; color: #4b5563; font-weight: 500; line-height: 1.4;"></p>
+    <div style="display: flex; gap: 10px;">
+      <button type="button" id="btn-confirm-delete" class="auth-btn" style="background: #ef4444; flex: 1;">Yes, Stop & Delete</button>
     </div>
+  </div>
+</div>
+
+<!-- CATEGORY TYPE MODAL -->
+<div class="modal" id="category-type-modal" style="z-index: 200;">
+  <div class="modal-content" style="max-width: 320px; text-align: center;">
+    <div class="modal-header">
+      <span data-i18n="selectCategoryType">Select Category Type</span>
+      <button class="icon-btn" style="color:#333;font-size:14px;" id="close-type-modal" data-i18n="cancel">Cancel</button>
+    </div>
+    <p id="type-modal-title" style="margin: 10px 0 20px 0; font-size: 14px; color: #4b5563; font-weight: 500;"></p>
+    <div style="display: flex; gap: 10px;">
+      <button type="button" id="btn-type-expense" class="auth-btn" style="background: #ef4444; flex: 1;" data-i18n="expenseNeg">Expense (-)</button>
+      <button type="button" id="btn-type-income" class="auth-btn" style="background: #10b981; flex: 1;" data-i18n="incomePos">Income (+)</button>
+    </div>
+  </div>
+</div>
+
 
   </div>
   
