@@ -1,4 +1,4 @@
-<!-- 20261029 v50 try modify pie chart -->
+<!-- 20261029 v51 try modify pie chart -->
 
 <!DOCTYPE html>
 
@@ -1663,7 +1663,7 @@ function renderStats() {
         const color = categoryColors[name] || (activeStatsMode === 'income' ? '#10b981' : '#95a5a6');
         const amountColor = activeStatsMode === 'income' ? '#10b981' : '#4b5563';
         return `
-          <div class="stats-row clickable-cat-row" data-category="${name}" style="cursor: pointer; padding: 10px 0;">
+          <div class="stats-row clickable-cat-row" data-category="${name}" style="cursor: pointer; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <span>
               <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${color};margin-right:8px;vertical-align:middle;"></span>
               <strong style="color:#111827;font-weight:500;">${name}</strong>
