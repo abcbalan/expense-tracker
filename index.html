@@ -1,4 +1,5 @@
 <!-- 20261029 v36 Try to save local first, then sync to cloud when internet available -->
+<!-- 20261029 v37 Try to production Offline-First Sync Engine & Multi-Device Sync Options -->
 
 <!DOCTYPE html>
 
@@ -245,7 +246,7 @@
       <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="dataSyncDesc">Choose how your financial records are saved and synchronized.</p>
       <select id="select-sync-mode" class="form-control" style="cursor: pointer;">
         <option value="local">Store on this device only (Offline Mode)</option>
-        <option value="cloud">Sync across multiple devices (Cloud Backup)</option>
+        <option value="sync">Sync across multiple devices (Cloud Backup)</option>
       </select>
     </div>
     
@@ -277,16 +278,6 @@
         <option value="vi">Tiếng Việt (Vietnamese)</option>
         <option value="zh-CN">简体中文 (Simplified Chinese)</option>
         <option value="zh-TW">繁體中文 (Traditional Chinese)</option>
-      </select>
-    </div>
-
-    <!-- STORAGE & SYNC MODE PREFERENCE -->
-    <div style="background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-      <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="syncPref">Data Storage & Sync Mode</h3>
-      <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="syncDesc">Select whether to sync data to Supabase cloud or store on single device.</p>
-      <select id="select-sync-mode" class="form-control" style="cursor: pointer;">
-        <option value="sync">Smart Background Sync (Cloud Backup)</option>
-        <option value="local">Local Phone Storage Only (Single Phone)</option>
       </select>
     </div>
   </div>
@@ -449,7 +440,7 @@
         daily: 'يومي', calendar: 'التقويم', monthly: 'شهري', summary: 'ملخص',
         statistics: 'الإحصائيات', weekly: 'أسبوعي', annually: 'سنوي',
         settingsTitle: 'الإعدادات', currencyPref: 'تفضيل العملة', currencyDesc: 'اختر رمز العملة الخاص بك.',
-        langPref: 'تفضيل اللغة', langDesc: 'اختر لغة الواجهة.', syncPref: 'تخزين البيانات والمزامنة', syncDesc: 'اختر طريقة حفظ البيانات.',
+        langPref: 'تفضيل اللغة', langDesc: 'اختر لغة الواجهة.', dataSyncPref: 'تخزين البيانات والمزامنة', dataSyncDesc: 'اختر طريقة حفظ البيانات.',
         navTrans: 'المعاملات', navStats: 'الإحصائيات', navSettings: 'الإعدادات',
         cancel: 'إلغاء', expenseOrIncome: 'مصروف أو دخل', delete: 'حذف',
         date: 'التاريخ', category: 'الفئة', merchantNote: 'التاجر / ملاحظة', amountLabel: 'المبلغ',
@@ -462,7 +453,7 @@
         daily: 'Denně', calendar: 'Kalendář', monthly: 'Měsíčně', summary: 'Shrnutí',
         statistics: 'Statistiky', weekly: 'Týdně', annually: 'Ročně',
         settingsTitle: 'Nastavení', currencyPref: 'Preference měny', currencyDesc: 'Vyberte symbol měny.',
-        langPref: 'Preference jazyka', langDesc: 'Vyberte jazyk rozhraní.', syncPref: 'Ukládání dat a synchronizace', syncDesc: 'Vyberte způsob ukládání dat.',
+        langPref: 'Preference jazyka', langDesc: 'Vyberte jazyk rozhraní.', dataSyncPref: 'Ukládání dat a synchronizace', dataSyncDesc: 'Vyberte způsob ukládání dat.',
         navTrans: 'Transakce', navStats: 'Statistiky', navSettings: 'Nastavení',
         cancel: 'Zrušit', expenseOrIncome: 'Výdaj nebo Příjem', delete: 'Smazat',
         date: 'Datum', category: 'Kategorie', merchantNote: 'Obchodník / Poznámka', amountLabel: 'Částka',
@@ -475,10 +466,10 @@
         daily: 'Daglig', calendar: 'Kalender', monthly: 'Månedlig', summary: 'Oversigt',
         statistics: 'Statistik', weekly: 'Ugentlig', annually: 'Årlig',
         settingsTitle: 'Indstillinger', currencyPref: 'Valutapræference', currencyDesc: 'Vælg dit valutasymbol.',
-        langPref: 'Sprogpræference', langDesc: 'Vælg dit grænsefladesprog.', syncPref: 'Dataopbevaring & Synkronisering', syncDesc: 'Vælg hvordan dine data gemmes.',
+        langPref: 'Sprogpræference', langDesc: 'Vælg dit grænsefladesprog.', dataSyncPref: 'Dataopbevaring & Synkronisering', dataSyncDesc: 'Vælg hvordan dine data gemmes.',
         navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Indstillinger',
         cancel: 'Annuller', expenseOrIncome: 'Udgift eller Indkomst', delete: 'Slet',
-        date: 'Dato', category: 'Kategori', merchantNote: 'Butik / Note', amountLabel: 'Beløb',
+        date: 'Dato', category: 'Kategori', merchantNote: 'Butik / Note', amountLabel: 'Beløp',
         selectCategory: 'Vælg kategori', close: 'Luk', selectCategoryType: 'Vælg kategoritype',
         expenseNeg: 'Udgift (-)', incomePos: 'Indkomst (+)', noTransactions: 'Ingen transaktioner endnu',
         noStats: 'Ingen statistik for denne periode', noExpenseData: 'Ingen udgiftsdata'
@@ -488,7 +479,7 @@
         daily: 'Täglich', calendar: 'Kalender', monthly: 'Monatlich', summary: 'Zusammenfassung',
         statistics: 'Statistiken', weekly: 'Wöchentlich', annually: 'Jährlich',
         settingsTitle: 'Einstellungen', currencyPref: 'Währungseinstellung', currencyDesc: 'Wählen Sie Ihr Währungssymbol.',
-        langPref: 'Spracheinstellung', langDesc: 'Wählen Sie Ihre Displaysprache.', syncPref: 'Datenspeicherung & Synchronisierung', syncDesc: 'Wählen Sie, wie Daten gespeichert werden.',
+        langPref: 'Spracheinstellung', langDesc: 'Wählen Sie Ihre Displaysprache.', dataSyncPref: 'Datenspeicherung & Synchronisierung', dataSyncDesc: 'Wählen Sie, wie Daten gespeichert werden.',
         navTrans: 'Transaktion', navStats: 'Statistiken', navSettings: 'Einstellungen',
         cancel: 'Abbrechen', expenseOrIncome: 'Ausgabe oder Einnahme', delete: 'Löschen',
         date: 'Datum', category: 'Kategorie', merchantNote: 'Händler / Notiz', amountLabel: 'Betrag',
@@ -501,24 +492,21 @@
         daily: 'Daily', calendar: 'Calendar', monthly: 'Monthly', summary: 'Summary',
         statistics: 'Statistics', weekly: 'Weekly', annually: 'Annually',
         settingsTitle: 'Settings', currencyPref: 'Currency Preference', currencyDesc: 'Choose your currency symbol.',
-        langPref: 'Language Preference', langDesc: 'Choose your interface language.', syncPref: 'Data Storage & Sync Mode', syncDesc: 'Select whether to sync data to Supabase cloud or store on single device.',
+        langPref: 'Language Preference', langDesc: 'Choose your interface language.',
+        dataSyncPref: 'Data Storage & Sync', dataSyncDesc: 'Choose how your financial records are saved and synchronized.',
         navTrans: 'Transaction', navStats: 'Stats', navSettings: 'Settings',
         cancel: 'Cancel', expenseOrIncome: 'Expense or Income', delete: 'Delete',
         date: 'Date', category: 'Category', merchantNote: 'Merchant / Note', amountLabel: 'Amount',
         selectCategory: 'Select Category', close: 'Close', selectCategoryType: 'Select Category Type',
         expenseNeg: 'Expense (-)', incomePos: 'Income (+)', noTransactions: 'No transactions yet',
         noStats: 'No statistics for this timeframe', noExpenseData: 'No expense data'
-        dataSyncPref: 'Data Storage & Sync',
-        dataSyncDesc: 'Choose how your financial records are saved and synchronized.',
-        syncModeLocal: 'Store on this device only (Offline Mode)',
-        syncModeCloud: 'Sync across multiple devices (Cloud Backup)'
       },
       es: {
         income: 'Ingresos', expense: 'Gastos', total: 'Total',
         daily: 'Diario', calendar: 'Calendario', monthly: 'Mensual', summary: 'Resumen',
         statistics: 'Estadísticas', weekly: 'Semanal', annually: 'Anual',
         settingsTitle: 'Ajustes', currencyPref: 'Preferencia de Moneda', currencyDesc: 'Elige tu símbolo de moneda.',
-        langPref: 'Preferencia de Idioma', langDesc: 'Elige el idioma de tu interfaz.', syncPref: 'Almacenamiento y Sincronización', syncDesc: 'Elige cómo guardar tus datos.',
+        langPref: 'Preferencia de Idioma', langDesc: 'Elige el idioma de tu interfaz.', dataSyncPref: 'Almacenamiento y Sincronización', dataSyncDesc: 'Elige cómo guardar tus datos.',
         navTrans: 'Transacción', navStats: 'Estadísticas', navSettings: 'Ajustes',
         cancel: 'Cancelar', expenseOrIncome: 'Gasto o Ingreso', delete: 'Eliminar',
         date: 'Fecha', category: 'Categoría', merchantNote: 'Comercio / Nota', amountLabel: 'Importe',
@@ -531,7 +519,7 @@
         daily: 'Quotidien', calendar: 'Calendrier', monthly: 'Mensuel', summary: 'Résumé',
         statistics: 'Statistiques', weekly: 'Hebdomadaire', annually: 'Annuel',
         settingsTitle: 'Paramètres', currencyPref: 'Préférence de devise', currencyDesc: 'Choisissez votre symbole de devise.',
-        langPref: 'Préférence de langue', langDesc: 'Choisissez la langue de votre interface.', syncPref: 'Stockage des données & Synchro', syncDesc: 'Choisissez le mode de stockage.',
+        langPref: 'Préférence de langue', langDesc: 'Choisissez la langue de votre interface.', dataSyncPref: 'Stockage des données & Synchro', dataSyncDesc: 'Choisissez le mode de stockage.',
         navTrans: 'Transaction', navStats: 'Statistiques', navSettings: 'Paramètres',
         cancel: 'Annuler', expenseOrIncome: 'Dépense ou Revenu', delete: 'Supprimer',
         date: 'Date', category: 'Catégorie', merchantNote: 'Marchand / Note', amountLabel: 'Montant',
@@ -544,9 +532,9 @@
         daily: 'יומי', calendar: 'לוח שנה', monthly: 'חודשי', summary: 'סיכום',
         statistics: 'סטטיסטיקה', weekly: 'שבועי', annually: 'שנתי',
         settingsTitle: 'הגדרות', currencyPref: 'העדפת מטבע', currencyDesc: 'בחר את סמל המטבע שלך.',
-        langPref: 'העדפת שפה', langDesc: 'בחר את שפת הממשק.', syncPref: 'אחסון נתונים וסנכרון', syncDesc: 'בחר אופן שמירת הנתונים.',
+        langPref: 'העדפת שפה', langDesc: 'בחר את שפת הממשק.', dataSyncPref: 'אחסון נתונים וסנכרון', dataSyncDesc: 'בחר אופן שמירת הנתונים.',
         navTrans: 'עסקאות', navStats: 'סטטיסטיקה', navSettings: 'הגדרות',
-        cancel: 'ביטול', expenseOrIncome: 'הוצאה או הכנסה', delete: 'מחק',
+        cancel: 'ביטול', expenseOrIncome: 'הוצאה או הככנסה', delete: 'מחק',
         date: 'תאריך', category: 'קטגוריה', merchantNote: 'בית עסק / הערה', amountLabel: 'סכום',
         selectCategory: 'בחר קטגוריה', close: 'סגור', selectCategoryType: 'בחר סוג קטגוריה',
         expenseNeg: 'הוצאה (-)', incomePos: 'הכנסה (+)', noTransactions: 'אין עסקאות עדיין',
@@ -557,7 +545,7 @@
         daily: 'दैनिक', calendar: 'कैलेंडर', monthly: 'मासिक', summary: 'सारांश',
         statistics: 'आंकड़े', weekly: 'साप्ताहिक', annually: 'वार्षिक',
         settingsTitle: 'सेटिंग्स', currencyPref: 'मुद्रा प्राथमिकता', currencyDesc: 'अपना मुद्रा प्रतीक चुनें।',
-        langPref: 'भाषा प्राथमिकता', langDesc: 'अपनी इंटरफ़ेस भाषा चुनें।', syncPref: 'डेटा स्टोरेज और सिंक', syncDesc: 'डेटा स्टोर करने का तरीका चुनें।',
+        langPref: 'भाषा प्राथमिकता', langDesc: 'अपनी इंटरफ़ेस भाषा चुनें।', dataSyncPref: 'डेटा स्टोरेज और सिंक', dataSyncDesc: 'डेटा स्टोर करने का तरीका चुनें।',
         navTrans: 'लेन-देन', navStats: 'आंकड़े', navSettings: 'सेटिंग्स',
         cancel: 'रद्द करें', expenseOrIncome: 'व्यय या आय', delete: 'हटाएं',
         date: 'दिनांक', category: 'श्रेणी', merchantNote: 'व्यापारी / नोट', amountLabel: 'राशि',
@@ -570,7 +558,7 @@
         daily: 'Napi', calendar: 'Naptár', monthly: 'Havi', summary: 'Összegzés',
         statistics: 'Statisztika', weekly: 'Heti', annually: 'Éves',
         settingsTitle: 'Beállítások', currencyPref: 'Pénznem beállítása', currencyDesc: 'Válassza ki a pénznem szimbólumát.',
-        langPref: 'Nyelvi beállítás', langDesc: 'Válassza ki a felület nyelvét.', syncPref: 'Adattárolás és szinkronizálás', syncDesc: 'Válassza ki az adattárolási módot.',
+        langPref: 'Nyelvi beállítás', langDesc: 'Válassza ki a felület nyelvét.', dataSyncPref: 'Adattárolás és szinkronizálás', dataSyncDesc: 'Válassza ki az adattárolási módot.',
         navTrans: 'Tranzakció', navStats: 'Statisztika', navSettings: 'Beállítások',
         cancel: 'Mégse', expenseOrIncome: 'Költség vagy Bevétel', delete: 'Törlés',
         date: 'Dátum', category: 'Kategória', merchantNote: 'Kereskedő / Megjegyzés', amountLabel: 'Összeg',
@@ -583,7 +571,7 @@
         daily: 'Harian', calendar: 'Kalender', monthly: 'Bulanan', summary: 'Ringkasan',
         statistics: 'Statistik', weekly: 'Mingguan', annually: 'Tahunan',
         settingsTitle: 'Pengaturan', currencyPref: 'Preferensi Mata Uang', currencyDesc: 'Pilih simbol mata uang Anda.',
-        langPref: 'Preferensi Bahasa', langDesc: 'Pilih bahasa tampilan.', syncPref: 'Penyimpanan Data & Sinkronisasi', syncDesc: 'Pilih mode penyimpanan data Anda.',
+        langPref: 'Preferensi Bahasa', langDesc: 'Pilih bahasa tampilan.', dataSyncPref: 'Penyimpanan Data & Sinkronisasi', dataSyncDesc: 'Pilih mode penyimpanan data Anda.',
         navTrans: 'Transaksi', navStats: 'Statistik', navSettings: 'Pengaturan',
         cancel: 'Batal', expenseOrIncome: 'Pengeluaran atau Pemasukan', delete: 'Hapus',
         date: 'Tanggal', category: 'Kategori', merchantNote: 'Toko / Catatan', amountLabel: 'Jumlah',
@@ -596,7 +584,7 @@
         daily: '日別', calendar: 'カレンダー', monthly: '月別', summary: '概要',
         statistics: '統計', weekly: '週間', annually: '年間',
         settingsTitle: '設定', currencyPref: '通貨の設定', currencyDesc: '表示する通貨記号を選択します。',
-        langPref: '言語の設定', langDesc: 'アプリの表示言語を選択します。', syncPref: 'データ保存と同期設定', syncDesc: 'データの保存方法を選択します。',
+        langPref: '言語の設定', langDesc: 'アプリの表示言語を選択します。', dataSyncPref: 'データ保存と同期設定', dataSyncDesc: 'データの保存方法を選択します。',
         navTrans: '取引履歴', navStats: '統計', navSettings: '設定',
         cancel: 'キャンセル', expenseOrIncome: '収支の登録', delete: '削除',
         date: '日付', category: 'カテゴリー', merchantNote: '店舗 / メモ', amountLabel: '金額',
@@ -609,7 +597,7 @@
         daily: '일별', calendar: '달력', monthly: '월별', summary: '요약',
         statistics: '통계', weekly: '주간', annually: '연간',
         settingsTitle: '설정', currencyPref: '통화 설정', currencyDesc: '사용할 통화 기호를 선택하세요.',
-        langPref: '언어 설정', langDesc: '표시 언어를 선택하세요.', syncPref: '데이터 저장 및 동기화', syncDesc: '데이터 저장 방식을 선택하세요.',
+        langPref: '언어 설정', langDesc: '표시 언어를 선택하세요.', dataSyncPref: '데이터 저장 및 동기화', dataSyncDesc: '데이터 저장 방식을 선택하세요.',
         navTrans: '내역', navStats: '통계', navSettings: '설정',
         cancel: '취소', expenseOrIncome: '수입 / 지출 입력', delete: '삭제',
         date: '날짜', category: '카테고리', merchantNote: '사용처 / 메모', amountLabel: '금액',
@@ -622,7 +610,7 @@
         daily: 'Harian', calendar: 'Kalendar', monthly: 'Bulanan', summary: 'Ringkasan',
         statistics: 'Statistik', weekly: 'Mingguan', annually: 'Tahunan',
         settingsTitle: 'Tetapan', currencyPref: 'Pilihan Mata Wang', currencyDesc: 'Pilih simbol mata wang anda.',
-        langPref: 'Pilihan Bahasa', langDesc: 'Pilih bahasa paparan anda.', syncPref: 'Penystoran Data & Senkronisasi', syncDesc: 'Pilih cara simpanan data.',
+        langPref: 'Pilihan Bahasa', langDesc: 'Pilih bahasa paparan anda.', dataSyncPref: 'Penystoran Data & Senkronisasi', dataSyncDesc: 'Pilih cara simpanan data.',
         navTrans: 'Transaksi', navStats: 'Statistik', navSettings: 'Tetapan',
         cancel: 'Batal', expenseOrIncome: 'Perbelanjaan atau Pendapatan', delete: 'Padam',
         date: 'Tarikh', category: 'Kategori', merchantNote: 'Peniaga / Nota', amountLabel: 'Jumlah',
@@ -635,7 +623,7 @@
         daily: 'Daglig', calendar: 'Kalender', monthly: 'Månedlig', summary: 'Sammendrag',
         statistics: 'Statistikk', weekly: 'Ukentlig', annually: 'Årlig',
         settingsTitle: 'Innstillinger', currencyPref: 'Valutapreferanse', currencyDesc: 'Velg ditt valutasymbol.',
-        langPref: 'Språkpreferanse', langDesc: 'Velg visningsspråk.', syncPref: 'Datalagring og synkronisering', syncDesc: 'Velg hvordan data lagres.',
+        langPref: 'Språkpreferanse', langDesc: 'Velg visningsspråk.', dataSyncPref: 'Datalagring og synkronisering', dataSyncDesc: 'Velg hvordan data lagres.',
         navTrans: 'Transaksjon', navStats: 'Statistikk', navSettings: 'Innstillinger',
         cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inntekt', delete: 'Slett',
         date: 'Dato', category: 'Kategori', merchantNote: 'Bruker / Notat', amountLabel: 'Beløp',
@@ -648,7 +636,7 @@
         daily: 'Dziennie', calendar: 'Kalendarz', monthly: 'Miesięcznie', summary: 'Podsumowanie',
         statistics: 'Statystyki', weekly: 'Tygodniowo', annually: 'Rocznie',
         settingsTitle: 'Ustawienia', currencyPref: 'Preferencja waluty', currencyDesc: 'Wybierz symbol waluty.',
-        langPref: 'Preferencja języka', langDesc: 'Wybierz język interfejsu.', syncPref: 'Przechowywanie danych i synchronizacja', syncDesc: 'Wybierz tryb zapisu danych.',
+        langPref: 'Preferencja języka', langDesc: 'Wybierz język interfejsu.', dataSyncPref: 'Przechowywanie danych i synchronizacja', dataSyncDesc: 'Wybierz tryb zapisu danych.',
         navTrans: 'Transakcje', navStats: 'Statystyki', navSettings: 'Ustawienia',
         cancel: 'Anuluj', expenseOrIncome: 'Wydatek lub Przychód', delete: 'Usuń',
         date: 'Data', category: 'Kategoria', merchantNote: 'Sklep / Notatka', amountLabel: 'Kwota',
@@ -661,7 +649,7 @@
         daily: 'Diário', calendar: 'Calendário', monthly: 'Mensal', summary: 'Resumo',
         statistics: 'Estatísticas', weekly: 'Semanal', annually: 'Anual',
         settingsTitle: 'Configurações', currencyPref: 'Preferência de Moeda', currencyDesc: 'Escolha seu símbolo de moeda.',
-        langPref: 'Preferência de Idioma', langDesc: 'Escolha o idioma da interface.', syncPref: 'Armazenamento de Dados & Sincronização', syncDesc: 'Escolha como salvar dados.',
+        langPref: 'Preferência de Idioma', langDesc: 'Escolha o idioma da interface.', dataSyncPref: 'Armazenamento de Dados & Sincronização', dataSyncDesc: 'Escolha como salvar dados.',
         navTrans: 'Transação', navStats: 'Estatísticas', navSettings: 'Configurações',
         cancel: 'Cancelar', expenseOrIncome: 'Despesa ou Receita', delete: 'Excluir',
         date: 'Data', category: 'Categoria', merchantNote: 'Comerciante / Nota', amountLabel: 'Valor',
@@ -674,7 +662,7 @@
         daily: 'Zilnic', calendar: 'Calendar', monthly: 'Lunar', summary: 'Rezumat',
         statistics: 'Statistici', weekly: 'Săptămânal', annually: 'Anual',
         settingsTitle: 'Setări', currencyPref: 'Preferință monedă', currencyDesc: 'Alegeți simbolul monedei.',
-        langPref: 'Preferință limbă', langDesc: 'Alegeți limba interfeței.', syncPref: 'Stocare date & Sincronizare', syncDesc: 'Alegeți modul de stocare.',
+        langPref: 'Preferință limbă', langDesc: 'Alegeți limba interfeței.', dataSyncPref: 'Stocare date & Sincronizare', dataSyncDesc: 'Alegeți modul de stocare.',
         navTrans: 'Tranzacție', navStats: 'Statistici', navSettings: 'Setări',
         cancel: 'Anulează', expenseOrIncome: 'Cheltuială sau Venit', delete: 'Șterge',
         date: 'Dată', category: 'Categorie', merchantNote: 'Comerciant / Notă', amountLabel: 'Sumă',
@@ -687,7 +675,7 @@
         daily: 'Dagligen', calendar: 'Kalender', monthly: 'Månadsvis', summary: 'Sammanfattning',
         statistics: 'Statistik', weekly: 'Veckovis', annually: 'Årlig',
         settingsTitle: 'Inställningar', currencyPref: 'Valutapreferens', currencyDesc: 'Valj din valutasymbol.',
-        langPref: 'Språkpreferens', langDesc: 'Välj ditt gränssnittsspråk.', syncPref: 'Datalagring & Synkronisering', syncDesc: 'Välj hur data lagras.',
+        langPref: 'Språkpreferens', langDesc: 'Välj ditt gränssnittsspråk.', dataSyncPref: 'Datalagring & Synkronisering', dataSyncDesc: 'Välj hur data lagras.',
         navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Inställningar',
         cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inkomst', delete: 'Radera',
         date: 'Datum', category: 'Kategori', merchantNote: 'Företag / Anteckning', amountLabel: 'Belopp',
@@ -700,7 +688,7 @@
         daily: 'รายวัน', calendar: 'ปฏิทิน', monthly: 'รายเดือน', summary: 'สรุป',
         statistics: 'สถิติ', weekly: 'รายสัปดาห์', annually: 'รายปี',
         settingsTitle: 'ตั้งค่า', currencyPref: 'สกุลเงิน', currencyDesc: 'เลือกสัญลักษณ์สกุลเงินของคุณ',
-        langPref: 'ภาษา', langDesc: 'เลือกภาษาของแอปพลิเคชัน', syncPref: 'การจัดเก็บข้อมูลและการซิงค์', syncDesc: 'เลือกโหมดการบันทึกข้อมูล',
+        langPref: 'ภาษา', langDesc: 'เลือกภาษาของแอปพลิเคชัน', dataSyncPref: 'การจัดเก็บข้อมูลและการซิงค์', dataSyncDesc: 'เลือกโหมดการบันทึกข้อมูล',
         navTrans: 'รายการ', navStats: 'สถิติ', navSettings: 'ตั้งค่า',
         cancel: 'ยกเลิก', expenseOrIncome: 'บันทึกรายรับ-รายจ่าย', delete: 'ลบ',
         date: 'วันที่', category: 'หมวดหมู่', merchantNote: 'ร้านค้า / บันทึก', amountLabel: 'จำนวนเงิน',
@@ -713,7 +701,7 @@
         daily: 'Günlük', calendar: 'Takvim', monthly: 'Aylık', summary: 'Özet',
         statistics: 'İstatistikler', weekly: 'Haftalık', annually: 'Yıllık',
         settingsTitle: 'Ayarlar', currencyPref: 'Para Birimi Tercihi', currencyDesc: 'Para birimi simgenizi seçin.',
-        langPref: 'Dil Tercihi', langDesc: 'Arayüz dilinizi seçin.', syncPref: 'Veri Depolama ve Senkronizasyon', syncDesc: 'Kaydetme modunu seçin.',
+        langPref: 'Dil Tercihi', langDesc: 'Arayüz dilinizi seçin.', dataSyncPref: 'Veri Depolama ve Senkronizasyon', dataSyncDesc: 'Kaydetme modunu seçin.',
         navTrans: 'İşlemler', navStats: 'İstatistikler', navSettings: 'Ayarlar',
         cancel: 'İptal', expenseOrIncome: 'Gider veya Gelir', delete: 'Sil',
         date: 'Tarih', category: 'Kategori', merchantNote: 'Satıcı / Not', amountLabel: 'Tutar',
@@ -726,7 +714,7 @@
         daily: 'Hàng ngày', calendar: 'Lịch', monthly: 'Hàng tháng', summary: 'Tóm tắt',
         statistics: 'Thống kê', weekly: 'Hàng tuần', annually: 'Hàng năm',
         settingsTitle: 'Cài đặt', currencyPref: 'Tiền tệ', currencyDesc: 'Chọn ký hiệu tiền tệ của bạn.',
-        langPref: 'Ngôn ngữ', langDesc: 'Chọn ngôn ngữ giao diện.', syncPref: 'Lưu trữ & Đồng bộ dữ liệu', syncDesc: 'Chọn chế độ lưu dữ liệu.',
+        langPref: 'Ngôn ngữ', langDesc: 'Chọn ngôn ngữ giao diện.', dataSyncPref: 'Lưu trữ & Đồng bộ dữ liệu', dataSyncDesc: 'Chọn chế độ lưu dữ liệu.',
         navTrans: 'Giao dịch', navStats: 'Thống kê', navSettings: 'Cài đặt',
         cancel: 'Hủy', expenseOrIncome: 'Chi tiêu hoặc Thu nhập', delete: 'Xóa',
         date: 'Ngày', category: 'Danh mục', merchantNote: 'Cửa hàng / Ghi chú', amountLabel: 'Số tiền',
@@ -739,24 +727,20 @@
         daily: '每日', calendar: '日历', monthly: '每月', summary: '汇总',
         statistics: '统计', weekly: '每周', annually: '每年',
         settingsTitle: '设置', currencyPref: '货币偏好', currencyDesc: '选择您使用的货币符号。',
-        langPref: '语言偏好', langDesc: '选择您的界面显示语言。', syncPref: '数据存储与同步模式', syncDesc: '选择将数据同步到云端还是单机保存。',
+        langPref: '语言偏好', langDesc: '选择您的界面显示语言。', dataSyncPref: '数据存储与同步模式', dataSyncDesc: '选择将数据同步到云端还是单机保存。',
         navTrans: '交易', navStats: '统计', navSettings: '设置',
         cancel: '取消', expenseOrIncome: '记账', delete: '删除',
         date: '日期', category: '类别', merchantNote: '商家 / 备注', amountLabel: '金额',
         selectCategory: '选择类别', close: '关闭', selectCategoryType: '选择类别类型',
         expenseNeg: '支出 (-)', incomePos: '收入 (+)', noTransactions: '暂无交易记录',
         noStats: '该时间段无统计数据', noExpenseData: '无支出数据'
-        dataSyncPref: '数据存储与同步',
-        dataSyncDesc: '选择您的财务记录保存与同步方式。',
-        syncModeLocal: '仅存储在当前设备（单机离线模式）',
-        syncModeCloud: '多设备同步（云端备份）'
       },
       'zh-TW': {
         income: '收入', expense: '支出', total: '結餘',
         daily: '每日', calendar: '日曆', monthly: '每月', summary: '彙總',
         statistics: '統計', weekly: '每週', annually: '每年',
         settingsTitle: '設定', currencyPref: '貨幣偏好', currencyDesc: '選擇您使用的貨幣符號。',
-        langPref: '語言偏好', langDesc: '選擇您的介面顯示語言。', syncPref: '資料存儲與同步模式', syncDesc: '選擇將資料同步至雲端或單機儲存。',
+        langPref: '語言偏好', langDesc: '選擇您的介面顯示語言。', dataSyncPref: '資料存儲與同步模式', dataSyncDesc: '選擇將資料同步至雲端或單機儲存。',
         navTrans: '交易', navStats: '統計', navSettings: '設定',
         cancel: '取消', expenseOrIncome: '記帳', delete: '刪除',
         date: '日期', category: '類別', merchantNote: '商家 / 備註', amountLabel: '金額',
@@ -875,7 +859,6 @@
 
     function enqueuePendingAction(action) {
       const queue = getPendingQueue();
-      // Deduplicate queue items by target ID
       const filtered = queue.filter(q => q.item.id !== action.item.id);
       filtered.push(action);
       savePendingQueue(filtered);
@@ -1144,7 +1127,7 @@
 
 
         if (!data || !data.session) {
-          errEl.innerText = 'No session returned from Supabase.';
+          errEl.innerText = 'No session returned.';
           btnLogin.innerText = 'Sign In';
           btnLogin.disabled = false;
           return;
@@ -1926,32 +1909,28 @@
     }
 
 
-async function saveEntry() {
-  const item = buildEntryObject();
-  
-  // 1. Always save locally first for instant performance (<1ms)
-  const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
-  if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
-  else expenses.unshift(item);
-  
-  expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
-  localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+    async function saveEntry() {
+      const item = buildEntryObject();
+      
+      // 1. Always save locally first for instant performance (<1ms)
+      const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
+      if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
+      else expenses.unshift(item);
+      
+      expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+      localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
-  closeEntryModal();
-  renderAllViews();
 
-  // 2. Only sync to cloud if user chose multi-device sync mode
-  if (currentSyncMode === 'cloud' && currentUser && currentUser.id) {
-    try {
-      const { error } = await supabaseClient.from('expenses').upsert(item, { onConflict: 'id' });
-      if (error) {
-        console.warn('Background sync deferred (offline or network issue)');
+      closeEntryModal();
+      renderAllViews();
+
+
+      // 2. Queue or upload depending on selected sync mode
+      if (syncMode === 'sync' && currentUser && currentUser.id) {
+        enqueuePendingAction({ type: 'UPSERT', item });
+        processPendingSyncQueue();
       }
-    } catch (err) {
-      console.warn('Network exception during background sync:', err);
     }
-  }
-}
 
 
     async function deleteEntry() {
@@ -2122,10 +2101,10 @@ async function saveEntry() {
         if (syncMode === 'sync') {
           subscribeToExpenses();
           processPendingSyncQueue();
-          showToast('Smart Background Sync Enabled');
+          showToast('Multi-Device Sync Enabled');
         } else {
           unsubscribeFromExpenses();
-          showToast('Local Storage Only Enabled');
+          showToast('Single-Device Storage Enabled');
         }
       });
     }
@@ -2268,7 +2247,7 @@ async function saveEntry() {
 
     document.getElementById('btn-sync').addEventListener('click', () => {
       if (syncMode !== 'sync') {
-        showToast('Local Storage Only is selected in Settings.');
+        showToast('Single-device storage is enabled in Settings.');
         return;
       }
       syncWithSupabase();
@@ -2277,7 +2256,7 @@ async function saveEntry() {
 
     document.getElementById('btn-stats-sync').addEventListener('click', () => {
       if (syncMode !== 'sync') {
-        showToast('Local Storage Only is selected in Settings.');
+        showToast('Single-device storage is enabled in Settings.');
         return;
       }
       syncWithSupabase();
