@@ -1,5 +1,4 @@
-<!-- 20261029 v45 add W,M,Y detail cateogry list -->
-<!-- Works Perfectly -->
+<!-- 20261029 v46 try modify pie chart -->
 
 <!DOCTYPE html>
 
@@ -101,7 +100,8 @@
 .progress-bg { background: #f3f4f6; height: 6px; border-radius: 3px; overflow: hidden; }
 .progress-fill { height: 100%; border-radius: 3px; }
 .stats-container { padding: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; }
-.pie-chart { width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 16px 0; position: relative; }
+.pie-chart { width: 160px; height: 160px; border-radius: 50%; overflow: visible; margin: 20px auto; position: relative; display: flex; justify-content: center; align-items: center; }
+.pie-center-hole { position: absolute; width: 90px; height: 90px; background: #fff; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 11px; font-weight: 600; color: #374151; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
 .stats-row { width: 100%; display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
 .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; max-height: 300px; overflow-y: auto; }
 .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; }
@@ -201,12 +201,15 @@
     <div class="summary-item-box"><div data-i18n="expense">Expense</div><div id="stats-expense-txt">£ 0.00</div></div>
   </div>
 
-  <div class="content-area">
-    <div class="stats-container">
-      <div class="pie-chart"><svg id="svgPie" viewBox="0 0 100 100" style="width:100%;height:100%;transform:rotate(-90deg);"></svg></div>
-      <div id="stats-list-container" style="width:100%;"></div>
+<div class="content-area">
+  <div class="stats-container">
+    <div class="pie-chart">
+      <svg id="svgPie" viewBox="0 0 100 100" style="width:100%;height:100%;transform:rotate(-90deg);"></svg>
+      <div class="pie-center-hole" id="pie-center-txt">Total</div>
     </div>
+    <div id="stats-list-container" style="width:100%;"></div>
   </div>
+</div>
 </div>
 
 <!-- SETTINGS SCREEN -->
@@ -1547,9 +1550,10 @@
       }
     }
 
-    function renderStats() {
+function renderStats() {
       const container = document.getElementById('stats-list-container');
       const svg = document.getElementById('svgPie');
+      const centerTxt = document.getElementById('pie-center-txt');
       if (!container || !svg) return;
       
       const timeframeItems = getStatsTimeframeItems();
@@ -1574,6 +1578,10 @@
       const statsExpenseEl = document.getElementById('stats-expense-txt');
       if (statsIncomeEl) statsIncomeEl.textContent = formatMoney(statsIncome);
       if (statsExpenseEl) statsExpenseEl.textContent = formatMoney(statsExpense);
+
+      if (centerTxt) {
+        centerTxt.innerHTML = `<div style="font-size:10px; color:#9ca3af;">EXPENSE</div><div style="font-size:12px; color:#111827;">${formatMoney(statsExpense)}</div>`;
+      }
 
       const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
       if (!entries.length) {
@@ -1604,22 +1612,22 @@
         const largeArcFlag = percentage > 0.5 ? 1 : 0;
 
         const pathData = `M 50 50 L ${x1} ${y1} A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
-        return `<path d="${pathData}" fill="${color}"></path>`;
+        return `<path d="${pathData}" fill="${color}" style="cursor:pointer;" title="${name}: ${formatMoney(value)}"></path>`;
       }).join('');
 
       svg.innerHTML = paths;
 
-      // Render rows with click triggers for category drill-down
+      // Render rows with color indicators and percentages
       container.innerHTML = entries.map(([name, value]) => {
         const percent = ((value / total) * 100).toFixed(0);
         const color = categoryColors[name] || '#10b981';
         return `
           <div class="stats-row clickable-cat-row" data-category="${name}" style="cursor: pointer; padding: 10px 0;">
             <span>
-              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:8px;"></span>
-               ${name} <!-- <span style="font-size:10px; color:#9ca3af; margin-left:4px;">▶</span> -->
+              <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${color};margin-right:8px;vertical-align:middle;"></span>
+              <strong style="color:#111827;font-weight:500;">${name}</strong>
             </span>
-            <span>${formatMoney(value)} (${percent}%)</span>
+            <span style="color:#4b5563; font-weight:600;">${formatMoney(value)} <span style="font-size:11px; color:#9ca3af; font-weight:normal;">(${percent}%)</span></span>
           </div>
         `;
       }).join('');
