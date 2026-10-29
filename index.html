@@ -1,4 +1,4 @@
-<!-- 20261029 v42 Try to remove ▶ -->
+<!-- 20261029 v42 Try to remove ▶ with language update -->
 
 <!DOCTYPE html>
 
@@ -115,7 +115,7 @@
   <div class="modal-content" style="max-height: 80vh;">
     <div class="modal-header">
       <span id="stats-detail-title">Category Details</span>
-      <button class="icon-btn" style="color:#333;font-size:14px;" id="close-stats-detail-modal">Close</button>
+      <button class="icon-btn" style="color:#333;font-size:14px;" id="close-stats-detail-modal" data-i18n="close">Close</button>
     </div>
     <div id="stats-detail-list" style="overflow-y: auto; max-height: 60vh;"></div>
   </div>
@@ -1638,14 +1638,18 @@
       const listContainer = document.getElementById('stats-detail-list');
       if (!modal || !title || !listContainer) return;
 
-      title.textContent = `${categoryName} (${currentStatsTimeframe.toUpperCase()})`;
+      const timeframeLabel = t(currentStatsTimeframe).toUpperCase();
+      title.textContent = `${categoryName} (${timeframeLabel})`;
+
+      const closeBtn = document.getElementById('close-stats-detail-modal');
+      if (closeBtn) closeBtn.textContent = t('close');
 
       const items = getStatsTimeframeItems().filter(item => 
         (item.category || 'Other') === categoryName && (item.type || 'expense') === 'expense'
       ).sort((a, b) => new Date(b.date) - new Date(a.date));
 
       if (!items.length) {
-        listContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#6b7280;">No entries found</div>';
+        listContainer.innerHTML = `<div style="padding:16px; text-align:center; color:#6b7280;">${t('noTransactions')}</div>`;
       } else {
         const renderLimit = 100;
         const displayItems = items.slice(0, renderLimit);
