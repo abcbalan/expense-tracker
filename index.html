@@ -1,4 +1,4 @@
-<!-- 20261029 v40 Try to Category Breakdown Drill-Down for weekly, monthly and yearly -->
+<!-- 20261029 v41 Try to Category Breakdown Drill-Down for weekly, monthly and yearly -->
 
 <!DOCTYPE html>
 
@@ -411,24 +411,11 @@
 </div>
   </div>
 
-<!-- STATS CATEGORY DETAIL MODAL -->
-<div class="modal" id="stats-detail-modal" style="z-index: 220;">
-  <div class="modal-content" style="max-height: 80vh;">
-    <div class="modal-header">
-      <span id="stats-detail-title">Category Details</span>
-      <button class="icon-btn" style="color:#333;font-size:14px;" id="close-stats-detail-modal">Close</button>
-    </div>
-    <div id="stats-detail-list" style="overflow-y: auto; max-height: 60vh;"></div>
-  </div>
-</div>
-  
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
 
-
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 
     let expenses = [];
     let currentUser = null;
@@ -442,18 +429,15 @@
     let currentTransDate = new Date();
     let currentStatsDate = new Date();
 
-
     let expensesRealtime = null;
     let activeExpenseType = 'expense';
     let currentStatsTimeframe = 'monthly';
-
 
     // Settings State
     let currentCurrency = localStorage.getItem('user_currency') || '£';
     let currentLang = localStorage.getItem('user_lang') || 'en';
     let syncMode = localStorage.getItem('user_sync_mode') || 'local'; // 'sync' or 'local'
     let isSyncingQueue = false;
-
 
     // Translations Dictionary
     const translations = {
@@ -772,11 +756,9 @@
       }
     };
 
-
     function t(key) {
       return (translations[currentLang] && translations[currentLang][key]) || translations['en'][key] || key;
     }
-
 
     function applyTranslations() {
       document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -784,7 +766,6 @@
         el.textContent = t(k);
       });
     }
-
 
     function showToast(message) {
       const toast = document.getElementById('app-toast');
@@ -801,14 +782,12 @@
     let customIncomeCategories = [];
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
 
-
     const categoryColors = {
       'Food': '#ff6384', 'Social Life': '#ff9f40', 'Self-development': '#ffcd56',
       'Transportation': '#4bc0c0', 'Culture': '#36a2eb', 'Household': '#9966ff',
       'Apparel': '#c9cbcf', 'Beauty': '#e7e9ed', 'Health': '#2ecc71',
       'Education': '#e74c3c', 'Gift': '#3498db', 'Other': '#95a5a6'
     };
-
 
     function parseJwt(token) {
       try {
@@ -820,13 +799,11 @@
       }
     }
 
-
     function getUserStorageKey() {
       if (currentUserId) return `expenses_data_${currentUserId}`;
       if (currentUserEmail) return `expenses_data_${currentUserEmail}`;
       return 'expenses_data_guest';
     }
-
 
     function getPendingQueueKey() {
       if (currentUserId) return `pending_sync_queue_${currentUserId}`;
@@ -834,13 +811,11 @@
       return 'pending_sync_queue_guest';
     }
 
-
     function getCustomCategoriesKey() {
       if (currentUserId) return `custom_categories_${currentUserId}`;
       if (currentUserEmail) return `custom_categories_${currentUserEmail}`;
       return 'custom_categories_guest';
     }
-
 
     function getCustomIncomeCategoriesKey() {
       if (currentUserId) return `custom_income_categories_${currentUserId}`;
@@ -854,16 +829,13 @@
       if (currentUserId) localStorage.setItem('sb_user_id', currentUserId);
     }
 
-
     function clearAuthState() {
       localStorage.removeItem('sb_access_token');
       localStorage.removeItem('sb_user_email');
       localStorage.removeItem('sb_user_id');
     }
 
-
     function getGuestStorageKey() { return 'expenses_data_guest'; }
-
 
     function getPendingQueue() {
       try {
@@ -873,11 +845,9 @@
       }
     }
 
-
     function savePendingQueue(queue) {
       localStorage.setItem(getPendingQueueKey(), JSON.stringify(queue));
     }
-
 
     function enqueuePendingAction(action) {
       const queue = getPendingQueue();
@@ -885,7 +855,6 @@
       filtered.push(action);
       savePendingQueue(filtered);
     }
-
 
     function loadCategoriesFromUser(user) {
       if (user && user.user_metadata) {
@@ -897,13 +866,11 @@
         }
       }
 
-
       if (customCategories.length === 0) {
         try {
           customCategories = JSON.parse(localStorage.getItem(getCustomCategoriesKey()) || '[]');
         } catch (e) { customCategories = []; }
       }
-
 
       if (customIncomeCategories.length === 0) {
         try {
@@ -911,16 +878,13 @@
         } catch (e) { customIncomeCategories = []; }
       }
 
-
       localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories));
       localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories));
     }
 
-
     async function saveCustomCategoriesToCloud() {
       localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories));
       localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories));
-
 
       if (syncMode === 'sync' && currentUser && currentUser.id) {
         try {
@@ -936,31 +900,25 @@
       }
     }
 
-
     function mergeGuestLocalToUser() {
       const guestKey = getGuestStorageKey();
       const guestRaw = localStorage.getItem(guestKey);
       if (!guestRaw) return Promise.resolve();
 
-
       let guestEntries = [];
       try { guestEntries = JSON.parse(guestRaw) || []; } catch (e) { guestEntries = []; }
-
 
       if (!Array.isArray(guestEntries) || guestEntries.length === 0) {
         localStorage.removeItem(guestKey);
         return Promise.resolve();
       }
 
-
       if (!currentUser || !currentUser.id) return Promise.resolve();
-
 
       const userKey = getUserStorageKey();
       const existingRaw = localStorage.getItem(userKey);
       let existingEntries = [];
       try { existingEntries = existingRaw ? JSON.parse(existingRaw) : []; } catch (e) { existingEntries = []; }
-
 
       const merged = [...guestEntries, ...existingEntries];
       const seen = new Set();
@@ -973,10 +931,8 @@
         deduped.push(item);
       });
 
-
       localStorage.setItem(userKey, JSON.stringify(deduped));
       localStorage.removeItem(guestKey);
-
 
       if (syncMode === 'sync') {
         deduped.forEach(item => {
@@ -987,13 +943,11 @@
       return Promise.resolve();
     }
 
-
     function subscribeToExpenses() {
       if (syncMode !== 'sync' || !currentUser || !currentUser.id) return;
       if (expensesRealtime) {
         supabaseClient.removeChannel(expensesRealtime);
       }
-
 
       expensesRealtime = supabaseClient.channel('expenses-user-' + currentUser.id)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses', filter: `user_id=eq.${currentUser.id}` }, () => {
@@ -1002,7 +956,6 @@
         .subscribe();
     }
 
-
     function unsubscribeFromExpenses() {
       if (expensesRealtime) {
         supabaseClient.removeChannel(expensesRealtime);
@@ -1010,13 +963,11 @@
       }
     }
 
-
     if (accessToken) {
       const payload = parseJwt(accessToken);
       if (payload && payload.sub) currentUserId = payload.sub;
       if (currentUserId) saveAuthState();
     }
-
 
     async function processPendingSyncQueue() {
       if (syncMode !== 'sync' || isSyncingQueue || !navigator.onLine) return;
@@ -1024,10 +975,8 @@
       const queue = getPendingQueue();
       if (queue.length === 0) return;
 
-
       isSyncingQueue = true;
       const remainingQueue = [];
-
 
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
@@ -1035,7 +984,6 @@
           isSyncingQueue = false;
           return;
         }
-
 
         for (const action of queue) {
           try {
@@ -1059,7 +1007,6 @@
       }
     }
 
-
     async function initAuth() {
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
@@ -1081,7 +1028,6 @@
           document.getElementById('auth-screen').style.display = 'flex';
           loadLocalForUser();
         }
-
 
         supabaseClient.auth.onAuthStateChange(async (_event, session) => {
           currentUser = session ? session.user : null;
@@ -1117,13 +1063,11 @@
       }
     }
 
-
     async function login() {
       const btnLogin = document.getElementById('btn-login');
       const emailInput = document.getElementById('auth-email').value.trim();
       const password = document.getElementById('auth-password').value.trim();
       const errEl = document.getElementById('auth-error');
-
 
       errEl.innerText = '';
       if (!emailInput || !password) {
@@ -1131,14 +1075,11 @@
         return;
       }
 
-
       btnLogin.innerText = 'Signing in...';
       btnLogin.disabled = true;
 
-
       try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email: emailInput, password });
-
 
         if (error) {
           errEl.innerText = error.message || 'Invalid login credentials.';
@@ -1147,7 +1088,6 @@
           return;
         }
 
-
         if (!data || !data.session) {
           errEl.innerText = 'No session returned.';
           btnLogin.innerText = 'Sign In';
@@ -1155,14 +1095,12 @@
           return;
         }
 
-
         accessToken = data.session.access_token;
         currentUser = data.user;
         currentUserEmail = (currentUser?.email || emailInput).toLowerCase().trim();
         currentUserId = currentUser?.id || null;
         saveAuthState();
         loadCategoriesFromUser(currentUser);
-
 
         document.getElementById('auth-screen').style.display = 'none';
         await mergeGuestLocalToUser();
@@ -1180,14 +1118,12 @@
       }
     }
 
-
     async function logout() {
       const pending = getPendingQueue();
       if (pending.length > 0) {
         const confirmLogout = confirm(`You have ${pending.length} unsynced changes. Logging out now will clear local state. Proceed?`);
         if (!confirmLogout) return;
       }
-
 
       accessToken = null;
       currentUserEmail = null;
@@ -1206,16 +1142,13 @@
       renderAllViews();
     }
 
-
     document.getElementById('btn-login').addEventListener('click', login);
     document.getElementById('auth-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
     document.getElementById('btn-logout').addEventListener('click', logout);
 
-
     if (accessToken && currentUserId) {
       document.getElementById('auth-screen').style.display = 'none';
     }
-
 
     function loadLocalForUser() {
       const storageKey = getUserStorageKey();
@@ -1226,23 +1159,19 @@
         expenses = [];
       }
 
-
       loadCategoriesFromUser(currentUser);
       updateHeaders();
       renderAllViews();
     }
-
 
     function formatMoney(value) {
       const amount = Number(value) || 0;
       return `${currentCurrency} ${amount.toFixed(2)}`;
     }
 
-
     function getMonthStart(date = currentTransDate) {
       return new Date(date.getFullYear(), date.getMonth(), 1);
     }
-
 
     function generateRecurringVirtualEntries(baseEntries) {
       const expanded = [];
@@ -1250,20 +1179,16 @@
       const today = new Date();
       const maxDate = new Date(today.getFullYear() + horizonYears, 11, 31);
 
-
       baseEntries.forEach(item => {
         expanded.push(item);
-
 
         if (!item.repeat || item.repeat === 'none') return;
         
         let [y, m, d] = (item.date || '').split('-').map(Number);
         if (!y || !m || !d) return;
 
-
         let currDate = new Date(y, m - 1, d);
         let count = 0;
-
 
         while (count < 250) {
           if (item.repeat === 'weekly') {
@@ -1274,14 +1199,11 @@
             currDate.setFullYear(currDate.getFullYear() + 1);
           }
 
-
           if (currDate > maxDate) break;
-
 
           const dateStr = currDate.toISOString().slice(0, 10);
           
           if (item.repeat_until && dateStr >= item.repeat_until) break;
-
 
           expanded.push({
             ...item,
@@ -1296,16 +1218,13 @@
       return expanded;
     }
 
-
     function getMonthExpenses() {
       const start = getMonthStart();
       const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
-
       const expanded = generateRecurringVirtualEntries(expenses);
-
 
       return expanded.filter(item => {
         const d = new Date(item.date + 'T00:00:00');
@@ -1314,7 +1233,6 @@
         
         if (item.repeat_until && item.date >= item.repeat_until) return false;
 
-
         if (!term) return true;
         const merchant = (item.merchant || item.note || '').toLowerCase();
         const category = (item.category || '').toLowerCase();
@@ -1322,13 +1240,11 @@
       });
     }
 
-
     function updateHeaders() {
       const transHeader = document.getElementById('trans-month-txt');
       if (transHeader) {
         transHeader.textContent = currentTransDate.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', year: 'numeric' });
       }
-
 
       const statsHeader = document.getElementById('stats-month-txt');
       if (statsHeader) {
@@ -1342,7 +1258,6 @@
           const lastDayOfWeek = new Date(firstDayOfWeek);
           lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6);
 
-
           const opts = { day: 'numeric', month: 'short' };
           const startStr = firstDayOfWeek.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', opts);
           const endStr = lastDayOfWeek.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { ...opts, year: 'numeric' });
@@ -1353,7 +1268,6 @@
         statsHeader.textContent = label;
       }
     }
-
 
     function updateAutoSuggest() {
       const datalist = document.getElementById('merchant-list');
@@ -1366,16 +1280,13 @@
       datalist.innerHTML = merchants.map(name => `<option value="${name}"></option>`).join('');
     }
 
-
     async function syncWithSupabase() {
       if (syncMode !== 'sync' || !currentUser || !currentUser.id) {
         renderAllViews();
         return;
       }
 
-
       await processPendingSyncQueue();
-
 
       try {
         const { data: { user } } = await supabaseClient.auth.getUser();
@@ -1384,12 +1295,10 @@
           loadCategoriesFromUser(user);
         }
 
-
         let allRemote = [];
         let from = 0;
         const step = 1000;
         let fetchMore = true;
-
 
         while (fetchMore) {
           const { data, error } = await supabaseClient
@@ -1398,9 +1307,7 @@
             .eq('user_id', currentUser.id)
             .range(from, from + step - 1);
 
-
           if (error) throw error;
-
 
           if (data && data.length > 0) {
             allRemote = allRemote.concat(data);
@@ -1414,12 +1321,10 @@
           }
         }
 
-
         const localMap = new Map((expenses || []).map(item => [String(item.id), item]));
         allRemote.forEach(item => {
           localMap.set(String(item.id), item);
         });
-
 
         const merged = [...localMap.values()].sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));
         expenses = merged;
@@ -1428,10 +1333,8 @@
         console.warn('syncWithSupabase warning', e);
       }
 
-
       renderAllViews();
     }
-
 
     function getMonthlyTotals(items) {
       let income = 0;
@@ -1444,7 +1347,6 @@
       return { income, expense, total: income - expense };
     }
 
-
     function renderSummaryBar() {
       const items = getMonthExpenses();
       const totals = getMonthlyTotals(items);
@@ -1452,17 +1354,14 @@
       const expenseEl = document.querySelector('.total-exp-txt');
       const totalEl = document.querySelector('.net-total-txt');
 
-
       if (incomeEl) incomeEl.textContent = formatMoney(totals.income);
       if (expenseEl) expenseEl.textContent = formatMoney(totals.expense);
       if (totalEl) totalEl.textContent = `${totals.total >= 0 ? '' : '-'}${formatMoney(Math.abs(totals.total))}`;
     }
 
-
     function renderTransactions() {
       const container = document.getElementById('transaction-container');
       if (!container) return;
-
 
       const monthItems = getMonthExpenses().sort((a, b) => new Date(b.date) - new Date(a.date));
       if (!monthItems.length) {
@@ -1470,14 +1369,12 @@
         return;
       }
 
-
       const grouped = {};
       monthItems.forEach(item => {
         const d = item.date || new Date().toISOString().slice(0, 10);
         if (!grouped[d]) grouped[d] = [];
         grouped[d].push(item);
       });
-
 
       const dateKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
       container.innerHTML = dateKeys.map(date => {
@@ -1502,12 +1399,10 @@
         `;
       }).join('');
 
-
       container.querySelectorAll('.trans-row').forEach(row => {
         row.addEventListener('click', () => openEntryModal('edit', row.dataset.id, row.dataset.date));
       });
     }
-
 
     function renderCalendar() {
       const container = document.getElementById('calendar-container');
@@ -1563,7 +1458,6 @@
         groups[cat] = (groups[cat] || 0) + (Number(item.amount) || 0);
       });
 
-
       const sorted = Object.entries(groups).sort((a, b) => b[1] - a[1]);
       const total = sorted.reduce((sum, [, value]) => sum + value, 0) || 1;
       container.innerHTML = sorted.map(([name, value]) => `
@@ -1573,7 +1467,6 @@
         </div>
       `).join('');
     }
-
 
     function renderSummaryPanel() {
       const container = document.getElementById('summary-container');
@@ -1588,14 +1481,12 @@
       });
       const totalSpend = Object.values(categoryGroups).reduce((sum, value) => sum + value, 0) || 1;
 
-
       const rows = Object.entries(categoryGroups).sort((a, b) => b[1] - a[1]).map(([cat, value]) => `
         <div class="summary-item">
           <div class="summary-label"><span>${cat}</span><span>${formatMoney(value)}</span></div>
           <div class="progress-bg"><div class="progress-fill" style="width:${(value / totalSpend) * 100}%; background:${categoryColors[cat] || '#10b981'}"></div></div>
         </div>
       `).join('');
-
 
       container.innerHTML = `
         <div class="summary-item"><div class="summary-label"><span>${t('income')}</span><span>${formatMoney(totals.income)}</span></div></div>
@@ -1605,20 +1496,16 @@
       `;
     }
 
-
     function getStatsTimeframeItems() {
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
-
       const expanded = generateRecurringVirtualEntries(expenses);
-
 
       let items = expanded.filter(item => {
         if (item.repeat_until && item.date >= item.repeat_until) return false;
         return true;
       });
-
 
       if (currentStatsTimeframe === 'annually') {
         const year = currentStatsDate.getFullYear();
@@ -1636,7 +1523,6 @@
         firstDayOfWeek.setHours(0,0,0,0);
         const lastDayOfWeek = new Date(firstDayOfWeek);
         lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 7);
-
 
         return items.filter(item => {
           const d = new Date(item.date + 'T00:00:00');
@@ -1660,8 +1546,7 @@
       }
     }
 
-
-function renderStats() {
+    function renderStats() {
       const container = document.getElementById('stats-list-container');
       const svg = document.getElementById('svgPie');
       if (!container || !svg) return;
@@ -1746,7 +1631,7 @@ function renderStats() {
       });
     }
 
-    // Category Detail Modal Functions (Placed cleanly outside renderStats)
+    // Category Detail Modal Functions
     function openCategoryDetailModal(categoryName) {
       const modal = document.getElementById('stats-detail-modal');
       const title = document.getElementById('stats-detail-title');
@@ -1785,172 +1670,6 @@ function renderStats() {
       closeDetailBtn.addEventListener('click', () => {
         document.getElementById('stats-detail-modal').style.display = 'none';
       });
-    }
-
-// Place this right below renderStats() function:
-
-    function openCategoryDetailModal(categoryName) {
-      const modal = document.getElementById('stats-detail-modal');
-      const title = document.getElementById('stats-detail-title');
-      const listContainer = document.getElementById('stats-detail-list');
-      if (!modal || !title || !listContainer) return;
-
-      title.textContent = `${categoryName} (${currentStatsTimeframe.toUpperCase()})`;
-
-      const items = getStatsTimeframeItems().filter(item => 
-        (item.category || 'Other') === categoryName && (item.type || 'expense') === 'expense'
-      ).sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      if (!items.length) {
-        listContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#6b7280;">No entries found</div>';
-      } else {
-        // Performance safeguard: Limit to 100 items maximum to prevent annual view lag
-        const renderLimit = 100;
-        const displayItems = items.slice(0, renderLimit);
-
-        listContainer.innerHTML = displayItems.map(item => `
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f3f4f6;">
-            <div>
-              <div style="font-size:14px; font-weight:600; color:#111827;">${item.merchant || item.note || 'Expense'}</div>
-              <div style="font-size:11px; color:#6b7280;">${item.date} ${item.repeat && item.repeat !== 'none' ? '🔁' : ''}</div>
-            </div>
-            <div style="font-size:14px; font-weight:600; color:#ef4444;">-${formatMoney(item.amount)}</div>
-          </div>
-        `).join('') + (items.length > renderLimit ? `<div style="text-align:center; padding:10px; font-size:12px; color:#6b7280;">Showing first ${renderLimit} of ${items.length} records</div>` : '');
-      }
-
-      modal.style.display = 'flex';
-    }
-
-    // Close Modal Listener
-    const closeDetailBtn = document.getElementById('close-stats-detail-modal');
-    if (closeDetailBtn) {
-      closeDetailBtn.addEventListener('click', () => {
-        document.getElementById('stats-detail-modal').style.display = 'none';
-      });
-    }
-      
-      const statsIncomeEl = document.getElementById('stats-income-txt');
-      const statsExpenseEl = document.getElementById('stats-expense-txt');
-      if (statsIncomeEl) statsIncomeEl.textContent = formatMoney(statsIncome);
-      if (statsExpenseEl) statsExpenseEl.textContent = formatMoney(statsExpense);
-
-      const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
-      if (!entries.length) {
-        container.innerHTML = `<div style="padding:20px; color:#6b7280; text-align:center;">${t('noStats')}</div>`;
-        svg.innerHTML = '';
-        return;
-      }
-
-      const total = entries.reduce((sum, [, value]) => sum + value, 0) || 1;
-      let cumulativeAngle = 0;
-
-      const paths = entries.map(([name, value]) => {
-        const percentage = value / total;
-        const startAngle = cumulativeAngle;
-        cumulativeAngle += percentage * 360;
-        const endAngle = cumulativeAngle;
-
-        const color = categoryColors[name] || '#10b981';
-
-        if (percentage === 1) {
-          return `<circle cx="50" cy="50" r="50" fill="${color}"></circle>`;
-        }
-
-        const x1 = 50 + 50 * Math.cos(Math.PI * startAngle / 180);
-        const y1 = 50 + 50 * Math.sin(Math.PI * startAngle / 180);
-        const x2 = 50 + 50 * Math.cos(Math.PI * endAngle / 180);
-        const y2 = 50 + 50 * Math.sin(Math.PI * endAngle / 180);
-        const largeArcFlag = percentage > 0.5 ? 1 : 0;
-
-        const pathData = `M 50 50 L ${x1} ${y1} A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
-        return `<path d="${pathData}" fill="${color}"></path>`;
-      }).join('');
-
-      svg.innerHTML = paths;
-
-      // Render rows with click triggers for category drill-down
-      container.innerHTML = entries.map(([name, value]) => {
-        const percent = ((value / total) * 100).toFixed(0);
-        const color = categoryColors[name] || '#10b981';
-        return `
-          <div class="stats-row clickable-cat-row" data-category="${name}" style="cursor: pointer; padding: 10px 0;">
-            <span>
-              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:8px;"></span>
-              ${name} <span style="font-size:10px; color:#9ca3af; margin-left:4px;">▶</span>
-            </span>
-            <span>${formatMoney(value)} (${percent}%)</span>
-          </div>
-        `;
-      }).join('');
-
-      // Attach click events to open category detail popup
-      container.querySelectorAll('.clickable-cat-row').forEach(row => {
-        row.addEventListener('click', () => {
-          openCategoryDetailModal(row.dataset.category);
-        });
-      });
-    }
-
-
-      const statsIncomeEl = document.getElementById('stats-income-txt');
-      const statsExpenseEl = document.getElementById('stats-expense-txt');
-      if (statsIncomeEl) statsIncomeEl.textContent = formatMoney(statsIncome);
-      if (statsExpenseEl) statsExpenseEl.textContent = formatMoney(statsExpense);
-
-
-      const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
-      if (!entries.length) {
-        container.innerHTML = `<div style="padding:20px; color:#6b7280; text-align:center;">${t('noStats')}</div>`;
-        svg.innerHTML = '';
-        return;
-      }
-
-
-      const total = entries.reduce((sum, [, value]) => sum + value, 0) || 1;
-      let cumulativeAngle = 0;
-
-
-      const paths = entries.map(([name, value]) => {
-        const percentage = value / total;
-        const startAngle = cumulativeAngle;
-        cumulativeAngle += percentage * 360;
-        const endAngle = cumulativeAngle;
-
-
-        const color = categoryColors[name] || '#10b981';
-
-
-        if (percentage === 1) {
-          return `<circle cx="50" cy="50" r="50" fill="${color}"></circle>`;
-        }
-
-
-        const x1 = 50 + 50 * Math.cos(Math.PI * startAngle / 180);
-        const y1 = 50 + 50 * Math.sin(Math.PI * startAngle / 180);
-        const x2 = 50 + 50 * Math.cos(Math.PI * endAngle / 180);
-        const y2 = 50 + 50 * Math.sin(Math.PI * endAngle / 180);
-        const largeArcFlag = percentage > 0.5 ? 1 : 0;
-
-
-        const pathData = `M 50 50 L ${x1} ${y1} A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
-        return `<path d="${pathData}" fill="${color}"></path>`;
-      }).join('');
-
-
-      svg.innerHTML = paths;
-
-
-      container.innerHTML = entries.map(([name, value]) => {
-        const percent = ((value / total) * 100).toFixed(0);
-        const color = categoryColors[name] || '#10b981';
-        return `
-          <div class="stats-row">
-            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:8px;"></span>${name}</span>
-            <span>${formatMoney(value)} (${percent}%)</span>
-          </div>
-        `;
-      }).join('');
     }
     
     function renderAllViews() {
@@ -1965,7 +1684,6 @@ function renderStats() {
       updateAutoSuggest();
     }
 
-
     function openEntryModal(mode, idOrNull, clickedDate = null) {
       const modal = document.getElementById('entry-modal');
       const dateInput = document.getElementById('input-date');
@@ -1975,7 +1693,6 @@ function renderStats() {
       const repeatSelect = document.getElementById('input-repeat');
       const deleteBtn = document.getElementById('delete-btn');
       const modalTitle = document.getElementById('modal-title');
-
 
       if (mode === 'edit' && idOrNull) {
         const entry = expenses.find(item => String(item.id) === String(idOrNull));
@@ -2002,10 +1719,8 @@ function renderStats() {
         repeatSelect.value = 'none';
       }
 
-
       modal.style.display = 'flex';
     }
-
 
     function closeEntryModal() {
       document.getElementById('entry-modal').style.display = 'none';
@@ -2013,7 +1728,6 @@ function renderStats() {
       editingId = null;
       editingSelectedDate = null;
     }
-
 
     function openCategoryModal() {
       const container = document.getElementById('cat-grid-container');
@@ -2048,12 +1762,10 @@ function renderStats() {
                 return;
               }
 
-
               document.getElementById('category-modal').style.display = 'none';
               const typeModal = document.getElementById('category-type-modal');
               document.getElementById('type-modal-title').textContent = `Is "${catName}" an Expense or Income?`;
               typeModal.style.display = 'flex';
-
 
               document.getElementById('btn-type-expense').onclick = async () => {
                 customCategories.push(catName);
@@ -2062,14 +1774,12 @@ function renderStats() {
                 typeModal.style.display = 'none';
               };
 
-
               document.getElementById('btn-type-income').onclick = async () => {
                 customIncomeCategories.push(catName);
                 await saveCustomCategoriesToCloud();
                 document.getElementById('input-category').value = catName;
                 typeModal.style.display = 'none';
               };
-
 
               document.getElementById('close-type-modal').onclick = () => {
                 typeModal.style.display = 'none';
@@ -2086,7 +1796,6 @@ function renderStats() {
               customCategories = customCategories.filter(c => c !== catToDelete);
               customIncomeCategories = customIncomeCategories.filter(c => c !== catToDelete);
 
-
               await saveCustomCategoriesToCloud();
               localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
               showToast(`"${catToDelete}" deleted and existing records changed to Other.`);
@@ -2101,11 +1810,9 @@ function renderStats() {
       });
     }
 
-
     function closeCategoryModal() {
       document.getElementById('category-modal').style.display = 'none';
     }
-
 
     function buildEntryObject() {
       const merchant = document.getElementById('input-merchant').value.trim();
@@ -2117,10 +1824,8 @@ function renderStats() {
       const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
       const type = isIncomeCategory ? 'income' : activeExpenseType;
 
-
       const existing = editingId ? expenses.find(e => String(e.id) === String(editingId)) : null;
       const currentAuthUserId = currentUser?.id || currentUserId || null;
-
 
       return {
         id: editingId || (window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : `exp_${Date.now()}_${Math.random().toString(36).slice(2,8)}`),
@@ -2137,11 +1842,9 @@ function renderStats() {
       };
     }
 
-
     async function saveEntry() {
       const item = buildEntryObject();
       
-      // 1. Always save locally first for instant performance (<1ms)
       const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
       if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
       else expenses.unshift(item);
@@ -2149,18 +1852,14 @@ function renderStats() {
       expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
-
       closeEntryModal();
       renderAllViews();
 
-
-      // 2. Queue or upload depending on selected sync mode
       if (syncMode === 'sync' && currentUser && currentUser.id) {
         enqueuePendingAction({ type: 'UPSERT', item });
         processPendingSyncQueue();
       }
     }
-
 
     async function deleteEntry() {
       if (!editingId) return;
@@ -2173,7 +1872,6 @@ function renderStats() {
         );
         
         if (!confirmed) return;
-
 
         const cutoffDate = editingSelectedDate || document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
         target.repeat_until = cutoffDate;
@@ -2188,7 +1886,6 @@ function renderStats() {
         return;
       }
 
-
       expenses = expenses.filter(item => String(item.id) !== String(editingId));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
       
@@ -2201,7 +1898,6 @@ function renderStats() {
       renderAllViews();
     }
 
-
     function showCustomConfirm(messageHtml) {
       return new Promise((resolve) => {
         const modal = document.getElementById('delete-confirm-modal');
@@ -2209,10 +1905,8 @@ function renderStats() {
         const btnConfirm = document.getElementById('btn-confirm-delete');
         const btnClose = document.getElementById('close-delete-modal');
 
-
         textEl.innerHTML = messageHtml;
         modal.style.display = 'flex';
-
 
         function cleanup(result) {
           modal.style.display = 'none';
@@ -2220,7 +1914,6 @@ function renderStats() {
           btnClose.onclick = null;
           resolve(result);
         }
-
 
         btnConfirm.onclick = () => cleanup(true);
         btnClose.onclick = () => cleanup(false);
@@ -2231,10 +1924,8 @@ function renderStats() {
       const input = document.getElementById('input-amount');
       if (!input) return;
 
-
       let currentVal = input.value.toString().trim();
       if (currentVal === '0.00' || currentVal === '0') currentVal = '';
-
 
       if (val === 'backspace') {
         currentVal = currentVal.slice(0, -1);
@@ -2242,13 +1933,11 @@ function renderStats() {
         return;
       }
 
-
       if (val === '+' || val === '-') {
         activeExpenseType = val === '+' ? 'income' : 'expense';
         document.getElementById('modal-title').textContent = t('expenseOrIncome');
         return;
       }
-
 
       if (val === '.') {
         if (!currentVal.includes('.')) {
@@ -2256,7 +1945,6 @@ function renderStats() {
         }
         return;
       }
-
 
       if (/^\d$/.test(val)) {
         if (currentVal.includes('.')) {
@@ -2267,7 +1955,6 @@ function renderStats() {
       }
     }
 
-
     document.getElementById('nav-trans').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.add('active');
       document.getElementById('screen-stats').classList.remove('active');
@@ -2276,7 +1963,6 @@ function renderStats() {
       document.getElementById('nav-stats').classList.remove('active');
       document.getElementById('nav-settings').classList.remove('active');
     });
-
 
     document.getElementById('nav-stats').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.remove('active');
@@ -2288,7 +1974,6 @@ function renderStats() {
       renderStats();
     });
 
-
     document.getElementById('nav-settings').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.remove('active');
       document.getElementById('screen-stats').classList.remove('active');
@@ -2297,7 +1982,6 @@ function renderStats() {
       document.getElementById('nav-stats').classList.remove('active');
       document.getElementById('nav-settings').classList.add('active');
     });
-
 
     const currencySelect = document.getElementById('select-currency');
     if (currencySelect) {
@@ -2309,7 +1993,6 @@ function renderStats() {
       });
     }
 
-
     const languageSelect = document.getElementById('select-language');
     if (languageSelect) {
       languageSelect.value = currentLang;
@@ -2319,7 +2002,6 @@ function renderStats() {
         renderAllViews();
       });
     }
-
 
     const syncModeSelect = document.getElementById('select-sync-mode');
     if (syncModeSelect) {
@@ -2338,7 +2020,6 @@ function renderStats() {
       });
     }
 
-
     document.querySelectorAll('.stats-filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.stats-filter-btn').forEach(b => b.classList.remove('active'));
@@ -2349,7 +2030,6 @@ function renderStats() {
       });
     });
 
-
     document.querySelectorAll('.view-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.view-tab').forEach(item => item.classList.toggle('active', item === tab));
@@ -2357,15 +2037,12 @@ function renderStats() {
       });
     });
 
-
     document.getElementById('btn-search').addEventListener('click', () => {
       const box = document.getElementById('search-box');
       box.style.display = box.style.display === 'none' ? 'block' : 'none';
     });
 
-
     document.getElementById('search-input').addEventListener('input', renderAllViews);
-
 
     document.querySelectorAll('.btn-prev-m').forEach(button => {
       button.addEventListener('click', () => {
@@ -2387,7 +2064,6 @@ function renderStats() {
       });
     });
 
-
     document.querySelectorAll('.btn-next-m').forEach(button => {
       button.addEventListener('click', () => {
         const screen = button.dataset.screen;
@@ -2408,18 +2084,15 @@ function renderStats() {
       });
     });
 
-
     document.getElementById('add-fab').addEventListener('click', () => {
       activeExpenseType = 'expense';
       openEntryModal('new', null);
     });
 
-
     document.getElementById('close-modal-top').addEventListener('click', closeEntryModal);
     document.getElementById('delete-btn').addEventListener('click', deleteEntry);
     document.getElementById('input-category').addEventListener('click', openCategoryModal);
     document.getElementById('close-cat-modal').addEventListener('click', closeCategoryModal);
-
 
     document.getElementById('key-ok').addEventListener('click', saveEntry);
     document.getElementById('key-backspace').addEventListener('click', () => applyKeyInput('backspace'));
@@ -2430,7 +2103,6 @@ function renderStats() {
         applyKeyInput(val);
       });
     });
-
 
     document.getElementById('btn-clear-merchant').addEventListener('click', async () => {
       const oldMerchant = document.getElementById('input-merchant').value.trim();
@@ -2454,7 +2126,6 @@ function renderStats() {
       showToast(`Merchant renamed to "${merchantName}"`);
     });
 
-
     document.getElementById('btn-export-excel').addEventListener('click', () => {
       if (!expenses.length) {
         showToast('No data to export');
@@ -2473,7 +2144,6 @@ function renderStats() {
       XLSX.writeFile(wb, 'expenses.xlsx');
     });
 
-
     document.getElementById('btn-sync').addEventListener('click', () => {
       if (syncMode !== 'sync') {
         showToast('Single-device storage is enabled in Settings.');
@@ -2482,7 +2152,6 @@ function renderStats() {
       syncWithSupabase();
     });
 
-
     document.getElementById('btn-stats-sync').addEventListener('click', () => {
       if (syncMode !== 'sync') {
         showToast('Single-device storage is enabled in Settings.');
@@ -2490,7 +2159,6 @@ function renderStats() {
       }
       syncWithSupabase();
     });
-
 
     document.getElementById('import-file-input').addEventListener('change', async (event) => {
       const file = event.target.files && event.target.files[0];
@@ -2524,15 +2192,12 @@ function renderStats() {
             }
           });
 
-
           expenses = [...newEntries, ...expenses];
           localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-
 
           if (syncMode === 'sync') {
             processPendingSyncQueue();
           }
-
 
           renderAllViews();
           showToast(`Successfully imported ${newEntries.length} records!`);
@@ -2544,7 +2209,6 @@ function renderStats() {
       reader.readAsBinaryString(file);
     });
 
-
     // Network & Visibility Auto-Sync Listeners
     window.addEventListener('online', () => {
       showToast('Network restored. Syncing data...');
@@ -2554,13 +2218,11 @@ function renderStats() {
       }
     });
 
-
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && syncMode === 'sync') {
         processPendingSyncQueue();
       }
     });
-
 
     initAuth();
   </script>
