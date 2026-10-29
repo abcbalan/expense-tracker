@@ -1,4 +1,4 @@
-<!-- 20261029 v46 try modify pie chart -->
+<!-- 20261029 v47 try modify pie chart -->
 
 <!DOCTYPE html>
 
@@ -189,10 +189,16 @@
     <button class="btn-next-m" data-screen="stats">▶</button>
   </div>
   
-  <div class="stats-filter-bar">
+<div class="stats-filter-bar">
     <button class="stats-filter-btn" data-timeframe="weekly" data-i18n="weekly">Weekly</button>
     <button class="stats-filter-btn active" data-timeframe="monthly" data-i18n="monthly">Monthly</button>
     <button class="stats-filter-btn" data-timeframe="annually" data-i18n="annually">Annually</button>
+  </div>
+
+  <!-- ADD THIS EXPENSE / INCOME TOGGLE SWITCH -->
+  <div style="display: flex; background: #fff; padding: 8px 16px; justify-content: center; gap: 12px; border-bottom: 1px solid #e5e7eb;">
+    <button id="btn-stats-exp" style="background: #10b981; color: white; border: none; padding: 4px 16px; border-radius: 14px; font-size: 12px; cursor: pointer; font-weight: 600;">Expense Breakdown</button>
+    <button id="btn-stats-inc" style="background: #f3f4f6; color: #374151; border: none; padding: 4px 16px; border-radius: 14px; font-size: 12px; cursor: pointer; font-weight: 500;">Income Breakdown</button>
   </div>
 
   <!-- STATS INCOME/EXPENSE SUMMARY BAR -->
@@ -436,6 +442,7 @@
     let expensesRealtime = null;
     let activeExpenseType = 'expense';
     let currentStatsTimeframe = 'monthly';
+    let activeStatsMode = 'expense'; // <--- ADD IT HERE
 
     // Settings State
     let currentCurrency = localStorage.getItem('user_currency') || '£';
@@ -1567,10 +1574,16 @@ function renderStats() {
         const type = item.type || 'expense';
         if (type === 'income') {
           statsIncome += amount;
+          if (activeStatsMode === 'income') {
+            const name = item.category || 'Salary';
+            totals[name] = (totals[name] || 0) + amount;
+          }
         } else {
           statsExpense += amount;
-          const name = item.category || 'Other';
-          totals[name] = (totals[name] || 0) + amount;
+          if (activeStatsMode === 'expense') {
+            const name = item.category || 'Other';
+            totals[name] = (totals[name] || 0) + amount;
+          }
         }
       });
 
@@ -1580,7 +1593,11 @@ function renderStats() {
       if (statsExpenseEl) statsExpenseEl.textContent = formatMoney(statsExpense);
 
       if (centerTxt) {
-        centerTxt.innerHTML = `<div style="font-size:10px; color:#9ca3af;">EXPENSE</div><div style="font-size:12px; color:#111827;">${formatMoney(statsExpense)}</div>`;
+        if (activeStatsMode === 'income') {
+          centerTxt.innerHTML = `<div style="font-size:10px; color:#9ca3af;">INCOME</div><div style="font-size:12px; color:#10b981;">${formatMoney(statsIncome)}</div>`;
+        } else {
+          centerTxt.innerHTML = `<div style="font-size:10px; color:#9ca3af;">EXPENSE</div><div style="font-size:12px; color:#111827;">${formatMoney(statsExpense)}</div>`;
+        }
       }
 
       const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
@@ -1599,7 +1616,7 @@ function renderStats() {
         cumulativeAngle += percentage * 360;
         const endAngle = cumulativeAngle;
 
-        const color = categoryColors[name] || '#10b981';
+        const color = categoryColors[name] || (activeStatsMode === 'income' ? '#10b981' : '#95a5a6');
 
         if (percentage === 1) {
           return `<circle cx="50" cy="50" r="50" fill="${color}"></circle>`;
@@ -1617,22 +1634,21 @@ function renderStats() {
 
       svg.innerHTML = paths;
 
-      // Render rows with color indicators and percentages
       container.innerHTML = entries.map(([name, value]) => {
         const percent = ((value / total) * 100).toFixed(0);
-        const color = categoryColors[name] || '#10b981';
+        const color = categoryColors[name] || (activeStatsMode === 'income' ? '#10b981' : '#95a5a6');
+        const amountColor = activeStatsMode === 'income' ? '#10b981' : '#4b5563';
         return `
           <div class="stats-row clickable-cat-row" data-category="${name}" style="cursor: pointer; padding: 10px 0;">
             <span>
               <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${color};margin-right:8px;vertical-align:middle;"></span>
               <strong style="color:#111827;font-weight:500;">${name}</strong>
             </span>
-            <span style="color:#4b5563; font-weight:600;">${formatMoney(value)} <span style="font-size:11px; color:#9ca3af; font-weight:normal;">(${percent}%)</span></span>
+            <span style="color:${amountColor}; font-weight:600;">${formatMoney(value)} <span style="font-size:11px; color:#9ca3af; font-weight:normal;">(${percent}%)</span></span>
           </div>
         `;
       }).join('');
 
-      // Attach click events to open category detail popup
       container.querySelectorAll('.clickable-cat-row').forEach(row => {
         row.addEventListener('click', () => {
           openCategoryDetailModal(row.dataset.category);
@@ -2043,6 +2059,29 @@ function renderStats() {
       });
     });
 
+// --- ADD THE EXPENSE / INCOME TOGGLE LISTENERS HERE ---
+    document.getElementById('btn-stats-exp').addEventListener('click', () => {
+      activeStatsMode = 'expense';
+      document.getElementById('btn-stats-exp').style.background = '#10b981';
+      document.getElementById('btn-stats-exp').style.color = 'white';
+      document.getElementById('btn-stats-exp').style.fontWeight = '600';
+      document.getElementById('btn-stats-inc').style.background = '#f3f4f6';
+      document.getElementById('btn-stats-inc').style.color = '#374151';
+      document.getElementById('btn-stats-inc').style.fontWeight = '500';
+      renderStats();
+    });
+
+    document.getElementById('btn-stats-inc').addEventListener('click', () => {
+      activeStatsMode = 'income';
+      document.getElementById('btn-stats-inc').style.background = '#10b981';
+      document.getElementById('btn-stats-inc').style.color = 'white';
+      document.getElementById('btn-stats-inc').style.fontWeight = '600';
+      document.getElementById('btn-stats-exp').style.background = '#f3f4f6';
+      document.getElementById('btn-stats-exp').style.color = '#374151';
+      document.getElementById('btn-stats-exp').style.fontWeight = '500';
+      renderStats();
+    });
+    
     document.querySelectorAll('.view-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.view-tab').forEach(item => item.classList.toggle('active', item === tab));
