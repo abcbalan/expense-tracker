@@ -1,5 +1,4 @@
-<!-- 20261029 v38 Offline-First Sync Engine & Multi-Device Sync Options -->
-<!-- Work Perfectly -->
+<!-- 20261029 v39 Try to Category Breakdown Drill-Down for weekly, monthly and yearly -->
 
 <!DOCTYPE html>
 
@@ -110,6 +109,18 @@
   </style>
 </head>
 <body>
+
+<!-- STATS CATEGORY DETAIL MODAL -->
+<div class="modal" id="stats-detail-modal" style="z-index: 220;">
+  <div class="modal-content" style="max-height: 80vh;">
+    <div class="modal-header">
+      <span id="stats-detail-title">Category Details</span>
+      <button class="icon-btn" style="color:#333;font-size:14px;" id="close-stats-detail-modal">Close</button>
+    </div>
+    <div id="stats-detail-list" style="overflow-y: auto; max-height: 60vh;"></div>
+  </div>
+</div>
+  
   <div class="app-container">
     <div id="auth-screen">
       <h2>ExpenseTracker Login</h2>
@@ -400,6 +411,17 @@
 </div>
   </div>
 
+<!-- STATS CATEGORY DETAIL MODAL -->
+<div class="modal" id="stats-detail-modal" style="z-index: 220;">
+  <div class="modal-content" style="max-height: 80vh;">
+    <div class="modal-header">
+      <span id="stats-detail-title">Category Details</span>
+      <button class="icon-btn" style="color:#333;font-size:14px;" id="close-stats-detail-modal">Close</button>
+    </div>
+    <div id="stats-detail-list" style="overflow-y: auto; max-height: 60vh;"></div>
+  </div>
+</div>
+  
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
@@ -1650,7 +1672,6 @@
       let statsExpense = 0;
       const totals = {};
 
-
       timeframeItems.forEach(item => {
         const amount = Number(item.amount) || 0;
         const type = item.type || 'expense';
@@ -1662,6 +1683,111 @@
           totals[name] = (totals[name] || 0) + amount;
         }
       });
+
+// Place this right below renderStats() function:
+
+    function openCategoryDetailModal(categoryName) {
+      const modal = document.getElementById('stats-detail-modal');
+      const title = document.getElementById('stats-detail-title');
+      const listContainer = document.getElementById('stats-detail-list');
+      if (!modal || !title || !listContainer) return;
+
+      title.textContent = `${categoryName} (${currentStatsTimeframe.toUpperCase()})`;
+
+      const items = getStatsTimeframeItems().filter(item => 
+        (item.category || 'Other') === categoryName && (item.type || 'expense') === 'expense'
+      ).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      if (!items.length) {
+        listContainer.innerHTML = '<div style="padding:16px; text-align:center; color:#6b7280;">No entries found</div>';
+      } else {
+        // Performance safeguard: Limit to 100 items maximum to prevent annual view lag
+        const renderLimit = 100;
+        const displayItems = items.slice(0, renderLimit);
+
+        listContainer.innerHTML = displayItems.map(item => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f3f4f6;">
+            <div>
+              <div style="font-size:14px; font-weight:600; color:#111827;">${item.merchant || item.note || 'Expense'}</div>
+              <div style="font-size:11px; color:#6b7280;">${item.date} ${item.repeat && item.repeat !== 'none' ? '🔁' : ''}</div>
+            </div>
+            <div style="font-size:14px; font-weight:600; color:#ef4444;">-${formatMoney(item.amount)}</div>
+          </div>
+        `).join('') + (items.length > renderLimit ? `<div style="text-align:center; padding:10px; font-size:12px; color:#6b7280;">Showing first ${renderLimit} of ${items.length} records</div>` : '');
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    // Close Modal Listener
+    const closeDetailBtn = document.getElementById('close-stats-detail-modal');
+    if (closeDetailBtn) {
+      closeDetailBtn.addEventListener('click', () => {
+        document.getElementById('stats-detail-modal').style.display = 'none';
+      });
+    }
+      
+      const statsIncomeEl = document.getElementById('stats-income-txt');
+      const statsExpenseEl = document.getElementById('stats-expense-txt');
+      if (statsIncomeEl) statsIncomeEl.textContent = formatMoney(statsIncome);
+      if (statsExpenseEl) statsExpenseEl.textContent = formatMoney(statsExpense);
+
+      const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+      if (!entries.length) {
+        container.innerHTML = `<div style="padding:20px; color:#6b7280; text-align:center;">${t('noStats')}</div>`;
+        svg.innerHTML = '';
+        return;
+      }
+
+      const total = entries.reduce((sum, [, value]) => sum + value, 0) || 1;
+      let cumulativeAngle = 0;
+
+      const paths = entries.map(([name, value]) => {
+        const percentage = value / total;
+        const startAngle = cumulativeAngle;
+        cumulativeAngle += percentage * 360;
+        const endAngle = cumulativeAngle;
+
+        const color = categoryColors[name] || '#10b981';
+
+        if (percentage === 1) {
+          return `<circle cx="50" cy="50" r="50" fill="${color}"></circle>`;
+        }
+
+        const x1 = 50 + 50 * Math.cos(Math.PI * startAngle / 180);
+        const y1 = 50 + 50 * Math.sin(Math.PI * startAngle / 180);
+        const x2 = 50 + 50 * Math.cos(Math.PI * endAngle / 180);
+        const y2 = 50 + 50 * Math.sin(Math.PI * endAngle / 180);
+        const largeArcFlag = percentage > 0.5 ? 1 : 0;
+
+        const pathData = `M 50 50 L ${x1} ${y1} A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+        return `<path d="${pathData}" fill="${color}"></path>`;
+      }).join('');
+
+      svg.innerHTML = paths;
+
+      // Render rows with click triggers for category drill-down
+      container.innerHTML = entries.map(([name, value]) => {
+        const percent = ((value / total) * 100).toFixed(0);
+        const color = categoryColors[name] || '#10b981';
+        return `
+          <div class="stats-row clickable-cat-row" data-category="${name}" style="cursor: pointer; padding: 10px 0;">
+            <span>
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:8px;"></span>
+              ${name} <span style="font-size:10px; color:#9ca3af; margin-left:4px;">▶</span>
+            </span>
+            <span>${formatMoney(value)} (${percent}%)</span>
+          </div>
+        `;
+      }).join('');
+
+      // Attach click events to open category detail popup
+      container.querySelectorAll('.clickable-cat-row').forEach(row => {
+        row.addEventListener('click', () => {
+          openCategoryDetailModal(row.dataset.category);
+        });
+      });
+    }
 
 
       const statsIncomeEl = document.getElementById('stats-income-txt');
