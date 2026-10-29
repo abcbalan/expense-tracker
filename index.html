@@ -1,4 +1,4 @@
-<!-- 20261029 v47 try modify pie chart -->
+<!-- 20261029 v49 try modify pie chart -->
 
 <!DOCTYPE html>
 
@@ -195,6 +195,12 @@
     <button class="stats-filter-btn" data-timeframe="annually" data-i18n="annually">Annually</button>
   </div>
 
+<!-- 🟢 ADD IT HERE: EXPENSE / INCOME TOGGLE SWITCH WITH data-i18n -->
+  <div style="display: flex; background: #fff; padding: 8px 16px; justify-content: center; gap: 12px; border-bottom: 1px solid #e5e7eb;">
+    <button id="btn-stats-exp" data-i18n="expenseBreakdown" style="background: #10b981; color: white; border: none; padding: 4px 16px; border-radius: 14px; font-size: 12px; cursor: pointer; font-weight: 600;">Expense Breakdown</button>
+    <button id="btn-stats-inc" data-i18n="incomeBreakdown" style="background: #f3f4f6; color: #374151; border: none; padding: 4px 16px; border-radius: 14px; font-size: 12px; cursor: pointer; font-weight: 500;">Income Breakdown</button>
+  </div>
+  
   <!-- ADD THIS EXPENSE / INCOME TOGGLE SWITCH -->
   <div style="display: flex; background: #fff; padding: 8px 16px; justify-content: center; gap: 12px; border-bottom: 1px solid #e5e7eb;">
     <button id="btn-stats-exp" style="background: #10b981; color: white; border: none; padding: 4px 16px; border-radius: 14px; font-size: 12px; cursor: pointer; font-weight: 600;">Expense Breakdown</button>
@@ -463,7 +469,8 @@
         date: 'التاريخ', category: 'الفئة', merchantNote: 'التاجر / ملاحظة', amountLabel: 'المبلغ',
         selectCategory: 'اختر الفئة', close: 'إغلاق', selectCategoryType: 'اختر نوع الفئة',
         expenseNeg: 'مصروف (-)', incomePos: 'دخل (+)', noTransactions: 'لا توجد معاملات بعد',
-        noStats: 'لا توجد إحصائيات لهذه الفترة', noExpenseData: 'لا توجد بيانات مصروفات'
+        noStats: 'لا توجد إحصائيات لهذه الفترة', noExpenseData: 'لا توجد بيانات مصروفات',
+        expenseBreakdown: 'تفصيل المصروفات', incomeBreakdown: 'تفصيل الدخل'
       },
       cs: {
         income: 'Příjem', expense: 'Výdaj', total: 'Celkem',
@@ -476,7 +483,8 @@
         date: 'Datum', category: 'Kategorie', merchantNote: 'Obchodník / Poznámka', amountLabel: 'Částka',
         selectCategory: 'Vybrat kategorii', close: 'Zavřít', selectCategoryType: 'Vybrat typ kategorie',
         expenseNeg: 'Výdaj (-)', incomePos: 'Příjem (+)', noTransactions: 'Zatím žádné transakce',
-        noStats: 'Žádné statistiky pro toto období', noExpenseData: 'Žádná data o výdajích'
+        noStats: 'Žádné statistiky pro toto období', noExpenseData: 'Žádná data o výdajích',
+        expenseBreakdown: 'Rozpis výdajů', incomeBreakdown: 'Rozpis příjmů'
       },
       da: {
         income: 'Indkomst', expense: 'Udgift', total: 'Total',
@@ -489,7 +497,8 @@
         date: 'Dato', category: 'Kategori', merchantNote: 'Butik / Note', amountLabel: 'Beløp',
         selectCategory: 'Vælg kategori', close: 'Luk', selectCategoryType: 'Vælg kategoritype',
         expenseNeg: 'Udgift (-)', incomePos: 'Indkomst (+)', noTransactions: 'Ingen transaktioner endnu',
-        noStats: 'Ingen statistik for denne periode', noExpenseData: 'Ingen udgiftsdata'
+        noStats: 'Ingen statistik for denne periode', noExpenseData: 'Ingen udgiftsdata',
+        expenseBreakdown: 'Udgiftsfordeling', incomeBreakdown: 'Indkomstfordeling'
       },
       de: {
         income: 'Einnahmen', expense: 'Ausgaben', total: 'Gesamt',
@@ -502,7 +511,8 @@
         date: 'Datum', category: 'Kategorie', merchantNote: 'Händler / Notiz', amountLabel: 'Betrag',
         selectCategory: 'Kategorie auswählen', close: 'Schließen', selectCategoryType: 'Kategorie-Typ auswählen',
         expenseNeg: 'Ausgabe (-)', incomePos: 'Einnahme (+)', noTransactions: 'Noch keine Transaktionen',
-        noStats: 'Keine Statistiken für diesen Zeitraum', noExpenseData: 'Keine Ausgabendaten'
+        noStats: 'Keine Statistiken für diesen Zeitraum', noExpenseData: 'Keine Ausgabendaten',
+        expenseBreakdown: 'Ausgabenaufschlüsselung', incomeBreakdown: 'Einnahmenaufschlüsselung'
       },
       en: {
         income: 'Income', expense: 'Expense', total: 'Total',
@@ -516,7 +526,8 @@
         date: 'Date', category: 'Category', merchantNote: 'Merchant / Note', amountLabel: 'Amount',
         selectCategory: 'Select Category', close: 'Close', selectCategoryType: 'Select Category Type',
         expenseNeg: 'Expense (-)', incomePos: 'Income (+)', noTransactions: 'No transactions yet',
-        noStats: 'No statistics for this timeframe', noExpenseData: 'No expense data'
+        noStats: 'No statistics for this timeframe', noExpenseData: 'No expense data',
+        expenseBreakdown: 'Expense Breakdown', incomeBreakdown: 'Income Breakdown'
       },
       es: {
         income: 'Ingresos', expense: 'Gastos', total: 'Total',
@@ -529,7 +540,8 @@
         date: 'Fecha', category: 'Categoría', merchantNote: 'Comercio / Nota', amountLabel: 'Importe',
         selectCategory: 'Seleccionar Categoría', close: 'Cerrar', selectCategoryType: 'Seleccionar Tipo de Categoría',
         expenseNeg: 'Gasto (-)', incomePos: 'Ingreso (+)', noTransactions: 'Sin transacciones aún',
-        noStats: 'Sin estadísticas para este periodo', noExpenseData: 'Sin datos de gastos'
+        noStats: 'Sin estadísticas para este periodo', noExpenseData: 'Sin datos de gastos',
+        expenseBreakdown: 'Desglose de Gastos', incomeBreakdown: 'Desglose de Ingresos'
       },
       fr: {
         income: 'Revenu', expense: 'Dépense', total: 'Total',
@@ -542,7 +554,8 @@
         date: 'Date', category: 'Catégorie', merchantNote: 'Marchand / Note', amountLabel: 'Montant',
         selectCategory: 'Sélectionner la catégorie', close: 'Fermer', selectCategoryType: 'Sélectionner le type',
         expenseNeg: 'Dépense (-)', incomePos: 'Revenu (+)', noTransactions: 'Aucune transaction',
-        noStats: 'Aucune statistique pour cette période', noExpenseData: 'Aucune donnée de dépense'
+        noStats: 'Aucune statistique pour cette période', noExpenseData: 'Aucune donnée de dépense',
+        expenseBreakdown: 'Répartition des Dépenses', incomeBreakdown: 'Répartition des Revenus'
       },
       he: {
         income: 'הכנסה', expense: 'הוצאה', total: 'סה"כ',
@@ -555,7 +568,8 @@
         date: 'תאריך', category: 'קטגוריה', merchantNote: 'בית עסק / הערה', amountLabel: 'סכום',
         selectCategory: 'בחר קטגוריה', close: 'סגור', selectCategoryType: 'בחר סוג קטגוריה',
         expenseNeg: 'הוצאה (-)', incomePos: 'הכנסה (+)', noTransactions: 'אין עסקאות עדיין',
-        noStats: 'אין סטטיסטיקה לתקופה זו', noExpenseData: 'אין נתוני הוצאות'
+        noStats: 'אין סטטיסטיקה לתקופה זו', noExpenseData: 'אין נתוני הוצאות',
+        expenseBreakdown: 'פירוط הוצאות', incomeBreakdown: 'פירוط הכנסות'
       },
       hi: {
         income: 'आय', expense: 'व्यय', total: 'कुल',
@@ -568,7 +582,8 @@
         date: 'दिनांक', category: 'श्रेणी', merchantNote: 'व्यापारी / नोट', amountLabel: 'राशि',
         selectCategory: 'श्रेणी चुनें', close: 'बंद करें', selectCategoryType: 'श्रेणी का प्रकार चुनें',
         expenseNeg: 'व्यय (-)', incomePos: 'आय (+)', noTransactions: 'अभी कोई लेन-देन नहीं',
-        noStats: 'इस समय सीमा के लिए कोई आंकड़े नहीं', noExpenseData: 'कोई व्यय डेटा नहीं'
+        noStats: 'इस समय सीमा के लिए कोई आंकड़े नहीं', noExpenseData: 'कोई व्यय डेटा नहीं',
+        expenseBreakdown: 'व्यय विवरण', incomeBreakdown: 'आय विवरण'
       },
       hu: {
         income: 'Bevétel', expense: 'Költség', total: 'Összesen',
@@ -581,7 +596,8 @@
         date: 'Dátum', category: 'Kategória', merchantNote: 'Kereskedő / Megjegyzés', amountLabel: 'Összeg',
         selectCategory: 'Kategória kiválasztása', close: 'Bezárás', selectCategoryType: 'Kategória típus',
         expenseNeg: 'Költség (-)', incomePos: 'Bevétel (+)', noTransactions: 'Még nincsenek tranzakciók',
-        noStats: 'Nincs statisztika erre az időszakra', noExpenseData: 'Nincs kiadási adat'
+        noStats: 'Nincs statisztika erre az időszakra', noExpenseData: 'Nincs kiadási adat',
+        expenseBreakdown: 'Költségek részletezése', incomeBreakdown: 'Bevételek részletezése'
       },
       id: {
         income: 'Pemasukan', expense: 'Pengeluaran', total: 'Total',
@@ -594,7 +610,8 @@
         date: 'Tanggal', category: 'Kategori', merchantNote: 'Toko / Catatan', amountLabel: 'Jumlah',
         selectCategory: 'Pilih Kategori', close: 'Tutup', selectCategoryType: 'Pilih Tipe Kategori',
         expenseNeg: 'Pengeluaran (-)', incomePos: 'Pemasukan (+)', noTransactions: 'Belum ada transaksi',
-        noStats: 'Tidak ada statistik untuk periode ini', noExpenseData: 'Tidak ada data pengeluaran'
+        noStats: 'Tidak ada statistik untuk periode ini', noExpenseData: 'Tidak ada data pengeluaran',
+        expenseBreakdown: 'Rincian Pengeluaran', incomeBreakdown: 'Rincian Pemasukan'
       },
       ja: {
         income: '収入', expense: '支出', total: '収支合計',
@@ -607,7 +624,8 @@
         date: '日付', category: 'カテゴリー', merchantNote: '店舗 / メモ', amountLabel: '金額',
         selectCategory: 'カテゴリーを選択', close: '閉じる', selectCategoryType: 'タイプを選択',
         expenseNeg: '支出 (-)', incomePos: '収入 (+)', noTransactions: 'まだ取引がありません',
-        noStats: 'この期間のデータはありません', noExpenseData: '支出データがありません'
+        noStats: 'この期間のデータはありません', noExpenseData: '支出データがありません',
+        expenseBreakdown: '支出の内訳', incomeBreakdown: '収入の内訳'
       },
       ko: {
         income: '수입', expense: '지출', total: '잔액',
@@ -620,7 +638,8 @@
         date: '날짜', category: '카테고리', merchantNote: '사용처 / 메모', amountLabel: '금액',
         selectCategory: '카테고리 선택', close: '닫기', selectCategoryType: '유형 선택',
         expenseNeg: '지출 (-)', incomePos: '수입 (+)', noTransactions: '내역이 없습니다',
-        noStats: '해당 기간의 통계가 없습니다', noExpenseData: '지출 내역이 없습니다'
+        noStats: '해당 기간의 통계가 없습니다', noExpenseData: '지출 내역이 없습니다',
+        expenseBreakdown: '지출 내역', incomeBreakdown: '수입 내역'
       },
       ms: {
         income: 'Pendapatan', expense: 'Perbelanjaan', total: 'Jumlah',
@@ -633,7 +652,8 @@
         date: 'Tarikh', category: 'Kategori', merchantNote: 'Peniaga / Nota', amountLabel: 'Jumlah',
         selectCategory: 'Pilih Kategori', close: 'Tutup', selectCategoryType: 'Pilih Jenis Kategori',
         expenseNeg: 'Perbelanjaan (-)', incomePos: 'Pendapatan (+)', noTransactions: 'Tiada transaksi lagi',
-        noStats: 'Tiada statistik untuk tempoh ini', noExpenseData: 'Tiada data perbelanjaan'
+        noStats: 'Tiada statistik untuk tempoh ini', noExpenseData: 'Tiada data perbelanjaan',
+        expenseBreakdown: 'Pecahan Perbelanjaan', incomeBreakdown: 'Pecahan Pendapatan'
       },
       nb: {
         income: 'Inntekt', expense: 'Utgift', total: 'Totalt',
@@ -646,7 +666,8 @@
         date: 'Dato', category: 'Kategori', merchantNote: 'Bruker / Notat', amountLabel: 'Beløp',
         selectCategory: 'Velg kategori', close: 'Lukk', selectCategoryType: 'Velg kategoritype',
         expenseNeg: 'Utgift (-)', incomePos: 'Inntekt (+)', noTransactions: 'Ingen transaksjoner ennå',
-        noStats: 'Ingen statistikk for denne perioden', noExpenseData: 'Ingen utgiftsdata'
+        noStats: 'Ingen statistikk for denne perioden', noExpenseData: 'Ingen utgiftsdata',
+        expenseBreakdown: 'Utgiftsfordeling', incomeBreakdown: 'Inntektsfordeling'
       },
       pl: {
         income: 'Przychód', expense: 'Wydatek', total: 'Suma',
@@ -659,7 +680,8 @@
         date: 'Data', category: 'Kategoria', merchantNote: 'Sklep / Notatka', amountLabel: 'Kwota',
         selectCategory: 'Wybierz kategorię', close: 'Zamknij', selectCategoryType: 'Wybierz typ kategorii',
         expenseNeg: 'Wydatek (-)', incomePos: 'Przychód (+)', noTransactions: 'Brak transakcji',
-        noStats: 'Brak statystyk dla tego okresu', noExpenseData: 'Brak danych o wydatkach'
+        noStats: 'Brak statystyk dla tego okresu', noExpenseData: 'Brak danych o wydatkach',
+        expenseBreakdown: 'Podział wydatków', incomeBreakdown: 'Podział przychodów'
       },
       pt: {
         income: 'Receita', expense: 'Despesa', total: 'Total',
@@ -672,7 +694,8 @@
         date: 'Data', category: 'Categoria', merchantNote: 'Comerciante / Nota', amountLabel: 'Valor',
         selectCategory: 'Selecionar Categoria', close: 'Fechar', selectCategoryType: 'Selecionar Tipo',
         expenseNeg: 'Despesa (-)', incomePos: 'Receita (+)', noTransactions: 'Nenhuma transação ainda',
-        noStats: 'Sem estatísticas para este período', noExpenseData: 'Sem dados de despesas'
+        noStats: 'Sem estatísticas para este período', noExpenseData: 'Sem dados de despesas',
+        expenseBreakdown: 'Detalhe de Despesas', incomeBreakdown: 'Detalhe de Receitas'
       },
       ro: {
         income: 'Venit', expense: 'Cheltuială', total: 'Total',
@@ -685,7 +708,8 @@
         date: 'Dată', category: 'Categorie', merchantNote: 'Comerciant / Notă', amountLabel: 'Sumă',
         selectCategory: 'Selectează categoria', close: 'Închide', selectCategoryType: 'Selectează tipul',
         expenseNeg: 'Cheltuială (-)', incomePos: 'Venit (+)', noTransactions: 'Nicio tranzacție încă',
-        noStats: 'Fără statistici pentru această perioadă', noExpenseData: 'Fără date despre cheltuieli'
+        noStats: 'Fără statistici pentru această perioadă', noExpenseData: 'Fără date despre cheltuieli',
+        expenseBreakdown: 'Defalcarea cheltuielilor', incomeBreakdown: 'Defalcarea veniturilor'
       },
       sv: {
         income: 'Inkomst', expense: 'Utgift', total: 'Totalt',
@@ -698,7 +722,8 @@
         date: 'Datum', category: 'Kategori', merchantNote: 'Företag / Anteckning', amountLabel: 'Belopp',
         selectCategory: 'Välj kategori', close: 'Stäng', selectCategoryType: 'Välj kategoritype',
         expenseNeg: 'Utgift (-)', incomePos: 'Inkomst (+)', noTransactions: 'Inga transaktioner än',
-        noStats: 'Ingen statistik för denna period', noExpenseData: 'Inga utgiftsdata'
+        noStats: 'Ingen statistik för denna period', noExpenseData: 'Inga utgiftsdata',
+        expenseBreakdown: 'Utgiftsfördelning', incomeBreakdown: 'Inkomstfördelning'
       },
       th: {
         income: 'รายรับ', expense: 'รายจ่าย', total: 'คงเหลือ',
@@ -711,7 +736,8 @@
         date: 'วันที่', category: 'หมวดหมู่', merchantNote: 'ร้านค้า / บันทึก', amountLabel: 'จำนวนเงิน',
         selectCategory: 'เลือกหมวดหมู่', close: 'ปิด', selectCategoryType: 'เลือกประเภทหมวดหมู่',
         expenseNeg: 'รายจ่าย (-)', incomePos: 'รายรับ (+)', noTransactions: 'ยังไม่มีรายการ',
-        noStats: 'ไม่มีข้อมูลสถิติในช่วงเวลานี้', noExpenseData: 'ไม่มีข้อมูลรายจ่าย'
+        noStats: 'ไม่มีข้อมูลสถิติในช่วงเวลานี้', noExpenseData: 'ไม่มีข้อมูลรายจ่าย',
+        expenseBreakdown: 'รายละเอียดรายจ่าย', incomeBreakdown: 'รายละเอียดรายรับ'
       },
       tr: {
         income: 'Gelir', expense: 'Gider', total: 'Toplam',
@@ -724,7 +750,8 @@
         date: 'Tarih', category: 'Kategori', merchantNote: 'Satıcı / Not', amountLabel: 'Tutar',
         selectCategory: 'Kategori Seç', close: 'Kapat', selectCategoryType: 'Kategori Türü Seç',
         expenseNeg: 'Gider (-)', incomePos: 'Gelir (+)', noTransactions: 'Henüz işlem yok',
-        noStats: 'Bu dönem için istatistik yok', noExpenseData: 'Gider verisi yok'
+        noStats: 'Bu dönem için istatistik yok', noExpenseData: 'Gider verisi yok',
+        expenseBreakdown: 'Gider Dağılımı', incomeBreakdown: 'Gelir Dağılımı'
       },
       vi: {
         income: 'Thu nhập', expense: 'Chi tiêu', total: 'Tổng số',
@@ -737,7 +764,8 @@
         date: 'Ngày', category: 'Danh mục', merchantNote: 'Cửa hàng / Ghi chú', amountLabel: 'Số tiền',
         selectCategory: 'Chọn danh mục', close: 'Đóng', selectCategoryType: 'Chọn loại danh mục',
         expenseNeg: 'Chi tiêu (-)', incomePos: 'Thu nhập (+)', noTransactions: 'Chưa có giao dịch nào',
-        noStats: 'Không có thống kê cho khoảng thời gian này', noExpenseData: 'Không có dữ liệu chi tiêu'
+        noStats: 'Không có thống kê cho khoảng thời gian này', noExpenseData: 'Không có dữ liệu chi tiêu',
+        expenseBreakdown: 'Chi tiết chi tiêu', incomeBreakdown: 'Chi tiết thu nhập'
       },
       'zh-CN': {
         income: '收入', expense: '支出', total: '结余',
@@ -750,7 +778,8 @@
         date: '日期', category: '类别', merchantNote: '商家 / 备注', amountLabel: '金额',
         selectCategory: '选择类别', close: '关闭', selectCategoryType: '选择类别类型',
         expenseNeg: '支出 (-)', incomePos: '收入 (+)', noTransactions: '暂无交易记录',
-        noStats: '该时间段无统计数据', noExpenseData: '无支出数据'
+        noStats: '该时间段无统计数据', noExpenseData: '无支出数据',
+        expenseBreakdown: '支出明细', incomeBreakdown: '收入明细'
       },
       'zh-TW': {
         income: '收入', expense: '支出', total: '結餘',
@@ -763,7 +792,8 @@
         date: '日期', category: '類別', merchantNote: '商家 / 備註', amountLabel: '金額',
         selectCategory: '選擇類別', close: '關閉', selectCategoryType: '選擇類別類型',
         expenseNeg: '支出 (-)', incomePos: '收入 (+)', noTransactions: '暫無交易記錄',
-        noStats: '該時間段無統計數據', noExpenseData: '無支出數據'
+        noStats: '該時間段無統計數據', noExpenseData: '無支出數據',
+        expenseBreakdown: '支出明細', incomeBreakdown: '收入明細'
       }
     };
 
