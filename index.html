@@ -1,25 +1,28 @@
-<!-- 20261027 v34 Removed abcbalan.github.io says from repeat entry delete and import -->
-<!-- Work Perfectly -->
+<!-- 20261029 v35 Try to save local first, then sync to cloud when internet available -->
 
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <!-- Standard Meta Tags -->
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  
+
   <!-- 1. FOR IPHONE (iOS Safari) -->
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="ExpenseTracker">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2489/2489756.png">
 
   <!-- 2. FOR SAMSUNG & ANDROID (Points to Manifest file) -->
+
   <link rel="manifest" href="manifest.json">
-  
+
   <title>ExpenseTracker</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -27,7 +30,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     body { background-color: #f4f6f8; color: #333; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
     .app-container { width: 100%; max-width: 480px; background: #fff; height: 100vh; height: 100dvh; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    
+
 #auth-screen { position: absolute; top:0; left:0; width:100%; height:100%; background:#fff; z-index:999; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24px; }
 #auth-screen h2 { margin-bottom: 20px; color: #10b981; }
 .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
@@ -103,8 +106,6 @@
 .cat-tile { background: #f3f4f6; padding: 12px; border-radius: 8px; text-align: center; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; }
 .cat-tile:active { background: #e5e7eb; }
 .cat-tile span { font-size: 20px; }
-
-    
   </style>
 </head>
 <body>
@@ -117,7 +118,7 @@
       <div id="auth-error" class="auth-error"></div>
     </div>
 
-    <!-- TRANSACTION SCREEN -->
+<!-- TRANSACTION SCREEN -->
 <div id="screen-trans" class="main-screen active">
   <div class="top-bar">
     <h1>ExpenseTracker</h1>
@@ -239,7 +240,7 @@
       </select>
     </div>
 
-    <div style="background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
       <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="langPref">Language Preference</h3>
       <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="langDesc">Choose your interface language.</p>
       <select id="select-language" class="form-control" style="cursor: pointer;">
@@ -267,6 +268,16 @@
         <option value="vi">Tiếng Việt (Vietnamese)</option>
         <option value="zh-CN">简体中文 (Simplified Chinese)</option>
         <option value="zh-TW">繁體中文 (Traditional Chinese)</option>
+      </select>
+    </div>
+
+    <!-- STORAGE & SYNC MODE PREFERENCE -->
+    <div style="background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="syncPref">Data Storage & Sync Mode</h3>
+      <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="syncDesc">Select whether to sync data to Supabase cloud or store on single device.</p>
+      <select id="select-sync-mode" class="form-control" style="cursor: pointer;">
+        <option value="sync">Smart Background Sync (Cloud Backup)</option>
+        <option value="local">Local Phone Storage Only (Single Phone)</option>
       </select>
     </div>
   </div>
@@ -387,15 +398,15 @@
     </div>
   </div>
 </div>
-
-
   </div>
-  
+
   <script>
     const SUPABASE_URL = 'https://vikrhgqcajqjijzhxcbx.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpa3JoZ3FjYWpxamlqemh4Y2J4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMzQ1OTYsImV4cCI6MjEwNzcxMDU5Nn0.0c_sTu6wMnsL-8xsAsCtxh7ePXVmWgb1mzzwkAlKGkQ';
 
+
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 
     let expenses = [];
     let currentUser = null;
@@ -403,19 +414,24 @@
     let currentUserEmail = (localStorage.getItem('sb_user_email') || '').toLowerCase().trim();
     let currentUserId = localStorage.getItem('sb_user_id') || null;
     let editingId = null;
-    let editingSelectedDate = null; // Track date clicked when editing recurring instance
+    let editingSelectedDate = null;
     
     // Separate Dates for Transaction screen vs Stats screen
     let currentTransDate = new Date();
     let currentStatsDate = new Date();
 
+
     let expensesRealtime = null;
     let activeExpenseType = 'expense';
     let currentStatsTimeframe = 'monthly';
 
+
     // Settings State
     let currentCurrency = localStorage.getItem('user_currency') || '£';
     let currentLang = localStorage.getItem('user_lang') || 'en';
+    let syncMode = localStorage.getItem('user_sync_mode') || 'sync'; // 'sync' or 'local'
+    let isSyncingQueue = false;
+
 
     // Translations Dictionary
     const translations = {
@@ -424,7 +440,7 @@
         daily: 'يومي', calendar: 'التقويم', monthly: 'شهري', summary: 'ملخص',
         statistics: 'الإحصائيات', weekly: 'أسبوعي', annually: 'سنوي',
         settingsTitle: 'الإعدادات', currencyPref: 'تفضيل العملة', currencyDesc: 'اختر رمز العملة الخاص بك.',
-        langPref: 'تفضيل اللغة', langDesc: 'اختر لغة الواجهة.',
+        langPref: 'تفضيل اللغة', langDesc: 'اختر لغة الواجهة.', syncPref: 'تخزين البيانات والمزامنة', syncDesc: 'اختر طريقة حفظ البيانات.',
         navTrans: 'المعاملات', navStats: 'الإحصائيات', navSettings: 'الإعدادات',
         cancel: 'إلغاء', expenseOrIncome: 'مصروف أو دخل', delete: 'حذف',
         date: 'التاريخ', category: 'الفئة', merchantNote: 'التاجر / ملاحظة', amountLabel: 'المبلغ',
@@ -437,7 +453,7 @@
         daily: 'Denně', calendar: 'Kalendář', monthly: 'Měsíčně', summary: 'Shrnutí',
         statistics: 'Statistiky', weekly: 'Týdně', annually: 'Ročně',
         settingsTitle: 'Nastavení', currencyPref: 'Preference měny', currencyDesc: 'Vyberte symbol měny.',
-        langPref: 'Preference jazyka', langDesc: 'Vyberte jazyk rozhraní.',
+        langPref: 'Preference jazyka', langDesc: 'Vyberte jazyk rozhraní.', syncPref: 'Ukládání dat a synchronizace', syncDesc: 'Vyberte způsob ukládání dat.',
         navTrans: 'Transakce', navStats: 'Statistiky', navSettings: 'Nastavení',
         cancel: 'Zrušit', expenseOrIncome: 'Výdaj nebo Příjem', delete: 'Smazat',
         date: 'Datum', category: 'Kategorie', merchantNote: 'Obchodník / Poznámka', amountLabel: 'Částka',
@@ -450,7 +466,7 @@
         daily: 'Daglig', calendar: 'Kalender', monthly: 'Månedlig', summary: 'Oversigt',
         statistics: 'Statistik', weekly: 'Ugentlig', annually: 'Årlig',
         settingsTitle: 'Indstillinger', currencyPref: 'Valutapræference', currencyDesc: 'Vælg dit valutasymbol.',
-        langPref: 'Sprogpræference', langDesc: 'Vælg dit grænsefladesprog.',
+        langPref: 'Sprogpræference', langDesc: 'Vælg dit grænsefladesprog.', syncPref: 'Dataopbevaring & Synkronisering', syncDesc: 'Vælg hvordan dine data gemmes.',
         navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Indstillinger',
         cancel: 'Annuller', expenseOrIncome: 'Udgift eller Indkomst', delete: 'Slet',
         date: 'Dato', category: 'Kategori', merchantNote: 'Butik / Note', amountLabel: 'Beløb',
@@ -463,7 +479,7 @@
         daily: 'Täglich', calendar: 'Kalender', monthly: 'Monatlich', summary: 'Zusammenfassung',
         statistics: 'Statistiken', weekly: 'Wöchentlich', annually: 'Jährlich',
         settingsTitle: 'Einstellungen', currencyPref: 'Währungseinstellung', currencyDesc: 'Wählen Sie Ihr Währungssymbol.',
-        langPref: 'Spracheinstellung', langDesc: 'Wählen Sie Ihre Displaysprache.',
+        langPref: 'Spracheinstellung', langDesc: 'Wählen Sie Ihre Displaysprache.', syncPref: 'Datenspeicherung & Synchronisierung', syncDesc: 'Wählen Sie, wie Daten gespeichert werden.',
         navTrans: 'Transaktion', navStats: 'Statistiken', navSettings: 'Einstellungen',
         cancel: 'Abbrechen', expenseOrIncome: 'Ausgabe oder Einnahme', delete: 'Löschen',
         date: 'Datum', category: 'Kategorie', merchantNote: 'Händler / Notiz', amountLabel: 'Betrag',
@@ -476,7 +492,7 @@
         daily: 'Daily', calendar: 'Calendar', monthly: 'Monthly', summary: 'Summary',
         statistics: 'Statistics', weekly: 'Weekly', annually: 'Annually',
         settingsTitle: 'Settings', currencyPref: 'Currency Preference', currencyDesc: 'Choose your currency symbol.',
-        langPref: 'Language Preference', langDesc: 'Choose your interface language.',
+        langPref: 'Language Preference', langDesc: 'Choose your interface language.', syncPref: 'Data Storage & Sync Mode', syncDesc: 'Select whether to sync data to Supabase cloud or store on single device.',
         navTrans: 'Transaction', navStats: 'Stats', navSettings: 'Settings',
         cancel: 'Cancel', expenseOrIncome: 'Expense or Income', delete: 'Delete',
         date: 'Date', category: 'Category', merchantNote: 'Merchant / Note', amountLabel: 'Amount',
@@ -489,7 +505,7 @@
         daily: 'Diario', calendar: 'Calendario', monthly: 'Mensual', summary: 'Resumen',
         statistics: 'Estadísticas', weekly: 'Semanal', annually: 'Anual',
         settingsTitle: 'Ajustes', currencyPref: 'Preferencia de Moneda', currencyDesc: 'Elige tu símbolo de moneda.',
-        langPref: 'Preferencia de Idioma', langDesc: 'Elige el idioma de tu interfaz.',
+        langPref: 'Preferencia de Idioma', langDesc: 'Elige el idioma de tu interfaz.', syncPref: 'Almacenamiento y Sincronización', syncDesc: 'Elige cómo guardar tus datos.',
         navTrans: 'Transacción', navStats: 'Estadísticas', navSettings: 'Ajustes',
         cancel: 'Cancelar', expenseOrIncome: 'Gasto o Ingreso', delete: 'Eliminar',
         date: 'Fecha', category: 'Categoría', merchantNote: 'Comercio / Nota', amountLabel: 'Importe',
@@ -502,7 +518,7 @@
         daily: 'Quotidien', calendar: 'Calendrier', monthly: 'Mensuel', summary: 'Résumé',
         statistics: 'Statistiques', weekly: 'Hebdomadaire', annually: 'Annuel',
         settingsTitle: 'Paramètres', currencyPref: 'Préférence de devise', currencyDesc: 'Choisissez votre symbole de devise.',
-        langPref: 'Préférence de langue', langDesc: 'Choisissez la langue de votre interface.',
+        langPref: 'Préférence de langue', langDesc: 'Choisissez la langue de votre interface.', syncPref: 'Stockage des données & Synchro', syncDesc: 'Choisissez le mode de stockage.',
         navTrans: 'Transaction', navStats: 'Statistiques', navSettings: 'Paramètres',
         cancel: 'Annuler', expenseOrIncome: 'Dépense ou Revenu', delete: 'Supprimer',
         date: 'Date', category: 'Catégorie', merchantNote: 'Marchand / Note', amountLabel: 'Montant',
@@ -515,9 +531,9 @@
         daily: 'יומי', calendar: 'לוח שנה', monthly: 'חודשי', summary: 'סיכום',
         statistics: 'סטטיסטיקה', weekly: 'שבועי', annually: 'שנתי',
         settingsTitle: 'הגדרות', currencyPref: 'העדפת מטבע', currencyDesc: 'בחר את סמל המטבע שלך.',
-        langPref: 'העדפת שפה', langDesc: 'בחר את שפת הממשק.',
+        langPref: 'העדפת שפה', langDesc: 'בחר את שפת הממשק.', syncPref: 'אחסון נתונים וסנכרון', syncDesc: 'בחר אופן שמירת הנתונים.',
         navTrans: 'עסקאות', navStats: 'סטטיסטיקה', navSettings: 'הגדרות',
-        cancel: 'ביטول', expenseOrIncome: 'הוצאה או הכנסה', delete: 'מחק',
+        cancel: 'ביטול', expenseOrIncome: 'הוצאה או הכנסה', delete: 'מחק',
         date: 'תאריך', category: 'קטגוריה', merchantNote: 'בית עסק / הערה', amountLabel: 'סכום',
         selectCategory: 'בחר קטגוריה', close: 'סגור', selectCategoryType: 'בחר סוג קטגוריה',
         expenseNeg: 'הוצאה (-)', incomePos: 'הכנסה (+)', noTransactions: 'אין עסקאות עדיין',
@@ -528,7 +544,7 @@
         daily: 'दैनिक', calendar: 'कैलेंडर', monthly: 'मासिक', summary: 'सारांश',
         statistics: 'आंकड़े', weekly: 'साप्ताहिक', annually: 'वार्षिक',
         settingsTitle: 'सेटिंग्स', currencyPref: 'मुद्रा प्राथमिकता', currencyDesc: 'अपना मुद्रा प्रतीक चुनें।',
-        langPref: 'भाषा प्राथमिकता', langDesc: 'अपनी इंटरफ़ेस भाषा चुनें।',
+        langPref: 'भाषा प्राथमिकता', langDesc: 'अपनी इंटरफ़ेस भाषा चुनें।', syncPref: 'डेटा स्टोरेज और सिंक', syncDesc: 'डेटा स्टोर करने का तरीका चुनें।',
         navTrans: 'लेन-देन', navStats: 'आंकड़े', navSettings: 'सेटिंग्स',
         cancel: 'रद्द करें', expenseOrIncome: 'व्यय या आय', delete: 'हटाएं',
         date: 'दिनांक', category: 'श्रेणी', merchantNote: 'व्यापारी / नोट', amountLabel: 'राशि',
@@ -541,7 +557,7 @@
         daily: 'Napi', calendar: 'Naptár', monthly: 'Havi', summary: 'Összegzés',
         statistics: 'Statisztika', weekly: 'Heti', annually: 'Éves',
         settingsTitle: 'Beállítások', currencyPref: 'Pénznem beállítása', currencyDesc: 'Válassza ki a pénznem szimbólumát.',
-        langPref: 'Nyelvi beállítás', langDesc: 'Válassza ki a felület nyelvét.',
+        langPref: 'Nyelvi beállítás', langDesc: 'Válassza ki a felület nyelvét.', syncPref: 'Adattárolás és szinkronizálás', syncDesc: 'Válassza ki az adattárolási módot.',
         navTrans: 'Tranzakció', navStats: 'Statisztika', navSettings: 'Beállítások',
         cancel: 'Mégse', expenseOrIncome: 'Költség vagy Bevétel', delete: 'Törlés',
         date: 'Dátum', category: 'Kategória', merchantNote: 'Kereskedő / Megjegyzés', amountLabel: 'Összeg',
@@ -554,7 +570,7 @@
         daily: 'Harian', calendar: 'Kalender', monthly: 'Bulanan', summary: 'Ringkasan',
         statistics: 'Statistik', weekly: 'Mingguan', annually: 'Tahunan',
         settingsTitle: 'Pengaturan', currencyPref: 'Preferensi Mata Uang', currencyDesc: 'Pilih simbol mata uang Anda.',
-        langPref: 'Preferensi Bahasa', langDesc: 'Pilih bahasa tampilan.',
+        langPref: 'Preferensi Bahasa', langDesc: 'Pilih bahasa tampilan.', syncPref: 'Penyimpanan Data & Sinkronisasi', syncDesc: 'Pilih mode penyimpanan data Anda.',
         navTrans: 'Transaksi', navStats: 'Statistik', navSettings: 'Pengaturan',
         cancel: 'Batal', expenseOrIncome: 'Pengeluaran atau Pemasukan', delete: 'Hapus',
         date: 'Tanggal', category: 'Kategori', merchantNote: 'Toko / Catatan', amountLabel: 'Jumlah',
@@ -567,7 +583,7 @@
         daily: '日別', calendar: 'カレンダー', monthly: '月別', summary: '概要',
         statistics: '統計', weekly: '週間', annually: '年間',
         settingsTitle: '設定', currencyPref: '通貨の設定', currencyDesc: '表示する通貨記号を選択します。',
-        langPref: '言語の設定', langDesc: 'アプリの表示言語を選択します。',
+        langPref: '言語の設定', langDesc: 'アプリの表示言語を選択します。', syncPref: 'データ保存と同期設定', syncDesc: 'データの保存方法を選択します。',
         navTrans: '取引履歴', navStats: '統計', navSettings: '設定',
         cancel: 'キャンセル', expenseOrIncome: '収支の登録', delete: '削除',
         date: '日付', category: 'カテゴリー', merchantNote: '店舗 / メモ', amountLabel: '金額',
@@ -580,7 +596,7 @@
         daily: '일별', calendar: '달력', monthly: '월별', summary: '요약',
         statistics: '통계', weekly: '주간', annually: '연간',
         settingsTitle: '설정', currencyPref: '통화 설정', currencyDesc: '사용할 통화 기호를 선택하세요.',
-        langPref: '언어 설정', langDesc: '표시 언어를 선택하세요.',
+        langPref: '언어 설정', langDesc: '표시 언어를 선택하세요.', syncPref: '데이터 저장 및 동기화', syncDesc: '데이터 저장 방식을 선택하세요.',
         navTrans: '내역', navStats: '통계', navSettings: '설정',
         cancel: '취소', expenseOrIncome: '수입 / 지출 입력', delete: '삭제',
         date: '날짜', category: '카테고리', merchantNote: '사용처 / 메모', amountLabel: '금액',
@@ -593,7 +609,7 @@
         daily: 'Harian', calendar: 'Kalendar', monthly: 'Bulanan', summary: 'Ringkasan',
         statistics: 'Statistik', weekly: 'Mingguan', annually: 'Tahunan',
         settingsTitle: 'Tetapan', currencyPref: 'Pilihan Mata Wang', currencyDesc: 'Pilih simbol mata wang anda.',
-        langPref: 'Pilihan Bahasa', langDesc: 'Pilih bahasa paparan anda.',
+        langPref: 'Pilihan Bahasa', langDesc: 'Pilih bahasa paparan anda.', syncPref: 'Penystoran Data & Senkronisasi', syncDesc: 'Pilih cara simpanan data.',
         navTrans: 'Transaksi', navStats: 'Statistik', navSettings: 'Tetapan',
         cancel: 'Batal', expenseOrIncome: 'Perbelanjaan atau Pendapatan', delete: 'Padam',
         date: 'Tarikh', category: 'Kategori', merchantNote: 'Peniaga / Nota', amountLabel: 'Jumlah',
@@ -606,7 +622,7 @@
         daily: 'Daglig', calendar: 'Kalender', monthly: 'Månedlig', summary: 'Sammendrag',
         statistics: 'Statistikk', weekly: 'Ukentlig', annually: 'Årlig',
         settingsTitle: 'Innstillinger', currencyPref: 'Valutapreferanse', currencyDesc: 'Velg ditt valutasymbol.',
-        langPref: 'Språkpreferanse', langDesc: 'Velg visningsspråk.',
+        langPref: 'Språkpreferanse', langDesc: 'Velg visningsspråk.', syncPref: 'Datalagring og synkronisering', syncDesc: 'Velg hvordan data lagres.',
         navTrans: 'Transaksjon', navStats: 'Statistikk', navSettings: 'Innstillinger',
         cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inntekt', delete: 'Slett',
         date: 'Dato', category: 'Kategori', merchantNote: 'Bruker / Notat', amountLabel: 'Beløp',
@@ -619,7 +635,7 @@
         daily: 'Dziennie', calendar: 'Kalendarz', monthly: 'Miesięcznie', summary: 'Podsumowanie',
         statistics: 'Statystyki', weekly: 'Tygodniowo', annually: 'Rocznie',
         settingsTitle: 'Ustawienia', currencyPref: 'Preferencja waluty', currencyDesc: 'Wybierz symbol waluty.',
-        langPref: 'Preferencja języka', langDesc: 'Wybierz język interfejsu.',
+        langPref: 'Preferencja języka', langDesc: 'Wybierz język interfejsu.', syncPref: 'Przechowywanie danych i synchronizacja', syncDesc: 'Wybierz tryb zapisu danych.',
         navTrans: 'Transakcje', navStats: 'Statystyki', navSettings: 'Ustawienia',
         cancel: 'Anuluj', expenseOrIncome: 'Wydatek lub Przychód', delete: 'Usuń',
         date: 'Data', category: 'Kategoria', merchantNote: 'Sklep / Notatka', amountLabel: 'Kwota',
@@ -632,7 +648,7 @@
         daily: 'Diário', calendar: 'Calendário', monthly: 'Mensal', summary: 'Resumo',
         statistics: 'Estatísticas', weekly: 'Semanal', annually: 'Anual',
         settingsTitle: 'Configurações', currencyPref: 'Preferência de Moeda', currencyDesc: 'Escolha seu símbolo de moeda.',
-        langPref: 'Preferência de Idioma', langDesc: 'Escolha o idioma da interface.',
+        langPref: 'Preferência de Idioma', langDesc: 'Escolha o idioma da interface.', syncPref: 'Armazenamento de Dados & Sincronização', syncDesc: 'Escolha como salvar dados.',
         navTrans: 'Transação', navStats: 'Estatísticas', navSettings: 'Configurações',
         cancel: 'Cancelar', expenseOrIncome: 'Despesa ou Receita', delete: 'Excluir',
         date: 'Data', category: 'Categoria', merchantNote: 'Comerciante / Nota', amountLabel: 'Valor',
@@ -645,7 +661,7 @@
         daily: 'Zilnic', calendar: 'Calendar', monthly: 'Lunar', summary: 'Rezumat',
         statistics: 'Statistici', weekly: 'Săptămânal', annually: 'Anual',
         settingsTitle: 'Setări', currencyPref: 'Preferință monedă', currencyDesc: 'Alegeți simbolul monedei.',
-        langPref: 'Preferință limbă', langDesc: 'Alegeți limba interfeței.',
+        langPref: 'Preferință limbă', langDesc: 'Alegeți limba interfeței.', syncPref: 'Stocare date & Sincronizare', syncDesc: 'Alegeți modul de stocare.',
         navTrans: 'Tranzacție', navStats: 'Statistici', navSettings: 'Setări',
         cancel: 'Anulează', expenseOrIncome: 'Cheltuială sau Venit', delete: 'Șterge',
         date: 'Dată', category: 'Categorie', merchantNote: 'Comerciant / Notă', amountLabel: 'Sumă',
@@ -658,7 +674,7 @@
         daily: 'Dagligen', calendar: 'Kalender', monthly: 'Månadsvis', summary: 'Sammanfattning',
         statistics: 'Statistik', weekly: 'Veckovis', annually: 'Årlig',
         settingsTitle: 'Inställningar', currencyPref: 'Valutapreferens', currencyDesc: 'Valj din valutasymbol.',
-        langPref: 'Språkpreferens', langDesc: 'Välj ditt gränssnittsspråk.',
+        langPref: 'Språkpreferens', langDesc: 'Välj ditt gränssnittsspråk.', syncPref: 'Datalagring & Synkronisering', syncDesc: 'Välj hur data lagras.',
         navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Inställningar',
         cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inkomst', delete: 'Radera',
         date: 'Datum', category: 'Kategori', merchantNote: 'Företag / Anteckning', amountLabel: 'Belopp',
@@ -671,7 +687,7 @@
         daily: 'รายวัน', calendar: 'ปฏิทิน', monthly: 'รายเดือน', summary: 'สรุป',
         statistics: 'สถิติ', weekly: 'รายสัปดาห์', annually: 'รายปี',
         settingsTitle: 'ตั้งค่า', currencyPref: 'สกุลเงิน', currencyDesc: 'เลือกสัญลักษณ์สกุลเงินของคุณ',
-        langPref: 'ภาษา', langDesc: 'เลือกภาษาของแอปพลิเคชัน',
+        langPref: 'ภาษา', langDesc: 'เลือกภาษาของแอปพลิเคชัน', syncPref: 'การจัดเก็บข้อมูลและการซิงค์', syncDesc: 'เลือกโหมดการบันทึกข้อมูล',
         navTrans: 'รายการ', navStats: 'สถิติ', navSettings: 'ตั้งค่า',
         cancel: 'ยกเลิก', expenseOrIncome: 'บันทึกรายรับ-รายจ่าย', delete: 'ลบ',
         date: 'วันที่', category: 'หมวดหมู่', merchantNote: 'ร้านค้า / บันทึก', amountLabel: 'จำนวนเงิน',
@@ -684,7 +700,7 @@
         daily: 'Günlük', calendar: 'Takvim', monthly: 'Aylık', summary: 'Özet',
         statistics: 'İstatistikler', weekly: 'Haftalık', annually: 'Yıllık',
         settingsTitle: 'Ayarlar', currencyPref: 'Para Birimi Tercihi', currencyDesc: 'Para birimi simgenizi seçin.',
-        langPref: 'Dil Tercihi', langDesc: 'Arayüz dilinizi seçin.',
+        langPref: 'Dil Tercihi', langDesc: 'Arayüz dilinizi seçin.', syncPref: 'Veri Depolama ve Senkronizasyon', syncDesc: 'Kaydetme modunu seçin.',
         navTrans: 'İşlemler', navStats: 'İstatistikler', navSettings: 'Ayarlar',
         cancel: 'İptal', expenseOrIncome: 'Gider veya Gelir', delete: 'Sil',
         date: 'Tarih', category: 'Kategori', merchantNote: 'Satıcı / Not', amountLabel: 'Tutar',
@@ -697,7 +713,7 @@
         daily: 'Hàng ngày', calendar: 'Lịch', monthly: 'Hàng tháng', summary: 'Tóm tắt',
         statistics: 'Thống kê', weekly: 'Hàng tuần', annually: 'Hàng năm',
         settingsTitle: 'Cài đặt', currencyPref: 'Tiền tệ', currencyDesc: 'Chọn ký hiệu tiền tệ của bạn.',
-        langPref: 'Ngôn ngữ', langDesc: 'Chọn ngôn ngữ giao diện.',
+        langPref: 'Ngôn ngữ', langDesc: 'Chọn ngôn ngữ giao diện.', syncPref: 'Lưu trữ & Đồng bộ dữ liệu', syncDesc: 'Chọn chế độ lưu dữ liệu.',
         navTrans: 'Giao dịch', navStats: 'Thống kê', navSettings: 'Cài đặt',
         cancel: 'Hủy', expenseOrIncome: 'Chi tiêu hoặc Thu nhập', delete: 'Xóa',
         date: 'Ngày', category: 'Danh mục', merchantNote: 'Cửa hàng / Ghi chú', amountLabel: 'Số tiền',
@@ -710,7 +726,7 @@
         daily: '每日', calendar: '日历', monthly: '每月', summary: '汇总',
         statistics: '统计', weekly: '每周', annually: '每年',
         settingsTitle: '设置', currencyPref: '货币偏好', currencyDesc: '选择您使用的货币符号。',
-        langPref: '语言偏好', langDesc: '选择您的界面显示语言。',
+        langPref: '语言偏好', langDesc: '选择您的界面显示语言。', syncPref: '数据存储与同步模式', syncDesc: '选择将数据同步到云端还是单机保存。',
         navTrans: '交易', navStats: '统计', navSettings: '设置',
         cancel: '取消', expenseOrIncome: '记账', delete: '删除',
         date: '日期', category: '类别', merchantNote: '商家 / 备注', amountLabel: '金额',
@@ -723,7 +739,7 @@
         daily: '每日', calendar: '日曆', monthly: '每月', summary: '彙總',
         statistics: '統計', weekly: '每週', annually: '每年',
         settingsTitle: '設定', currencyPref: '貨幣偏好', currencyDesc: '選擇您使用的貨幣符號。',
-        langPref: '語言偏好', langDesc: '選擇您的介面顯示語言。',
+        langPref: '語言偏好', langDesc: '選擇您的介面顯示語言。', syncPref: '資料存儲與同步模式', syncDesc: '選擇將資料同步至雲端或單機儲存。',
         navTrans: '交易', navStats: '統計', navSettings: '設定',
         cancel: '取消', expenseOrIncome: '記帳', delete: '刪除',
         date: '日期', category: '類別', merchantNote: '商家 / 備註', amountLabel: '金額',
@@ -733,9 +749,11 @@
       }
     };
 
+
     function t(key) {
       return (translations[currentLang] && translations[currentLang][key]) || translations['en'][key] || key;
     }
+
 
     function applyTranslations() {
       document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -744,7 +762,7 @@
       });
     }
 
-    // Modern toast notification replacing browser alerts
+
     function showToast(message) {
       const toast = document.getElementById('app-toast');
       if (!toast) return;
@@ -760,12 +778,14 @@
     let customIncomeCategories = [];
     let hiddenMerchants = JSON.parse(localStorage.getItem('hidden_merchants') || '[]');
 
+
     const categoryColors = {
       'Food': '#ff6384', 'Social Life': '#ff9f40', 'Self-development': '#ffcd56',
       'Transportation': '#4bc0c0', 'Culture': '#36a2eb', 'Household': '#9966ff',
       'Apparel': '#c9cbcf', 'Beauty': '#e7e9ed', 'Health': '#2ecc71',
       'Education': '#e74c3c', 'Gift': '#3498db', 'Other': '#95a5a6'
     };
+
 
     function parseJwt(token) {
       try {
@@ -777,17 +797,27 @@
       }
     }
 
+
     function getUserStorageKey() {
       if (currentUserId) return `expenses_data_${currentUserId}`;
       if (currentUserEmail) return `expenses_data_${currentUserEmail}`;
       return 'expenses_data_guest';
     }
 
+
+    function getPendingQueueKey() {
+      if (currentUserId) return `pending_sync_queue_${currentUserId}`;
+      if (currentUserEmail) return `pending_sync_queue_${currentUserEmail}`;
+      return 'pending_sync_queue_guest';
+    }
+
+
     function getCustomCategoriesKey() {
       if (currentUserId) return `custom_categories_${currentUserId}`;
       if (currentUserEmail) return `custom_categories_${currentUserEmail}`;
       return 'custom_categories_guest';
     }
+
 
     function getCustomIncomeCategoriesKey() {
       if (currentUserId) return `custom_income_categories_${currentUserId}`;
@@ -801,13 +831,39 @@
       if (currentUserId) localStorage.setItem('sb_user_id', currentUserId);
     }
 
+
     function clearAuthState() {
       localStorage.removeItem('sb_access_token');
       localStorage.removeItem('sb_user_email');
       localStorage.removeItem('sb_user_id');
     }
 
+
     function getGuestStorageKey() { return 'expenses_data_guest'; }
+
+
+    function getPendingQueue() {
+      try {
+        return JSON.parse(localStorage.getItem(getPendingQueueKey()) || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+
+    function savePendingQueue(queue) {
+      localStorage.setItem(getPendingQueueKey(), JSON.stringify(queue));
+    }
+
+
+    function enqueuePendingAction(action) {
+      const queue = getPendingQueue();
+      // Deduplicate queue items by target ID
+      const filtered = queue.filter(q => q.item.id !== action.item.id);
+      filtered.push(action);
+      savePendingQueue(filtered);
+    }
+
 
     function loadCategoriesFromUser(user) {
       if (user && user.user_metadata) {
@@ -819,11 +875,13 @@
         }
       }
 
+
       if (customCategories.length === 0) {
         try {
           customCategories = JSON.parse(localStorage.getItem(getCustomCategoriesKey()) || '[]');
         } catch (e) { customCategories = []; }
       }
+
 
       if (customIncomeCategories.length === 0) {
         try {
@@ -831,15 +889,18 @@
         } catch (e) { customIncomeCategories = []; }
       }
 
+
       localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories));
       localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories));
     }
+
 
     async function saveCustomCategoriesToCloud() {
       localStorage.setItem(getCustomCategoriesKey(), JSON.stringify(customCategories));
       localStorage.setItem(getCustomIncomeCategoriesKey(), JSON.stringify(customIncomeCategories));
 
-      if (currentUser && currentUser.id) {
+
+      if (syncMode === 'sync' && currentUser && currentUser.id) {
         try {
           await supabaseClient.auth.updateUser({
             data: {
@@ -853,25 +914,31 @@
       }
     }
 
+
     function mergeGuestLocalToUser() {
       const guestKey = getGuestStorageKey();
       const guestRaw = localStorage.getItem(guestKey);
       if (!guestRaw) return Promise.resolve();
 
+
       let guestEntries = [];
       try { guestEntries = JSON.parse(guestRaw) || []; } catch (e) { guestEntries = []; }
+
 
       if (!Array.isArray(guestEntries) || guestEntries.length === 0) {
         localStorage.removeItem(guestKey);
         return Promise.resolve();
       }
 
+
       if (!currentUser || !currentUser.id) return Promise.resolve();
+
 
       const userKey = getUserStorageKey();
       const existingRaw = localStorage.getItem(userKey);
       let existingEntries = [];
       try { existingEntries = existingRaw ? JSON.parse(existingRaw) : []; } catch (e) { existingEntries = []; }
+
 
       const merged = [...guestEntries, ...existingEntries];
       const seen = new Set();
@@ -884,23 +951,27 @@
         deduped.push(item);
       });
 
+
       localStorage.setItem(userKey, JSON.stringify(deduped));
       localStorage.removeItem(guestKey);
 
-      return Promise.all(deduped.map(async item => {
-        try {
-          await supabaseClient.from('expenses').upsert(item, { onConflict: 'id' });
-        } catch (e) {
-          console.warn('Failed to upload merged guest entry', e);
-        }
-      }));
+
+      if (syncMode === 'sync') {
+        deduped.forEach(item => {
+          enqueuePendingAction({ type: 'UPSERT', item });
+        });
+        processPendingSyncQueue();
+      }
+      return Promise.resolve();
     }
 
+
     function subscribeToExpenses() {
-      if (!currentUser || !currentUser.id) return;
+      if (syncMode !== 'sync' || !currentUser || !currentUser.id) return;
       if (expensesRealtime) {
         supabaseClient.removeChannel(expensesRealtime);
       }
+
 
       expensesRealtime = supabaseClient.channel('expenses-user-' + currentUser.id)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses', filter: `user_id=eq.${currentUser.id}` }, () => {
@@ -909,6 +980,7 @@
         .subscribe();
     }
 
+
     function unsubscribeFromExpenses() {
       if (expensesRealtime) {
         supabaseClient.removeChannel(expensesRealtime);
@@ -916,11 +988,55 @@
       }
     }
 
+
     if (accessToken) {
       const payload = parseJwt(accessToken);
       if (payload && payload.sub) currentUserId = payload.sub;
       if (currentUserId) saveAuthState();
     }
+
+
+    async function processPendingSyncQueue() {
+      if (syncMode !== 'sync' || isSyncingQueue || !navigator.onLine) return;
+      
+      const queue = getPendingQueue();
+      if (queue.length === 0) return;
+
+
+      isSyncingQueue = true;
+      const remainingQueue = [];
+
+
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+          isSyncingQueue = false;
+          return;
+        }
+
+
+        for (const action of queue) {
+          try {
+            if (action.type === 'UPSERT') {
+              const { error } = await supabaseClient.from('expenses').upsert(action.item, { onConflict: 'id' });
+              if (error) throw error;
+            } else if (action.type === 'DELETE') {
+              const { error } = await supabaseClient.from('expenses').delete().eq('id', action.item.id);
+              if (error) throw error;
+            }
+          } catch (e) {
+            console.warn('Queue action failed, retaining in queue:', action, e);
+            remainingQueue.push(action);
+          }
+        }
+      } catch (e) {
+        console.warn('Queue processing exception:', e);
+      } finally {
+        savePendingQueue(remainingQueue);
+        isSyncingQueue = false;
+      }
+    }
+
 
     async function initAuth() {
       try {
@@ -934,12 +1050,16 @@
           loadCategoriesFromUser(currentUser);
           document.getElementById('auth-screen').style.display = 'none';
           await mergeGuestLocalToUser();
-          await syncWithSupabase();
-          subscribeToExpenses();
+          loadLocalForUser();
+          if (syncMode === 'sync') {
+            await syncWithSupabase();
+            subscribeToExpenses();
+          }
         } else {
           document.getElementById('auth-screen').style.display = 'flex';
           loadLocalForUser();
         }
+
 
         supabaseClient.auth.onAuthStateChange(async (_event, session) => {
           currentUser = session ? session.user : null;
@@ -951,8 +1071,11 @@
             loadCategoriesFromUser(currentUser);
             document.getElementById('auth-screen').style.display = 'none';
             await mergeGuestLocalToUser();
-            await syncWithSupabase();
-            subscribeToExpenses();
+            loadLocalForUser();
+            if (syncMode === 'sync') {
+              await syncWithSupabase();
+              subscribeToExpenses();
+            }
           } else {
             accessToken = null;
             currentUserEmail = '';
@@ -972,11 +1095,13 @@
       }
     }
 
+
     async function login() {
       const btnLogin = document.getElementById('btn-login');
       const emailInput = document.getElementById('auth-email').value.trim();
       const password = document.getElementById('auth-password').value.trim();
       const errEl = document.getElementById('auth-error');
+
 
       errEl.innerText = '';
       if (!emailInput || !password) {
@@ -984,11 +1109,14 @@
         return;
       }
 
+
       btnLogin.innerText = 'Signing in...';
       btnLogin.disabled = true;
 
+
       try {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email: emailInput, password });
+
 
         if (error) {
           errEl.innerText = error.message || 'Invalid login credentials.';
@@ -997,12 +1125,14 @@
           return;
         }
 
+
         if (!data || !data.session) {
           errEl.innerText = 'No session returned from Supabase.';
           btnLogin.innerText = 'Sign In';
           btnLogin.disabled = false;
           return;
         }
+
 
         accessToken = data.session.access_token;
         currentUser = data.user;
@@ -1011,10 +1141,14 @@
         saveAuthState();
         loadCategoriesFromUser(currentUser);
 
+
         document.getElementById('auth-screen').style.display = 'none';
         await mergeGuestLocalToUser();
-        await syncWithSupabase();
-        subscribeToExpenses();
+        loadLocalForUser();
+        if (syncMode === 'sync') {
+          await syncWithSupabase();
+          subscribeToExpenses();
+        }
       } catch (e) {
         console.error('Login Exception:', e);
         errEl.innerText = 'Connection error or network failure.';
@@ -1024,7 +1158,15 @@
       }
     }
 
+
     async function logout() {
+      const pending = getPendingQueue();
+      if (pending.length > 0) {
+        const confirmLogout = confirm(`You have ${pending.length} unsynced changes. Logging out now will clear local state. Proceed?`);
+        if (!confirmLogout) return;
+      }
+
+
       accessToken = null;
       currentUserEmail = null;
       currentUserId = null;
@@ -1042,13 +1184,16 @@
       renderAllViews();
     }
 
+
     document.getElementById('btn-login').addEventListener('click', login);
     document.getElementById('auth-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
     document.getElementById('btn-logout').addEventListener('click', logout);
 
+
     if (accessToken && currentUserId) {
       document.getElementById('auth-screen').style.display = 'none';
     }
+
 
     function loadLocalForUser() {
       const storageKey = getUserStorageKey();
@@ -1059,20 +1204,23 @@
         expenses = [];
       }
 
-      loadCategoriesFromUser(currentUser);
 
+      loadCategoriesFromUser(currentUser);
       updateHeaders();
       renderAllViews();
     }
+
 
     function formatMoney(value) {
       const amount = Number(value) || 0;
       return `${currentCurrency} ${amount.toFixed(2)}`;
     }
 
+
     function getMonthStart(date = currentTransDate) {
       return new Date(date.getFullYear(), date.getMonth(), 1);
     }
+
 
     function generateRecurringVirtualEntries(baseEntries) {
       const expanded = [];
@@ -1080,16 +1228,20 @@
       const today = new Date();
       const maxDate = new Date(today.getFullYear() + horizonYears, 11, 31);
 
+
       baseEntries.forEach(item => {
         expanded.push(item);
+
 
         if (!item.repeat || item.repeat === 'none') return;
         
         let [y, m, d] = (item.date || '').split('-').map(Number);
         if (!y || !m || !d) return;
 
+
         let currDate = new Date(y, m - 1, d);
         let count = 0;
+
 
         while (count < 250) {
           if (item.repeat === 'weekly') {
@@ -1100,11 +1252,14 @@
             currDate.setFullYear(currDate.getFullYear() + 1);
           }
 
+
           if (currDate > maxDate) break;
+
 
           const dateStr = currDate.toISOString().slice(0, 10);
           
           if (item.repeat_until && dateStr >= item.repeat_until) break;
+
 
           expanded.push({
             ...item,
@@ -1119,13 +1274,16 @@
       return expanded;
     }
 
+
     function getMonthExpenses() {
       const start = getMonthStart();
       const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
+
       const expanded = generateRecurringVirtualEntries(expenses);
+
 
       return expanded.filter(item => {
         const d = new Date(item.date + 'T00:00:00');
@@ -1134,6 +1292,7 @@
         
         if (item.repeat_until && item.date >= item.repeat_until) return false;
 
+
         if (!term) return true;
         const merchant = (item.merchant || item.note || '').toLowerCase();
         const category = (item.category || '').toLowerCase();
@@ -1141,11 +1300,13 @@
       });
     }
 
+
     function updateHeaders() {
       const transHeader = document.getElementById('trans-month-txt');
       if (transHeader) {
         transHeader.textContent = currentTransDate.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', year: 'numeric' });
       }
+
 
       const statsHeader = document.getElementById('stats-month-txt');
       if (statsHeader) {
@@ -1159,6 +1320,7 @@
           const lastDayOfWeek = new Date(firstDayOfWeek);
           lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 6);
 
+
           const opts = { day: 'numeric', month: 'short' };
           const startStr = firstDayOfWeek.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', opts);
           const endStr = lastDayOfWeek.toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : currentLang === 'es' ? 'es-ES' : 'en-GB', { ...opts, year: 'numeric' });
@@ -1169,6 +1331,7 @@
         statsHeader.textContent = label;
       }
     }
+
 
     function updateAutoSuggest() {
       const datalist = document.getElementById('merchant-list');
@@ -1181,11 +1344,16 @@
       datalist.innerHTML = merchants.map(name => `<option value="${name}"></option>`).join('');
     }
 
+
     async function syncWithSupabase() {
-      if (!currentUser || !currentUser.id) {
+      if (syncMode !== 'sync' || !currentUser || !currentUser.id) {
         renderAllViews();
         return;
       }
+
+
+      await processPendingSyncQueue();
+
 
       try {
         const { data: { user } } = await supabaseClient.auth.getUser();
@@ -1194,10 +1362,12 @@
           loadCategoriesFromUser(user);
         }
 
+
         let allRemote = [];
         let from = 0;
         const step = 1000;
         let fetchMore = true;
+
 
         while (fetchMore) {
           const { data, error } = await supabaseClient
@@ -1206,7 +1376,9 @@
             .eq('user_id', currentUser.id)
             .range(from, from + step - 1);
 
+
           if (error) throw error;
+
 
           if (data && data.length > 0) {
             allRemote = allRemote.concat(data);
@@ -1220,10 +1392,12 @@
           }
         }
 
+
         const localMap = new Map((expenses || []).map(item => [String(item.id), item]));
         allRemote.forEach(item => {
           localMap.set(String(item.id), item);
         });
+
 
         const merged = [...localMap.values()].sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));
         expenses = merged;
@@ -1232,8 +1406,10 @@
         console.warn('syncWithSupabase warning', e);
       }
 
+
       renderAllViews();
     }
+
 
     function getMonthlyTotals(items) {
       let income = 0;
@@ -1246,6 +1422,7 @@
       return { income, expense, total: income - expense };
     }
 
+
     function renderSummaryBar() {
       const items = getMonthExpenses();
       const totals = getMonthlyTotals(items);
@@ -1253,14 +1430,17 @@
       const expenseEl = document.querySelector('.total-exp-txt');
       const totalEl = document.querySelector('.net-total-txt');
 
+
       if (incomeEl) incomeEl.textContent = formatMoney(totals.income);
       if (expenseEl) expenseEl.textContent = formatMoney(totals.expense);
       if (totalEl) totalEl.textContent = `${totals.total >= 0 ? '' : '-'}${formatMoney(Math.abs(totals.total))}`;
     }
 
+
     function renderTransactions() {
       const container = document.getElementById('transaction-container');
       if (!container) return;
+
 
       const monthItems = getMonthExpenses().sort((a, b) => new Date(b.date) - new Date(a.date));
       if (!monthItems.length) {
@@ -1268,12 +1448,14 @@
         return;
       }
 
+
       const grouped = {};
       monthItems.forEach(item => {
         const d = item.date || new Date().toISOString().slice(0, 10);
         if (!grouped[d]) grouped[d] = [];
         grouped[d].push(item);
       });
+
 
       const dateKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
       container.innerHTML = dateKeys.map(date => {
@@ -1298,10 +1480,12 @@
         `;
       }).join('');
 
+
       container.querySelectorAll('.trans-row').forEach(row => {
         row.addEventListener('click', () => openEntryModal('edit', row.dataset.id, row.dataset.date));
       });
     }
+
 
     function renderCalendar() {
       const container = document.getElementById('calendar-container');
@@ -1357,6 +1541,7 @@
         groups[cat] = (groups[cat] || 0) + (Number(item.amount) || 0);
       });
 
+
       const sorted = Object.entries(groups).sort((a, b) => b[1] - a[1]);
       const total = sorted.reduce((sum, [, value]) => sum + value, 0) || 1;
       container.innerHTML = sorted.map(([name, value]) => `
@@ -1366,6 +1551,7 @@
         </div>
       `).join('');
     }
+
 
     function renderSummaryPanel() {
       const container = document.getElementById('summary-container');
@@ -1380,12 +1566,14 @@
       });
       const totalSpend = Object.values(categoryGroups).reduce((sum, value) => sum + value, 0) || 1;
 
+
       const rows = Object.entries(categoryGroups).sort((a, b) => b[1] - a[1]).map(([cat, value]) => `
         <div class="summary-item">
           <div class="summary-label"><span>${cat}</span><span>${formatMoney(value)}</span></div>
           <div class="progress-bg"><div class="progress-fill" style="width:${(value / totalSpend) * 100}%; background:${categoryColors[cat] || '#10b981'}"></div></div>
         </div>
       `).join('');
+
 
       container.innerHTML = `
         <div class="summary-item"><div class="summary-label"><span>${t('income')}</span><span>${formatMoney(totals.income)}</span></div></div>
@@ -1395,16 +1583,20 @@
       `;
     }
 
+
     function getStatsTimeframeItems() {
       const search = (document.getElementById('search-input') || {}).value || '';
       const term = search.trim().toLowerCase();
 
+
       const expanded = generateRecurringVirtualEntries(expenses);
+
 
       let items = expanded.filter(item => {
         if (item.repeat_until && item.date >= item.repeat_until) return false;
         return true;
       });
+
 
       if (currentStatsTimeframe === 'annually') {
         const year = currentStatsDate.getFullYear();
@@ -1422,6 +1614,7 @@
         firstDayOfWeek.setHours(0,0,0,0);
         const lastDayOfWeek = new Date(firstDayOfWeek);
         lastDayOfWeek.setDate(lastDayOfWeek.getDate() + 7);
+
 
         return items.filter(item => {
           const d = new Date(item.date + 'T00:00:00');
@@ -1445,6 +1638,7 @@
       }
     }
 
+
     function renderStats() {
       const container = document.getElementById('stats-list-container');
       const svg = document.getElementById('svgPie');
@@ -1455,6 +1649,7 @@
       let statsIncome = 0;
       let statsExpense = 0;
       const totals = {};
+
 
       timeframeItems.forEach(item => {
         const amount = Number(item.amount) || 0;
@@ -1468,10 +1663,12 @@
         }
       });
 
+
       const statsIncomeEl = document.getElementById('stats-income-txt');
       const statsExpenseEl = document.getElementById('stats-expense-txt');
       if (statsIncomeEl) statsIncomeEl.textContent = formatMoney(statsIncome);
       if (statsExpenseEl) statsExpenseEl.textContent = formatMoney(statsExpense);
+
 
       const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
       if (!entries.length) {
@@ -1480,8 +1677,10 @@
         return;
       }
 
+
       const total = entries.reduce((sum, [, value]) => sum + value, 0) || 1;
       let cumulativeAngle = 0;
+
 
       const paths = entries.map(([name, value]) => {
         const percentage = value / total;
@@ -1489,11 +1688,14 @@
         cumulativeAngle += percentage * 360;
         const endAngle = cumulativeAngle;
 
+
         const color = categoryColors[name] || '#10b981';
+
 
         if (percentage === 1) {
           return `<circle cx="50" cy="50" r="50" fill="${color}"></circle>`;
         }
+
 
         const x1 = 50 + 50 * Math.cos(Math.PI * startAngle / 180);
         const y1 = 50 + 50 * Math.sin(Math.PI * startAngle / 180);
@@ -1501,11 +1703,14 @@
         const y2 = 50 + 50 * Math.sin(Math.PI * endAngle / 180);
         const largeArcFlag = percentage > 0.5 ? 1 : 0;
 
+
         const pathData = `M 50 50 L ${x1} ${y1} A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
         return `<path d="${pathData}" fill="${color}"></path>`;
       }).join('');
 
+
       svg.innerHTML = paths;
+
 
       container.innerHTML = entries.map(([name, value]) => {
         const percent = ((value / total) * 100).toFixed(0);
@@ -1531,6 +1736,7 @@
       updateAutoSuggest();
     }
 
+
     function openEntryModal(mode, idOrNull, clickedDate = null) {
       const modal = document.getElementById('entry-modal');
       const dateInput = document.getElementById('input-date');
@@ -1540,6 +1746,7 @@
       const repeatSelect = document.getElementById('input-repeat');
       const deleteBtn = document.getElementById('delete-btn');
       const modalTitle = document.getElementById('modal-title');
+
 
       if (mode === 'edit' && idOrNull) {
         const entry = expenses.find(item => String(item.id) === String(idOrNull));
@@ -1566,8 +1773,10 @@
         repeatSelect.value = 'none';
       }
 
+
       modal.style.display = 'flex';
     }
+
 
     function closeEntryModal() {
       document.getElementById('entry-modal').style.display = 'none';
@@ -1575,6 +1784,7 @@
       editingId = null;
       editingSelectedDate = null;
     }
+
 
     function openCategoryModal() {
       const container = document.getElementById('cat-grid-container');
@@ -1605,15 +1815,16 @@
               const catName = newCategory.trim();
               
               if (customCategories.includes(catName) || customIncomeCategories.includes(catName) || baseCategories.includes(catName)) {
-                //alert('Category already exists!');
                 showToast('Category already exists!');
                 return;
               }
+
 
               document.getElementById('category-modal').style.display = 'none';
               const typeModal = document.getElementById('category-type-modal');
               document.getElementById('type-modal-title').textContent = `Is "${catName}" an Expense or Income?`;
               typeModal.style.display = 'flex';
+
 
               document.getElementById('btn-type-expense').onclick = async () => {
                 customCategories.push(catName);
@@ -1622,12 +1833,14 @@
                 typeModal.style.display = 'none';
               };
 
+
               document.getElementById('btn-type-income').onclick = async () => {
                 customIncomeCategories.push(catName);
                 await saveCustomCategoriesToCloud();
                 document.getElementById('input-category').value = catName;
                 typeModal.style.display = 'none';
               };
+
 
               document.getElementById('close-type-modal').onclick = () => {
                 typeModal.style.display = 'none';
@@ -1644,9 +1857,9 @@
               customCategories = customCategories.filter(c => c !== catToDelete);
               customIncomeCategories = customIncomeCategories.filter(c => c !== catToDelete);
 
+
               await saveCustomCategoriesToCloud();
               localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-              //alert(`"${catToDelete}" deleted and existing records changed to Other.`);
               showToast(`"${catToDelete}" deleted and existing records changed to Other.`);
               openCategoryModal();
               return;
@@ -1659,9 +1872,11 @@
       });
     }
 
+
     function closeCategoryModal() {
       document.getElementById('category-modal').style.display = 'none';
     }
+
 
     function buildEntryObject() {
       const merchant = document.getElementById('input-merchant').value.trim();
@@ -1673,13 +1888,13 @@
       const isIncomeCategory = category === 'Salary' || customIncomeCategories.includes(category);
       const type = isIncomeCategory ? 'income' : activeExpenseType;
 
-      const existing = editingId ? expenses.find(e => String(e.id) === String(editingId)) : null;
 
-      // FIXED: Strictly bind user_id to current session user id to comply with RLS policies
+      const existing = editingId ? expenses.find(e => String(e.id) === String(editingId)) : null;
       const currentAuthUserId = currentUser?.id || currentUserId || null;
 
+
       return {
-        id: editingId || (crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}`),
+        id: editingId || (window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : `exp_${Date.now()}_${Math.random().toString(36).slice(2,8)}`),
         user_id: currentAuthUserId,
         date,
         merchant,
@@ -1693,12 +1908,10 @@
       };
     }
 
+
     async function saveEntry() {
       const item = buildEntryObject();
-      if (!item.user_id) {
-        showToast('Saved locally, but failed to sync to cloud: ' + error.message);
-        return;
-      }
+
 
       const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
       if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
@@ -1707,63 +1920,58 @@
       expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
-      try {
-        const { error } = await supabaseClient.from('expenses').upsert(item, { onConflict: 'id' });
-        if (error) {
-          console.error('Supabase upsert error:', error);
-          showToast('Saved locally, but failed to sync to cloud: ' + error.message);
-        }
-      } catch (err) {
-        console.error('Network exception during upsert:', err);
+
+      if (syncMode === 'sync' && item.user_id) {
+        enqueuePendingAction({ type: 'UPSERT', item });
+        processPendingSyncQueue();
       }
+
 
       closeEntryModal();
       renderAllViews();
     }
+
 
     async function deleteEntry() {
       if (!editingId) return;
       const target = expenses.find(item => String(item.id) === String(editingId));
       if (!target) return;
       
-      // If repeating entry, open our custom modal instead of browser confirm()
       if (target.repeat && target.repeat !== 'none') {
         const confirmed = await showCustomConfirm(
           "Do you want to stop this recurring entry and delete only future occurrences from this date forward?<br><br><span style='font-size:12px; font-weight:normal; color:#6b7280;'>(Your past entries will be kept safely).</span>"
         );
         
-        if (!confirmed) {
-          // User clicked Cancel -> Do nothing, close popups safely
-          return;
-        }
+        if (!confirmed) return;
+
 
         const cutoffDate = editingSelectedDate || document.getElementById('input-date').value || new Date().toISOString().slice(0, 10);
         target.repeat_until = cutoffDate;
         
         localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-        if (currentUser?.id) {
-          try {
-            await supabaseClient.from('expenses').upsert(target, { onConflict: 'id' });
-          } catch (e) { console.warn(e); }
+        if (syncMode === 'sync' && currentUser?.id) {
+          enqueuePendingAction({ type: 'UPSERT', item: target });
+          processPendingSyncQueue();
         }
         closeEntryModal();
         renderAllViews();
         return;
       }
 
-      // For normal one-time entries
+
       expenses = expenses.filter(item => String(item.id) !== String(editingId));
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-      if (currentUser?.id) {
-        try {
-          await supabaseClient.from('expenses').delete().eq('id', editingId);
-        } catch (e) { console.warn(e); }
+      
+      if (syncMode === 'sync' && currentUser?.id) {
+        enqueuePendingAction({ type: 'DELETE', item: target });
+        processPendingSyncQueue();
       }
+      
       closeEntryModal();
       renderAllViews();
     }
 
-    // Custom dialog helper that replaces window.confirm()
+
     function showCustomConfirm(messageHtml) {
       return new Promise((resolve) => {
         const modal = document.getElementById('delete-confirm-modal');
@@ -1771,8 +1979,10 @@
         const btnConfirm = document.getElementById('btn-confirm-delete');
         const btnClose = document.getElementById('close-delete-modal');
 
+
         textEl.innerHTML = messageHtml;
         modal.style.display = 'flex';
+
 
         function cleanup(result) {
           modal.style.display = 'none';
@@ -1780,6 +1990,7 @@
           btnClose.onclick = null;
           resolve(result);
         }
+
 
         btnConfirm.onclick = () => cleanup(true);
         btnClose.onclick = () => cleanup(false);
@@ -1790,8 +2001,10 @@
       const input = document.getElementById('input-amount');
       if (!input) return;
 
+
       let currentVal = input.value.toString().trim();
       if (currentVal === '0.00' || currentVal === '0') currentVal = '';
+
 
       if (val === 'backspace') {
         currentVal = currentVal.slice(0, -1);
@@ -1799,11 +2012,13 @@
         return;
       }
 
+
       if (val === '+' || val === '-') {
         activeExpenseType = val === '+' ? 'income' : 'expense';
         document.getElementById('modal-title').textContent = t('expenseOrIncome');
         return;
       }
+
 
       if (val === '.') {
         if (!currentVal.includes('.')) {
@@ -1811,6 +2026,7 @@
         }
         return;
       }
+
 
       if (/^\d$/.test(val)) {
         if (currentVal.includes('.')) {
@@ -1821,6 +2037,7 @@
       }
     }
 
+
     document.getElementById('nav-trans').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.add('active');
       document.getElementById('screen-stats').classList.remove('active');
@@ -1829,6 +2046,7 @@
       document.getElementById('nav-stats').classList.remove('active');
       document.getElementById('nav-settings').classList.remove('active');
     });
+
 
     document.getElementById('nav-stats').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.remove('active');
@@ -1840,6 +2058,7 @@
       renderStats();
     });
 
+
     document.getElementById('nav-settings').addEventListener('click', () => {
       document.getElementById('screen-trans').classList.remove('active');
       document.getElementById('screen-stats').classList.remove('active');
@@ -1848,6 +2067,7 @@
       document.getElementById('nav-stats').classList.remove('active');
       document.getElementById('nav-settings').classList.add('active');
     });
+
 
     const currencySelect = document.getElementById('select-currency');
     if (currencySelect) {
@@ -1859,6 +2079,7 @@
       });
     }
 
+
     const languageSelect = document.getElementById('select-language');
     if (languageSelect) {
       languageSelect.value = currentLang;
@@ -1868,6 +2089,25 @@
         renderAllViews();
       });
     }
+
+
+    const syncModeSelect = document.getElementById('select-sync-mode');
+    if (syncModeSelect) {
+      syncModeSelect.value = syncMode;
+      syncModeSelect.addEventListener('change', (e) => {
+        syncMode = e.target.value;
+        localStorage.setItem('user_sync_mode', syncMode);
+        if (syncMode === 'sync') {
+          subscribeToExpenses();
+          processPendingSyncQueue();
+          showToast('Smart Background Sync Enabled');
+        } else {
+          unsubscribeFromExpenses();
+          showToast('Local Storage Only Enabled');
+        }
+      });
+    }
+
 
     document.querySelectorAll('.stats-filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1879,6 +2119,7 @@
       });
     });
 
+
     document.querySelectorAll('.view-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.view-tab').forEach(item => item.classList.toggle('active', item === tab));
@@ -1886,12 +2127,15 @@
       });
     });
 
+
     document.getElementById('btn-search').addEventListener('click', () => {
       const box = document.getElementById('search-box');
       box.style.display = box.style.display === 'none' ? 'block' : 'none';
     });
 
+
     document.getElementById('search-input').addEventListener('input', renderAllViews);
+
 
     document.querySelectorAll('.btn-prev-m').forEach(button => {
       button.addEventListener('click', () => {
@@ -1913,6 +2157,7 @@
       });
     });
 
+
     document.querySelectorAll('.btn-next-m').forEach(button => {
       button.addEventListener('click', () => {
         const screen = button.dataset.screen;
@@ -1933,15 +2178,18 @@
       });
     });
 
+
     document.getElementById('add-fab').addEventListener('click', () => {
       activeExpenseType = 'expense';
       openEntryModal('new', null);
     });
 
+
     document.getElementById('close-modal-top').addEventListener('click', closeEntryModal);
     document.getElementById('delete-btn').addEventListener('click', deleteEntry);
     document.getElementById('input-category').addEventListener('click', openCategoryModal);
     document.getElementById('close-cat-modal').addEventListener('click', closeCategoryModal);
+
 
     document.getElementById('key-ok').addEventListener('click', saveEntry);
     document.getElementById('key-backspace').addEventListener('click', () => applyKeyInput('backspace'));
@@ -1953,34 +2201,29 @@
       });
     });
 
+
     document.getElementById('btn-clear-merchant').addEventListener('click', async () => {
       const oldMerchant = document.getElementById('input-merchant').value.trim();
       if (!oldMerchant) return;
       const newMerchant = prompt(`Rename "${oldMerchant}" to:`);
       if (!newMerchant || !newMerchant.trim()) return;
       const merchantName = newMerchant.trim();
-      const updatedItems = [];
       expenses.forEach(item => {
         if ((item.merchant || '').toLowerCase() === oldMerchant.toLowerCase()) {
           item.merchant = merchantName;
           item.note = merchantName;
-          updatedItems.push(item);
+          if (syncMode === 'sync' && currentUser?.id) {
+            enqueuePendingAction({ type: 'UPSERT', item });
+          }
         }
       });
       localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-      if (currentUser?.id) {
-        for (const item of updatedItems) {
-          try {
-            await supabaseClient.from('expenses').update({ merchant: merchantName, note: merchantName }).eq('id', item.id);
-          } catch (err) {
-            console.warn(err);
-          }
-        }
-      }
+      if (syncMode === 'sync') processPendingSyncQueue();
       document.getElementById('input-merchant').value = merchantName;
       renderAllViews();
       showToast(`Merchant renamed to "${merchantName}"`);
     });
+
 
     document.getElementById('btn-export-excel').addEventListener('click', () => {
       if (!expenses.length) {
@@ -2000,8 +2243,24 @@
       XLSX.writeFile(wb, 'expenses.xlsx');
     });
 
-    document.getElementById('btn-sync').addEventListener('click', syncWithSupabase);
-    document.getElementById('btn-stats-sync').addEventListener('click', syncWithSupabase);
+
+    document.getElementById('btn-sync').addEventListener('click', () => {
+      if (syncMode !== 'sync') {
+        showToast('Local Storage Only is selected in Settings.');
+        return;
+      }
+      syncWithSupabase();
+    });
+
+
+    document.getElementById('btn-stats-sync').addEventListener('click', () => {
+      if (syncMode !== 'sync') {
+        showToast('Local Storage Only is selected in Settings.');
+        return;
+      }
+      syncWithSupabase();
+    });
+
 
     document.getElementById('import-file-input').addEventListener('change', async (event) => {
       const file = event.target.files && event.target.files[0];
@@ -2018,7 +2277,7 @@
           const newEntries = [];
           json.forEach(row => {
             const entry = {
-              id: crypto.randomUUID ? crypto.randomUUID() : `exp_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
+              id: (window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : `exp_${Date.now()}_${Math.random().toString(36).slice(2,8)}`),
               user_id: currentAuthUserId,
               date: (row.date && new Date(row.date).toISOString().slice(0,10)) || new Date().toISOString().slice(0,10),
               merchant: row.merchant || row.note || '',
@@ -2030,21 +2289,23 @@
               created_at: new Date().toISOString()
             };
             newEntries.push(entry);
+            if (syncMode === 'sync') {
+              enqueuePendingAction({ type: 'UPSERT', item: entry });
+            }
           });
+
 
           expenses = [...newEntries, ...expenses];
           localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
-          if (currentAuthUserId) {
-            const batchSize = 200;
-            for (let i = 0; i < newEntries.length; i += batchSize) {
-              const batch = newEntries.slice(i, i + batchSize);
-              await supabaseClient.from('expenses').upsert(batch, { onConflict: 'id' });
-            }
+
+          if (syncMode === 'sync') {
+            processPendingSyncQueue();
           }
 
+
           renderAllViews();
-          showToast(`Successfully imported and synced ${newEntries.length} records!`);
+          showToast(`Successfully imported ${newEntries.length} records!`);
         } catch (e) {
           console.error('Import failed', e);
           showToast('Failed to import file');
@@ -2053,7 +2314,26 @@
       reader.readAsBinaryString(file);
     });
 
+
+    // Network & Visibility Auto-Sync Listeners
+    window.addEventListener('online', () => {
+      showToast('Network restored. Syncing data...');
+      if (syncMode === 'sync') {
+        processPendingSyncQueue();
+        syncWithSupabase();
+      }
+    });
+
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && syncMode === 'sync') {
+        processPendingSyncQueue();
+      }
+    });
+
+
     initAuth();
   </script>
+
 </body>
 </html>
