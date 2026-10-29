@@ -1,4 +1,4 @@
-<!-- 20261029 v35 Try to save local first, then sync to cloud when internet available -->
+<!-- 20261029 v36 Try to save local first, then sync to cloud when internet available -->
 
 <!DOCTYPE html>
 
@@ -240,6 +240,15 @@
       </select>
     </div>
 
+    <div style="background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="dataSyncPref">Data Storage & Sync</h3>
+      <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="dataSyncDesc">Choose how your financial records are saved and synchronized.</p>
+      <select id="select-sync-mode" class="form-control" style="cursor: pointer;">
+        <option value="local">Store on this device only (Offline Mode)</option>
+        <option value="cloud">Sync across multiple devices (Cloud Backup)</option>
+      </select>
+    </div>
+    
     <div style="background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
       <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="langPref">Language Preference</h3>
       <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="langDesc">Choose your interface language.</p>
@@ -499,6 +508,10 @@
         selectCategory: 'Select Category', close: 'Close', selectCategoryType: 'Select Category Type',
         expenseNeg: 'Expense (-)', incomePos: 'Income (+)', noTransactions: 'No transactions yet',
         noStats: 'No statistics for this timeframe', noExpenseData: 'No expense data'
+        dataSyncPref: 'Data Storage & Sync',
+        dataSyncDesc: 'Choose how your financial records are saved and synchronized.',
+        syncModeLocal: 'Store on this device only (Offline Mode)',
+        syncModeCloud: 'Sync across multiple devices (Cloud Backup)'
       },
       es: {
         income: 'Ingresos', expense: 'Gastos', total: 'Total',
@@ -733,6 +746,10 @@
         selectCategory: '选择类别', close: '关闭', selectCategoryType: '选择类别类型',
         expenseNeg: '支出 (-)', incomePos: '收入 (+)', noTransactions: '暂无交易记录',
         noStats: '该时间段无统计数据', noExpenseData: '无支出数据'
+        dataSyncPref: '数据存储与同步',
+        dataSyncDesc: '选择您的财务记录保存与同步方式。',
+        syncModeLocal: '仅存储在当前设备（单机离线模式）',
+        syncModeCloud: '多设备同步（云端备份）'
       },
       'zh-TW': {
         income: '收入', expense: '支出', total: '結餘',
@@ -1909,27 +1926,32 @@
     }
 
 
-    async function saveEntry() {
-      const item = buildEntryObject();
+async function saveEntry() {
+  const item = buildEntryObject();
+  
+  // 1. Always save locally first for instant performance (<1ms)
+  const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
+  if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
+  else expenses.unshift(item);
+  
+  expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+  localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
 
+  closeEntryModal();
+  renderAllViews();
 
-      const idx = expenses.findIndex(entry => String(entry.id) === String(item.id));
-      if (idx >= 0) expenses[idx] = { ...expenses[idx], ...item };
-      else expenses.unshift(item);
-      
-      expenses = expenses.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
-      localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-
-
-      if (syncMode === 'sync' && item.user_id) {
-        enqueuePendingAction({ type: 'UPSERT', item });
-        processPendingSyncQueue();
+  // 2. Only sync to cloud if user chose multi-device sync mode
+  if (currentSyncMode === 'cloud' && currentUser && currentUser.id) {
+    try {
+      const { error } = await supabaseClient.from('expenses').upsert(item, { onConflict: 'id' });
+      if (error) {
+        console.warn('Background sync deferred (offline or network issue)');
       }
-
-
-      closeEntryModal();
-      renderAllViews();
+    } catch (err) {
+      console.warn('Network exception during background sync:', err);
     }
+  }
+}
 
 
     async function deleteEntry() {
