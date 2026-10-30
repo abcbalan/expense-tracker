@@ -1,5 +1,5 @@
 <!-- 20261030 v53 Clean Interactive Income/Expense Stats Toggle -->
-<!-- Works Perfectly -->
+<!-- 20261030 v54 Trying to Fully Localized Dropdowns & Dynamic Prompts -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -259,8 +259,8 @@
         <h3 style="font-size: 15px; margin-bottom: 6px; color: #111827;" data-i18n="dataSyncPref">Data Storage & Sync</h3>
         <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;" data-i18n="dataSyncDesc">Choose how to save and sync your records.</p>
         <select id="select-sync-mode" class="form-control" style="cursor: pointer;">
-          <option value="local">Store on this device only (Offline Mode)</option>
-          <option value="sync">Sync across multiple devices (Cloud Backup)</option>
+          <option value="local" data-i18n="offlineMode">Store on this device only (Offline Mode)</option>
+          <option value="sync" data-i18n="cloudBackup">Sync across multiple devices (Cloud Backup)</option>
         </select>
       </div>
       
@@ -341,10 +341,10 @@
           <label style="font-size: 11px; color: #6b7280; margin-bottom: 0;" data-i18n="amountLabel">Amount</label>
           <!-- RECURRING DROPDOWN BOX -->
           <select id="input-repeat" style="font-size: 12px; border: 1px solid #d1d5db; border-radius: 4px; padding: 2px 4px; background: #f9fafb; color: #374151; outline: none; cursor: pointer;">
-            <option value="none">One-time</option>
-            <option value="weekly">Weekly Repeat</option>
-            <option value="monthly">Monthly Repeat</option>
-            <option value="annually">Yearly Repeat</option>
+            <option value="none" data-i18n="oneTime">One-time</option>
+            <option value="weekly" data-i18n="weeklyRepeat">Weekly Repeat</option>
+            <option value="monthly" data-i18n="monthlyRepeat">Monthly Repeat</option>
+            <option value="annually" data-i18n="yearlyRepeat">Yearly Repeat</option>
           </select>
         </div>
         <input type="text" id="input-amount" placeholder="0.00" value="0.00" style="width: 100%; border: none; background: transparent; font-size: 16px; text-align: left; color: #111827; outline: none; padding: 4px 0;">
@@ -393,7 +393,7 @@
       </div>
       <p id="delete-modal-text" style="margin: 10px 0 20px 0; font-size: 14px; color: #4b5563; font-weight: 500; line-height: 1.4;"></p>
       <div style="display: flex; gap: 10px;">
-        <button type="button" id="btn-confirm-delete" class="auth-btn" style="background: #ef4444; flex: 1;">Yes, Stop & Delete</button>
+        <button type="button" id="btn-confirm-delete" class="auth-btn" style="background: #ef4444; flex: 1;" data-i18n="yesStopDelete">Yes, Stop & Delete</button>
       </div>
     </div>
   </div>
@@ -448,13 +448,19 @@
       statistics: 'الإحصائيات', weekly: 'أسبوعي', annually: 'سنوي',
       settingsTitle: 'الإعدادات', currencyPref: 'تفضيل العملة', currencyDesc: 'اختر رمز العملة الخاص بك.',
       langPref: 'تفضيل اللغة', langDesc: 'اختر لغة الواجهة.', dataSyncPref: 'تخزين البيانات والمزامنة', dataSyncDesc: 'اختر طريقة حفظ البيانات.',
+      offlineMode: 'التخزين على هذا الجهاز فقط (وضع عدم الاتصال)', cloudBackup: 'المزامنة عبر أجهزة متعددة (نسخة احتياطية سحابية)',
       navTrans: 'المعاملات', navStats: 'الإحصائيات', navSettings: 'الإعدادات',
       cancel: 'إلغاء', expenseOrIncome: 'مصروف أو دخل', delete: 'حذف',
       date: 'التاريخ', category: 'الفئة', merchantNote: 'التاجر / ملاحظة', amountLabel: 'المبلغ',
+      oneTime: 'مرة واحدة', weeklyRepeat: 'تكرار أسبوعي', monthlyRepeat: 'تكرار شهري', yearlyRepeat: 'تكرار سنوي',
       selectCategory: 'اختر الفئة', close: 'إغلاق', selectCategoryType: 'اختر نوع الفئة',
       expenseNeg: 'مصروف (-)', incomePos: 'دخل (+)', noTransactions: 'لا توجد معاملات بعد',
       noStats: 'لا توجد إحصائيات لهذه الفترة', noExpenseData: 'لا توجد بيانات مصروفات',
-      expenseBreakdown: 'تفصيل المصروفات', incomeBreakdown: 'تفصيل الدخل'
+      addCategoryPrompt: 'أدخل اسم فئة جديدة:', categoryExists: 'الفئة موجودة بالفعل!',
+      deleteCategoryPrompt: 'أدخل اسم الفئة المراد حذفها:', categoryDeleted: 'تم الحذف وتغيير السجلات إلى أخرى.',
+      recurringDeleteConfirm: 'هل تريد إيقاف هذا الإدخال المتكرر وحذف التواريخ المستقبلية فقط من هذا التاريخ فصاعدًا؟<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(سيتم الاحتفاظ بسجلاتك السابقة بأمان).</span>',
+      yesStopDelete: 'نعم، إيقاف وحذف', renameMerchantPrompt: 'إعادة تسمية "{name}" إلى:', merchantRenamed: 'تمت إعادة تسمية التاجر إلى "{name}"',
+      syncEnabled: 'تم تفعيل المزامنة بين الأجهزة', localEnabled: 'تم تفعيل التخزين على الجهاز فقط'
     },
     cs: {
       income: 'Příjem', expense: 'Výdaj', total: 'Celkem',
@@ -462,13 +468,19 @@
       statistics: 'Statistiky', weekly: 'Týdně', annually: 'Ročně',
       settingsTitle: 'Nastavení', currencyPref: 'Preference měny', currencyDesc: 'Vyberte symbol měny.',
       langPref: 'Preference jazyka', langDesc: 'Vyberte jazyk rozhraní.', dataSyncPref: 'Ukládání dat a synchronizace', dataSyncDesc: 'Vyberte způsob ukládání dat.',
+      offlineMode: 'Uložit pouze v tomto zařízení (Offline režim)', cloudBackup: 'Synchronizovat mezi zařízeními (Cloudová záloha)',
       navTrans: 'Transakce', navStats: 'Statistiky', navSettings: 'Nastavení',
       cancel: 'Zrušit', expenseOrIncome: 'Výdaj nebo Příjem', delete: 'Smazat',
       date: 'Datum', category: 'Kategorie', merchantNote: 'Obchodník / Poznámka', amountLabel: 'Částka',
+      oneTime: 'Jednorázově', weeklyRepeat: 'Týdenní opakování', monthlyRepeat: 'Měsíční opakování', yearlyRepeat: 'Roční opakování',
       selectCategory: 'Vybrat kategorii', close: 'Zavřít', selectCategoryType: 'Vybrat typ kategorie',
       expenseNeg: 'Výdaj (-)', incomePos: 'Příjem (+)', noTransactions: 'Zatím žádné transakce',
       noStats: 'Žádné statistiky pro toto období', noExpenseData: 'Žádná data o výdajích',
-      expenseBreakdown: 'Rozpis výdajů', incomeBreakdown: 'Rozpis příjmů'
+      addCategoryPrompt: 'Zadejte název nové kategorie:', categoryExists: 'Kategorie již existuje!',
+      deleteCategoryPrompt: 'Zadejte název kategorie ke smazání:', categoryDeleted: 'Smazáno a záznamy převedeny na Ostatní.',
+      recurringDeleteConfirm: 'Chcete zastavit tuto opakující se položku a smazat pouze budoucí výskyty od tohoto data?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Vaše minulé záznamy budou bezpečně zachovány).</span>',
+      yesStopDelete: 'Ano, zastavit a smazat', renameMerchantPrompt: 'Přejmenovat "{name}" na:', merchantRenamed: 'Obchodník přejmenován na "{name}"',
+      syncEnabled: 'Synchronizace zapnuta', localEnabled: 'Místní úložiště zapnuto'
     },
     da: {
       income: 'Indkomst', expense: 'Udgift', total: 'Total',
@@ -476,13 +488,19 @@
       statistics: 'Statistik', weekly: 'Ugentlig', annually: 'Årlig',
       settingsTitle: 'Indstillinger', currencyPref: 'Valutapræference', currencyDesc: 'Vælg dit valutasymbol.',
       langPref: 'Sprogpræference', langDesc: 'Vælg dit grænsefladesprog.', dataSyncPref: 'Dataopbevaring & Synkronisering', dataSyncDesc: 'Vælg hvordan dine data gemmes.',
+      offlineMode: 'Gem kun på denne enhed (Offline-tilstand)', cloudBackup: 'Synkroniser på tværs af enheder (Sikkerhedskopi)',
       navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Indstillinger',
       cancel: 'Annuller', expenseOrIncome: 'Udgift eller Indkomst', delete: 'Slet',
       date: 'Dato', category: 'Kategori', merchantNote: 'Butik / Note', amountLabel: 'Beløp',
+      oneTime: 'Engangs', weeklyRepeat: 'Ugentlig gentagelse', monthlyRepeat: 'Månedlig gentagelse', yearlyRepeat: 'Årlig gentagelse',
       selectCategory: 'Vælg kategori', close: 'Luk', selectCategoryType: 'Vælg kategoritype',
       expenseNeg: 'Udgift (-)', incomePos: 'Indkomst (+)', noTransactions: 'Ingen transaktioner endnu',
       noStats: 'Ingen statistik for denne periode', noExpenseData: 'Ingen udgiftsdata',
-      expenseBreakdown: 'Udgiftsfordeling', incomeBreakdown: 'Indkomstfordeling'
+      addCategoryPrompt: 'Indtast navn på ny kategori:', categoryExists: 'Kategorien findes allerede!',
+      deleteCategoryPrompt: 'Indtast kategori der skal slettes:', categoryDeleted: 'Slettet og poster ændret til Andre.',
+      recurringDeleteConfirm: 'Vil du stoppe denne gentagelse og slette fremtidige forekomster fra denne dato?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Dine tidligere poster gemmes sikkert).</span>',
+      yesStopDelete: 'Ja, stoppet og slet', renameMerchantPrompt: 'Omdøb "{name}" til:', merchantRenamed: 'Butik omdøbt til "{name}"',
+      syncEnabled: 'Synkronisering aktiveret', localEnabled: 'Lokal lagring aktiveret'
     },
     de: {
       income: 'Einnahmen', expense: 'Ausgaben', total: 'Gesamt',
@@ -490,13 +508,19 @@
       statistics: 'Statistiken', weekly: 'Wöchentlich', annually: 'Jährlich',
       settingsTitle: 'Einstellungen', currencyPref: 'Währungseinstellung', currencyDesc: 'Wählen Sie Ihr Währungssymbol.',
       langPref: 'Spracheinstellung', langDesc: 'Wählen Sie Ihre Displaysprache.', dataSyncPref: 'Datenspeicherung & Synchronisierung', dataSyncDesc: 'Wählen Sie, wie Daten gespeichert werden.',
+      offlineMode: 'Nur auf diesem Gerät speichern (Offline-Modus)', cloudBackup: 'Geräteübergreifend synchronisieren (Cloud-Backup)',
       navTrans: 'Transaktion', navStats: 'Statistiken', navSettings: 'Einstellungen',
       cancel: 'Abbrechen', expenseOrIncome: 'Ausgabe oder Einnahme', delete: 'Löschen',
       date: 'Datum', category: 'Kategorie', merchantNote: 'Händler / Notiz', amountLabel: 'Betrag',
+      oneTime: 'Einmalig', weeklyRepeat: 'Wöchentliche Wiederholung', monthlyRepeat: 'Monatliche Wiederholung', yearlyRepeat: 'Jährliche Wiederholung',
       selectCategory: 'Kategorie auswählen', close: 'Schließen', selectCategoryType: 'Kategorie-Typ auswählen',
       expenseNeg: 'Ausgabe (-)', incomePos: 'Einnahme (+)', noTransactions: 'Noch keine Transaktionen',
       noStats: 'Keine Statistiken für diesen Zeitraum', noExpenseData: 'Keine Ausgabendaten',
-      expenseBreakdown: 'Ausgabenaufschlüsselung', incomeBreakdown: 'Einnahmenaufschlüsselung'
+      addCategoryPrompt: 'Neuen Kategorienamen eingeben:', categoryExists: 'Kategorie existiert bereits!',
+      deleteCategoryPrompt: 'Zu löschende Kategorie eingeben:', categoryDeleted: 'Gelöscht und Einträge auf Sonstige geändert.',
+      recurringDeleteConfirm: 'Möchten Sie diesen wiederkehrenden Eintrag stoppen und nur zukünftige Vorkommen ab diesem Datum löschen?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Ihre vergangenen Einträge bleiben erhalten).</span>',
+      yesStopDelete: 'Ja, stoppen & löschen', renameMerchantPrompt: '"{name}" umbenennen in:', merchantRenamed: 'Händler umbenannt in "{name}"',
+      syncEnabled: 'Cloud-Sync aktiviert', localEnabled: 'Lokaler Modus aktiviert'
     },
     en: {
       income: 'Income', expense: 'Expense', total: 'Total',
@@ -505,13 +529,19 @@
       settingsTitle: 'Settings', currencyPref: 'Currency Preference', currencyDesc: 'Choose your currency symbol.',
       langPref: 'Language Preference', langDesc: 'Choose your interface language.',
       dataSyncPref: 'Data Storage & Sync', dataSyncDesc: 'Choose how to saves and sync your record.',
+      offlineMode: 'Store on this device only (Offline Mode)', cloudBackup: 'Sync across multiple devices (Cloud Backup)',
       navTrans: 'Transaction', navStats: 'Stats', navSettings: 'Settings',
       cancel: 'Cancel', expenseOrIncome: 'Expense or Income', delete: 'Delete',
       date: 'Date', category: 'Category', merchantNote: 'Merchant / Note', amountLabel: 'Amount',
+      oneTime: 'One-time', weeklyRepeat: 'Weekly Repeat', monthlyRepeat: 'Monthly Repeat', yearlyRepeat: 'Yearly Repeat',
       selectCategory: 'Select Category', close: 'Close', selectCategoryType: 'Select Category Type',
       expenseNeg: 'Expense (-)', incomePos: 'Income (+)', noTransactions: 'No transactions yet',
       noStats: 'No statistics for this timeframe', noExpenseData: 'No expense data',
-      expenseBreakdown: 'Expense Breakdown', incomeBreakdown: 'Income Breakdown'
+      addCategoryPrompt: 'Enter new category name:', categoryExists: 'Category already exists!',
+      deleteCategoryPrompt: 'Enter category name to delete:', categoryDeleted: 'Deleted and existing records changed to Other.',
+      recurringDeleteConfirm: 'Do you want to stop this recurring entry and delete only future occurrences from this date forward?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Your past entries will be kept safely).</span>',
+      yesStopDelete: 'Yes, Stop & Delete', renameMerchantPrompt: 'Rename "{name}" to:', merchantRenamed: 'Merchant renamed to "{name}"',
+      syncEnabled: 'Multi-Device Sync Enabled', localEnabled: 'Single-Device Storage Enabled'
     },
     es: {
       income: 'Ingresos', expense: 'Gastos', total: 'Total',
@@ -519,13 +549,19 @@
       statistics: 'Estadísticas', weekly: 'Semanal', annually: 'Anual',
       settingsTitle: 'Ajustes', currencyPref: 'Preferencia de Moneda', currencyDesc: 'Elige tu símbolo de moneda.',
       langPref: 'Preferencia de Idioma', langDesc: 'Elige el idioma de tu interfaz.', dataSyncPref: 'Almacenamiento y Sincronización', dataSyncDesc: 'Elige cómo guardar tus datos.',
+      offlineMode: 'Guardar solo en este dispositivo (Modo sin conexión)', cloudBackup: 'Sincronizar entre dispositivos (Copia en la nube)',
       navTrans: 'Transacción', navStats: 'Estadísticas', navSettings: 'Ajustes',
       cancel: 'Cancelar', expenseOrIncome: 'Gasto o Ingreso', delete: 'Eliminar',
       date: 'Fecha', category: 'Categoría', merchantNote: 'Comercio / Nota', amountLabel: 'Importe',
+      oneTime: 'Único', weeklyRepeat: 'Repetición semanal', monthlyRepeat: 'Repetición mensual', yearlyRepeat: 'Repetición anual',
       selectCategory: 'Seleccionar Categoría', close: 'Cerrar', selectCategoryType: 'Seleccionar Tipo de Categoría',
       expenseNeg: 'Gasto (-)', incomePos: 'Ingreso (+)', noTransactions: 'Sin transacciones aún',
       noStats: 'Sin estadísticas para este periodo', noExpenseData: 'Sin datos de gastos',
-      expenseBreakdown: 'Desglose de Gastos', incomeBreakdown: 'Desglose de Ingresos'
+      addCategoryPrompt: 'Ingrese nombre de nueva categoría:', categoryExists: '¡La categoría ya existe!',
+      deleteCategoryPrompt: 'Ingrese categoría a eliminar:', categoryDeleted: 'Eliminado y registros cambiados a Otros.',
+      recurringDeleteConfirm: '¿Desea detener esta entrada recurrente y eliminar solo las futuras ocurrencias a partir de esta fecha?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Sus entradas pasadas se mantendrán a salvo).</span>',
+      yesStopDelete: 'Sí, detener y eliminar', renameMerchantPrompt: 'Renombrar "{name}" a:', merchantRenamed: 'Comercio renombrado a "{name}"',
+      syncEnabled: 'Sincronización multi-dispositivo activada', localEnabled: 'Almacenamiento local activado'
     },
     fr: {
       income: 'Revenu', expense: 'Dépense', total: 'Total',
@@ -533,13 +569,19 @@
       statistics: 'Statistiques', weekly: 'Hebdomadaire', annually: 'Annuel',
       settingsTitle: 'Paramètres', currencyPref: 'Préférence de devise', currencyDesc: 'Choisissez votre symbole de devise.',
       langPref: 'Préférence de langue', langDesc: 'Choisissez la langue de votre interface.', dataSyncPref: 'Stockage des données & Synchro', dataSyncDesc: 'Choisissez le mode de stockage.',
+      offlineMode: 'Stocker sur cet appareil uniquement (Mode hors-ligne)', cloudBackup: 'Synchroniser sur plusieurs appareils (Sauvegarde Cloud)',
       navTrans: 'Transaction', navStats: 'Statistiques', navSettings: 'Paramètres',
       cancel: 'Annuler', expenseOrIncome: 'Dépense ou Revenu', delete: 'Supprimer',
       date: 'Date', category: 'Catégorie', merchantNote: 'Marchand / Note', amountLabel: 'Montant',
+      oneTime: 'Une fois', weeklyRepeat: 'Répétition hebdomadaire', monthlyRepeat: 'Répétition mensuelle', yearlyRepeat: 'Répétition annuelle',
       selectCategory: 'Sélectionner la catégorie', close: 'Fermer', selectCategoryType: 'Sélectionner le type',
       expenseNeg: 'Dépense (-)', incomePos: 'Revenu (+)', noTransactions: 'Aucune transaction',
       noStats: 'Aucune statistique pour cette période', noExpenseData: 'Aucune donnée de dépense',
-      expenseBreakdown: 'Répartition des Dépenses', incomeBreakdown: 'Répartition des Revenus'
+      addCategoryPrompt: 'Entrez le nom de la nouvelle catégorie :', categoryExists: 'La catégorie existe déjà !',
+      deleteCategoryPrompt: 'Entrez la catégorie à supprimer :', categoryDeleted: 'Supprimé et enregistrements modifiés en Autre.',
+      recurringDeleteConfirm: 'Voulez-vous arrêter cette entrée récurrente et supprimer uniquement les occurrences futures à partir de cette date ?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Vos entrées passées seront conservées en toute sécurité).</span>',
+      yesStopDelete: 'Oui, arrêter et supprimer', renameMerchantPrompt: 'Renommer "{name}" en :', merchantRenamed: 'Marchand renommé en "{name}"',
+      syncEnabled: 'Synchronisation activée', localEnabled: 'Stockage local activé'
     },
     he: {
       income: 'הכנסה', expense: 'הוצאה', total: 'סה"כ',
@@ -547,13 +589,19 @@
       statistics: 'סטטיסטיקה', weekly: 'שבועי', annually: 'שנתי',
       settingsTitle: 'הגדרות', currencyPref: 'העדפת מטבע', currencyDesc: 'בחר את סמל המטבע שלך.',
       langPref: 'העדפת שפה', langDesc: 'בחר את שפת הממשק.', dataSyncPref: 'אחסון נתונים וסנכרון', dataSyncDesc: 'בחר אופן שמירת הנתונים.',
+      offlineMode: 'שמור במכשיר זה בלבד (מצב לא מקוון)', cloudBackup: 'סנכרן בין מכשירים (גיבוי בענן)',
       navTrans: 'עסקאות', navStats: 'סטטיסטיקה', navSettings: 'הגדרות',
-      cancel: 'ביטול', expenseOrIncome: 'הוצאה או הככנסה', delete: 'מחק',
+      cancel: 'ביטול', expenseOrIncome: 'הוצאה או הכנסה', delete: 'מחק',
       date: 'תאריך', category: 'קטגוריה', merchantNote: 'בית עסק / הערה', amountLabel: 'סכום',
+      oneTime: 'חד פעמי', weeklyRepeat: 'חזרה שבועית', monthlyRepeat: 'חזרה חודשית', yearlyRepeat: 'חזרה שנתית',
       selectCategory: 'בחר קטגוריה', close: 'סגור', selectCategoryType: 'בחר סוג קטגוריה',
       expenseNeg: 'הוצאה (-)', incomePos: 'הכנסה (+)', noTransactions: 'אין עסקאות עדיין',
       noStats: 'אין סטטיסטיקה לתקופה זו', noExpenseData: 'אין נתוני הוצאות',
-      expenseBreakdown: 'פירוط הוצאות', incomeBreakdown: 'פירוط הכנסות'
+      addCategoryPrompt: 'הכנס שם קטגוריה חדשה:', categoryExists: 'הקטגוריה כבר קיימת!',
+      deleteCategoryPrompt: 'הכנס שם קטגוריה למחיקה:', categoryDeleted: 'נמחק והרשומות הועברו לאחר.',
+      recurringDeleteConfirm: 'האם ברצונך לעצור רשומה זו ולמחוק רק מופעים עתידיים מתאריך זה ואילך?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(הרשומות הקודמות שלך יישמרו בבטחה).</span>',
+      yesStopDelete: 'כן, עצור ומחק', renameMerchantPrompt: 'שנה את שם "{name}" ל:', merchantRenamed: 'שם בית העסק שונה ל-"{name}"',
+      syncEnabled: 'סנכרון ענן הופעל', localEnabled: 'אחסון מקומי הופעל'
     },
     hi: {
       income: 'आय', expense: 'व्यय', total: 'कुल',
@@ -561,13 +609,19 @@
       statistics: 'आंकड़े', weekly: 'साप्ताहिक', annually: 'वार्षिक',
       settingsTitle: 'सेटिंग्स', currencyPref: 'मुद्रा प्राथमिकता', currencyDesc: 'अपना मुद्रा प्रतीक चुनें।',
       langPref: 'भाषा प्राथमिकता', langDesc: 'अपनी इंटरफ़ेस भाषा चुनें।', dataSyncPref: 'डेटा स्टोरेज और सिंक', dataSyncDesc: 'डेटा स्टोर करने का तरीका चुनें।',
+      offlineMode: 'केवल इस डिवाइस पर सहेजें (ऑफ़लाइन मोड)', cloudBackup: 'कई उपकरणों में सिंक करें (क्लाउड बैकअप)',
       navTrans: 'लेन-देन', navStats: 'आंकड़े', navSettings: 'सेटिंग्स',
       cancel: 'रद्द करें', expenseOrIncome: 'व्यय या आय', delete: 'हटाएं',
       date: 'दिनांक', category: 'श्रेणी', merchantNote: 'व्यापारी / नोट', amountLabel: 'राशि',
+      oneTime: 'एक बार', weeklyRepeat: 'साप्ताहिक दोहराव', monthlyRepeat: 'मासिक दोहराव', yearlyRepeat: 'वार्षिक दोहराव',
       selectCategory: 'श्रेणी चुनें', close: 'बंद करें', selectCategoryType: 'श्रेणी का प्रकार चुनें',
       expenseNeg: 'व्यय (-)', incomePos: 'आय (+)', noTransactions: 'अभी कोई लेन-देन नहीं',
       noStats: 'इस समय सीमा के लिए कोई आंकड़े नहीं', noExpenseData: 'कोई व्यय डेटा नहीं',
-      expenseBreakdown: 'व्यय विवरण', incomeBreakdown: 'आय विवरण'
+      addCategoryPrompt: 'नई श्रेणी का नाम दर्ज करें:', categoryExists: 'श्रेणी पहले से मौजूद है!',
+      deleteCategoryPrompt: 'हटाने के लिए श्रेणी का नाम दर्ज करें:', categoryDeleted: 'हटा दिया गया और रिकॉर्ड "अन्य" में बदल दिए गए।',
+      recurringDeleteConfirm: 'क्या आप इस आवर्ती प्रविष्टि को रोकना चाहते हैं और इस तिथि से आगे केवल भविष्य की आवृत्तियों को हटाना चाहते हैं?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(आपकी पिछली प्रविष्टियाँ सुरक्षित रखी जाएंगी).</span>',
+      yesStopDelete: 'हाँ, रोकें और हटाएं', renameMerchantPrompt: '"{name}" का नया नाम:', merchantRenamed: 'व्यापारी का नाम बदलकर "{name}" कर दिया गया',
+      syncEnabled: 'सिंक सक्षम किया गया', localEnabled: 'ऑफ़लाइन स्टोरेज सक्षम किया गया'
     },
     hu: {
       income: 'Bevétel', expense: 'Költség', total: 'Összesen',
@@ -575,13 +629,19 @@
       statistics: 'Statisztika', weekly: 'Heti', annually: 'Éves',
       settingsTitle: 'Beállítások', currencyPref: 'Pénznem beállítása', currencyDesc: 'Válassza ki a pénznem szimbólumát.',
       langPref: 'Nyelvi beállítás', langDesc: 'Válassza ki a felület nyelvét.', dataSyncPref: 'Adattárolás és szinkronizálás', dataSyncDesc: 'Válassza ki az adattárolási módot.',
+      offlineMode: 'Csak ezen az eszközön (Offline mód)', cloudBackup: 'Szinkronizálás eszközök között (Felhő biztonsági mentés)',
       navTrans: 'Tranzakció', navStats: 'Statisztika', navSettings: 'Beállítások',
       cancel: 'Mégse', expenseOrIncome: 'Költség vagy Bevétel', delete: 'Törlés',
       date: 'Dátum', category: 'Kategória', merchantNote: 'Kereskedő / Megjegyzés', amountLabel: 'Összeg',
+      oneTime: 'Egyszeri', weeklyRepeat: 'Heti ismétlődés', monthlyRepeat: 'Havi ismétlődés', yearlyRepeat: 'Éves ismétlődés',
       selectCategory: 'Kategória kiválasztása', close: 'Bezárás', selectCategoryType: 'Kategória típus',
       expenseNeg: 'Költség (-)', incomePos: 'Bevétel (+)', noTransactions: 'Még nincsenek tranzakciók',
       noStats: 'Nincs statisztika erre az időszakra', noExpenseData: 'Nincs kiadási adat',
-      expenseBreakdown: 'Költségek részletezése', incomeBreakdown: 'Bevételek részletezése'
+      addCategoryPrompt: 'Adja meg az új kategória nevét:', categoryExists: 'A kategória már létezik!',
+      deleteCategoryPrompt: 'Adja meg a törlendő kategóriát:', categoryDeleted: 'Törölve, a rekordok Egyéb-re módosítva.',
+      recurringDeleteConfirm: 'Szeretné leállítani ezt az ismétlődő tételt, és csak a jövőbeni előfordulásokat törölni ettől a dátumtól kezdve?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(A múltbeli bejegyzései biztonságban maradnak).</span>',
+      yesStopDelete: 'Igen, leállítás és törlés', renameMerchantPrompt: '"{name}" átnevezése erre:', merchantRenamed: 'Kereskedő átnevezve erre: "{name}"',
+      syncEnabled: 'Szinkronizálás engedélyezve', localEnabled: 'Helyi tárolás engedélyezve'
     },
     id: {
       income: 'Pemasukan', expense: 'Pengeluaran', total: 'Total',
@@ -589,13 +649,19 @@
       statistics: 'Statistik', weekly: 'Mingguan', annually: 'Tahunan',
       settingsTitle: 'Pengaturan', currencyPref: 'Preferensi Mata Uang', currencyDesc: 'Pilih simbol mata uang Anda.',
       langPref: 'Preferensi Bahasa', langDesc: 'Pilih bahasa tampilan.', dataSyncPref: 'Penyimpanan Data & Sinkronisasi', dataSyncDesc: 'Pilih mode penyimpanan data Anda.',
+      offlineMode: 'Simpan di perangkat ini saja (Mode Offline)', cloudBackup: 'Sinkronisasi antar perangkat (Cadangan Cloud)',
       navTrans: 'Transaksi', navStats: 'Statistik', navSettings: 'Pengaturan',
       cancel: 'Batal', expenseOrIncome: 'Pengeluaran atau Pemasukan', delete: 'Hapus',
       date: 'Tanggal', category: 'Kategori', merchantNote: 'Toko / Catatan', amountLabel: 'Jumlah',
+      oneTime: 'Sekali', weeklyRepeat: 'Pengulangan Mingguan', monthlyRepeat: 'Pengulangan Bulanan', yearlyRepeat: 'Pengulangan Tahunan',
       selectCategory: 'Pilih Kategori', close: 'Tutup', selectCategoryType: 'Pilih Tipe Kategori',
       expenseNeg: 'Pengeluaran (-)', incomePos: 'Pemasukan (+)', noTransactions: 'Belum ada transaksi',
       noStats: 'Tidak ada statistik untuk periode ini', noExpenseData: 'Tidak ada data pengeluaran',
-      expenseBreakdown: 'Rincian Pengeluaran', incomeBreakdown: 'Rincian Pemasukan'
+      addCategoryPrompt: 'Masukkan nama kategori baru:', categoryExists: 'Kategori sudah ada!',
+      deleteCategoryPrompt: 'Masukkan nama kategori yang akan dihapus:', categoryDeleted: 'Dihapus dan catatan diubah ke Lainnya.',
+      recurringDeleteConfirm: 'Apakah Anda ingin menghentikan entri berulang ini dan menghapus hanya kejadian di masa mendatang mulai tanggal ini?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Entri masa lalu Anda akan disimpan dengan aman).</span>',
+      yesStopDelete: 'Ya, Hentikan & Hapus', renameMerchantPrompt: 'Ubah nama "{name}" menjadi:', merchantRenamed: 'Toko diubah namanya menjadi "{name}"',
+      syncEnabled: 'Sinkronisasi Diaktifkan', localEnabled: 'Penyimpanan Perangkat Saja Diaktifkan'
     },
     ja: {
       income: '収入', expense: '支出', total: '収支合計',
@@ -603,13 +669,19 @@
       statistics: '統計', weekly: '週間', annually: '年間',
       settingsTitle: '設定', currencyPref: '通貨の設定', currencyDesc: '表示する通貨記号を選択します。',
       langPref: '言語の設定', langDesc: 'アプリの表示言語を選択します。', dataSyncPref: 'データ保存と同期設定', dataSyncDesc: 'データの保存方法を選択します。',
+      offlineMode: 'この端末のみに保存 (オフラインモード)', cloudBackup: '複数端末で同期 (クラウドバックアップ)',
       navTrans: '取引履歴', navStats: '統計', navSettings: '設定',
       cancel: 'キャンセル', expenseOrIncome: '収支の登録', delete: '削除',
       date: '日付', category: 'カテゴリー', merchantNote: '店舗 / メモ', amountLabel: '金額',
+      oneTime: '1回のみ', weeklyRepeat: '毎週繰り返し', monthlyRepeat: '毎月繰り返し', yearlyRepeat: '毎年繰り返し',
       selectCategory: 'カテゴリーを選択', close: '閉じる', selectCategoryType: 'タイプを選択',
       expenseNeg: '支出 (-)', incomePos: '収入 (+)', noTransactions: 'まだ取引がありません',
       noStats: 'この期間のデータはありません', noExpenseData: '支出データがありません',
-      expenseBreakdown: '支出の内訳', incomeBreakdown: '収入の内訳'
+      addCategoryPrompt: '新しいカテゴリー名を入力してください:', categoryExists: 'そのカテゴリーはすでに存在します！',
+      deleteCategoryPrompt: '削除するカテゴリー名を入力してください:', categoryDeleted: '削除され、既存の記録は「その他」に変更されました。',
+      recurringDeleteConfirm: 'この定期的な入力を停止し、この日付以降の将来の予定のみを削除しますか？<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(過去のエントリは安全に保持されます)。</span>',
+      yesStopDelete: 'はい、停止して削除', renameMerchantPrompt: '"{name}" の新しい名前:', merchantRenamed: '店舗名を "{name}" に変更しました',
+      syncEnabled: 'クラウド同期が有効になりました', localEnabled: '端末内保存が有効になりました'
     },
     ko: {
       income: '수입', expense: '지출', total: '잔액',
@@ -617,13 +689,19 @@
       statistics: '통계', weekly: '주간', annually: '연간',
       settingsTitle: '설정', currencyPref: '통화 설정', currencyDesc: '사용할 통화 기호를 선택하세요.',
       langPref: '언어 설정', langDesc: '표시 언어를 선택하세요.', dataSyncPref: '데이터 저장 및 동기화', dataSyncDesc: '데이터 저장 방식을 선택하세요.',
+      offlineMode: '이 기기에만 저장 (오프라인 모드)', cloudBackup: '여러 기기 동기화 (클라우드 백업)',
       navTrans: '내역', navStats: '통계', navSettings: '설정',
       cancel: '취소', expenseOrIncome: '수입 / 지출 입력', delete: '삭제',
       date: '날짜', category: '카테고리', merchantNote: '사용처 / 메모', amountLabel: '금액',
+      oneTime: '일회성', weeklyRepeat: '매주 반복', monthlyRepeat: '매월 반복', yearlyRepeat: '매년 반복',
       selectCategory: '카테고리 선택', close: '닫기', selectCategoryType: '유형 선택',
       expenseNeg: '지출 (-)', incomePos: '수입 (+)', noTransactions: '내역이 없습니다',
       noStats: '해당 기간의 통계가 없습니다', noExpenseData: '지출 내역이 없습니다',
-      expenseBreakdown: '지출 내역', incomeBreakdown: '수입 내역'
+      addCategoryPrompt: '새 카테고리 이름을 입력하세요:', categoryExists: '이미 존재하는 카테고리입니다!',
+      deleteCategoryPrompt: '삭제할 카테고리 이름을 입력하세요:', categoryDeleted: '삭제되었으며 기존 내역은 기타로 변경되었습니다.',
+      recurringDeleteConfirm: '이 반복 항목을 중지하고 이 날짜 이후의 향후 일정만 삭제하시겠습니까?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(과거 내역은 안전하게 유지됩니다).</span>',
+      yesStopDelete: '예, 중지 및 삭제', renameMerchantPrompt: '"{name}"의 새 이름:', merchantRenamed: '사용처가 "{name}"(으)로 변경되었습니다',
+      syncEnabled: '클라우드 동기화가 활성화되었습니다', localEnabled: '기기 내 저장 모드가 활성화되었습니다'
     },
     ms: {
       income: 'Pendapatan', expense: 'Perbelanjaan', total: 'Jumlah',
@@ -631,13 +709,19 @@
       statistics: 'Statistik', weekly: 'Mingguan', annually: 'Tahunan',
       settingsTitle: 'Tetapan', currencyPref: 'Pilihan Mata Wang', currencyDesc: 'Pilih simbol mata wang anda.',
       langPref: 'Pilihan Bahasa', langDesc: 'Pilih bahasa paparan anda.', dataSyncPref: 'Penystoran Data & Senkronisasi', dataSyncDesc: 'Pilih cara simpanan data.',
+      offlineMode: 'Simpan pada peranti ini sahaja (Mod Luar Talian)', cloudBackup: 'Segerakkan merentas peranti (Sandaran Awam)',
       navTrans: 'Transaksi', navStats: 'Statistik', navSettings: 'Tetapan',
       cancel: 'Batal', expenseOrIncome: 'Perbelanjaan atau Pendapatan', delete: 'Padam',
       date: 'Tarikh', category: 'Kategori', merchantNote: 'Peniaga / Nota', amountLabel: 'Jumlah',
+      oneTime: 'Sekali', weeklyRepeat: 'Ulang Mingguan', monthlyRepeat: 'Ulang Bulanan', yearlyRepeat: 'Ulang Tahunan',
       selectCategory: 'Pilih Kategori', close: 'Tutup', selectCategoryType: 'Pilih Jenis Kategori',
       expenseNeg: 'Perbelanjaan (-)', incomePos: 'Pendapatan (+)', noTransactions: 'Tiada transaksi lagi',
       noStats: 'Tiada statistik untuk tempoh ini', noExpenseData: 'Tiada data perbelanjaan',
-      expenseBreakdown: 'Pecahan Perbelanjaan', incomeBreakdown: 'Pecahan Pendapatan'
+      addCategoryPrompt: 'Masukkan nama kategori baharu:', categoryExists: 'Kategori sudah wujud!',
+      deleteCategoryPrompt: 'Masukkan nama kategori untuk dipadam:', categoryDeleted: 'Dipadam dan rekod ditukar kepada Lain-lain.',
+      recurringDeleteConfirm: 'Adakah anda mahu menghentikan entri berulang ini dan memadam kejadian masa depan dari tarikh ini?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Entri lepas anda akan disimpan dengan selamat).</span>',
+      yesStopDelete: 'Ya, Henti & Padam', renameMerchantPrompt: 'Tukar nama "{name}" kepada:', merchantRenamed: 'Peniaga ditukar nama kepada "{name}"',
+      syncEnabled: 'Segerak Diaktifkan', localEnabled: 'Penyimpanan Peranti Diaktifkan'
     },
     nb: {
       income: 'Inntekt', expense: 'Utgift', total: 'Totalt',
@@ -645,13 +729,19 @@
       statistics: 'Statistikk', weekly: 'Ukentlig', annually: 'Årlig',
       settingsTitle: 'Innstillinger', currencyPref: 'Valutapreferanse', currencyDesc: 'Velg ditt valutasymbol.',
       langPref: 'Språkpreferanse', langDesc: 'Velg visningsspråk.', dataSyncPref: 'Datalagring og synkronisering', dataSyncDesc: 'Velg hvordan data lagres.',
+      offlineMode: 'Lagre kun på denne enheten (Frakoblet modus)', cloudBackup: 'Synkroniser på tvers av enheter (Sky-sikkerhetskopi)',
       navTrans: 'Transaksjon', navStats: 'Statistikk', navSettings: 'Innstillinger',
       cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inntekt', delete: 'Slett',
       date: 'Dato', category: 'Kategori', merchantNote: 'Bruker / Notat', amountLabel: 'Beløp',
+      oneTime: 'Engangs', weeklyRepeat: 'Ukentlig gjentakelse', monthlyRepeat: 'Månedlig gjentakelse', yearlyRepeat: 'Årlig gjentakelse',
       selectCategory: 'Velg kategori', close: 'Lukk', selectCategoryType: 'Velg kategoritype',
       expenseNeg: 'Utgift (-)', incomePos: 'Inntekt (+)', noTransactions: 'Ingen transaksjoner ennå',
       noStats: 'Ingen statistikk for denne perioden', noExpenseData: 'Ingen utgiftsdata',
-      expenseBreakdown: 'Utgiftsfordeling', incomeBreakdown: 'Inntektsfordeling'
+      addCategoryPrompt: 'Skriv inn navn på ny kategori:', categoryExists: 'Kategorien finnes allerede!',
+      deleteCategoryPrompt: 'Skriv inn kategori som skal slettes:', categoryDeleted: 'Slettet og poster endret til Annet.',
+      recurringDeleteConfirm: 'Vil du stoppe denne gjentakende oppføringen og slette fremtidige forekomster fra denne datoen?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Dine tidligere oppføringer beholder du trygt).</span>',
+      yesStopDelete: 'Ja, stopp og slett', renameMerchantPrompt: 'Gi nytt navn til "{name}":', merchantRenamed: 'Butikk omdøpt til "{name}"',
+      syncEnabled: 'Synkronisering aktivert', localEnabled: 'Lokal lagring aktivert'
     },
     pl: {
       income: 'Przychód', expense: 'Wydatek', total: 'Suma',
@@ -659,13 +749,19 @@
       statistics: 'Statystyki', weekly: 'Tygodniowo', annually: 'Rocznie',
       settingsTitle: 'Ustawienia', currencyPref: 'Preferencja waluty', currencyDesc: 'Wybierz symbol waluty.',
       langPref: 'Preferencja języka', langDesc: 'Wybierz język interfejsu.', dataSyncPref: 'Przechowywanie danych i synchronizacja', dataSyncDesc: 'Wybierz tryb zapisu danych.',
+      offlineMode: 'Zapisz tylko na tym urządzeniu (Tryb offline)', cloudBackup: 'Synchronizuj między urządzeniami (Kopia w chmurze)',
       navTrans: 'Transakcje', navStats: 'Statystyki', navSettings: 'Ustawienia',
       cancel: 'Anuluj', expenseOrIncome: 'Wydatek lub Przychód', delete: 'Usuń',
       date: 'Data', category: 'Kategoria', merchantNote: 'Sklep / Notatka', amountLabel: 'Kwota',
+      oneTime: 'Jednorazowo', weeklyRepeat: 'Co tydzień', monthlyRepeat: 'Co miesiąc', yearlyRepeat: 'Co rok',
       selectCategory: 'Wybierz kategorię', close: 'Zamknij', selectCategoryType: 'Wybierz typ kategorii',
       expenseNeg: 'Wydatek (-)', incomePos: 'Przychód (+)', noTransactions: 'Brak transakcji',
       noStats: 'Brak statystyk dla tego okresu', noExpenseData: 'Brak danych o wydatkach',
-      expenseBreakdown: 'Podział wydatków', incomeBreakdown: 'Podział przychodów'
+      addCategoryPrompt: 'Wprowadź nazwę nowej kategorii:', categoryExists: 'Kategoria już istnieje!',
+      deleteCategoryPrompt: 'Wprowadź nazwę kategorii do usunięcia:', categoryDeleted: 'Usunięto, a wpisy zmieniono na Inne.',
+      recurringDeleteConfirm: 'Czy chcesz zatrzymać ten powtarzający się wpis i usunąć tylko przyszłe wystąpienia od tej daty?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Twoje poprzednie wpisy zostaną zachowane).</span>',
+      yesStopDelete: 'Tak, zatrzymaj i usuń', renameMerchantPrompt: 'Zmień nazwę "{name}" na:', merchantRenamed: 'Zmieniono nazwę na "{name}"',
+      syncEnabled: 'Synchronizacja włączona', localEnabled: 'Pamięć lokalna włączona'
     },
     pt: {
       income: 'Receita', expense: 'Despesa', total: 'Total',
@@ -673,13 +769,19 @@
       statistics: 'Estatísticas', weekly: 'Semanal', annually: 'Anual',
       settingsTitle: 'Configurações', currencyPref: 'Preferência de Moeda', currencyDesc: 'Escolha seu símbolo de moeda.',
       langPref: 'Preferência de Idioma', langDesc: 'Escolha o idioma da interface.', dataSyncPref: 'Armazenamento de Dados & Sincronização', dataSyncDesc: 'Escolha como salvar dados.',
+      offlineMode: 'Salvar apenas neste dispositivo (Modo Offline)', cloudBackup: 'Sincronizar entre dispositivos (Backup na Nuvem)',
       navTrans: 'Transação', navStats: 'Estatísticas', navSettings: 'Configurações',
       cancel: 'Cancelar', expenseOrIncome: 'Despesa ou Receita', delete: 'Excluir',
       date: 'Data', category: 'Categoria', merchantNote: 'Comerciante / Nota', amountLabel: 'Valor',
+      oneTime: 'Único', weeklyRepeat: 'Repetição semanal', monthlyRepeat: 'Repetição mensal', yearlyRepeat: 'Repetição anual',
       selectCategory: 'Selecionar Categoria', close: 'Fechar', selectCategoryType: 'Selecionar Tipo',
       expenseNeg: 'Despesa (-)', incomePos: 'Receita (+)', noTransactions: 'Nenhuma transação ainda',
       noStats: 'Sem estatísticas para este período', noExpenseData: 'Sem dados de despesas',
-      expenseBreakdown: 'Detalhe de Despesas', incomeBreakdown: 'Detalhe de Receitas'
+      addCategoryPrompt: 'Digite o nome da nova categoria:', categoryExists: 'A categoria já existe!',
+      deleteCategoryPrompt: 'Digite a categoria a excluir:', categoryDeleted: 'Excluído e registros alterados para Outros.',
+      recurringDeleteConfirm: 'Deseja parar esta entrada recorrente e excluir apenas ocorrências futuras a partir desta data?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Suas entradas anteriores serão mantidas em segurança).</span>',
+      yesStopDelete: 'Sim, Parar e Excluir', renameMerchantPrompt: 'Renomear "{name}" para:', merchantRenamed: 'Comerciante renomeado para "{name}"',
+      syncEnabled: 'Sincronização ativada', localEnabled: 'Armazenamento local ativado'
     },
     ro: {
       income: 'Venit', expense: 'Cheltuială', total: 'Total',
@@ -687,13 +789,19 @@
       statistics: 'Statistici', weekly: 'Săptămânal', annually: 'Anual',
       settingsTitle: 'Setări', currencyPref: 'Preferință monedă', currencyDesc: 'Alegeți simbolul monedei.',
       langPref: 'Preferință limbă', langDesc: 'Alegeți limba interfeței.', dataSyncPref: 'Stocare date & Sincronizare', dataSyncDesc: 'Alegeți modul de stocare.',
+      offlineMode: 'Salvează doar pe acest dispozitiv (Mod offline)', cloudBackup: 'Sincronizează între dispozitive (Backup în cloud)',
       navTrans: 'Tranzacție', navStats: 'Statistici', navSettings: 'Setări',
       cancel: 'Anulează', expenseOrIncome: 'Cheltuială sau Venit', delete: 'Șterge',
       date: 'Dată', category: 'Categorie', merchantNote: 'Comerciant / Notă', amountLabel: 'Sumă',
+      oneTime: 'Unică', weeklyRepeat: 'Repetare săptămânală', monthlyRepeat: 'Repetare lunară', yearlyRepeat: 'Repetare anuală',
       selectCategory: 'Selectează categoria', close: 'Închide', selectCategoryType: 'Selectează tipul',
       expenseNeg: 'Cheltuială (-)', incomePos: 'Venit (+)', noTransactions: 'Nicio tranzacție încă',
       noStats: 'Fără statistici pentru această perioadă', noExpenseData: 'Fără date despre cheltuieli',
-      expenseBreakdown: 'Defalcarea cheltuielilor', incomeBreakdown: 'Defalcarea veniturilor'
+      addCategoryPrompt: 'Introduceți numele noii categorii:', categoryExists: 'Categoria există deja!',
+      deleteCategoryPrompt: 'Introduceți categoria de șters:', categoryDeleted: 'Șters și înregistrări mutate la Altele.',
+      recurringDeleteConfirm: 'Doriți să opriți această înregistrare recurentă și să ștergeți doar viitoarele apariții de la această dată?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Înregistrările trecute vor fi păstrate în siguranță).</span>',
+      yesStopDelete: 'Da, oprește și șterge', renameMerchantPrompt: 'Redenumește "{name}" în:', merchantRenamed: 'Comerciant redenumit în "{name}"',
+      syncEnabled: 'Sincronizare activată', localEnabled: 'Stocare locală activată'
     },
     sv: {
       income: 'Inkomst', expense: 'Utgift', total: 'Totalt',
@@ -701,13 +809,19 @@
       statistics: 'Statistik', weekly: 'Veckovis', annually: 'Årlig',
       settingsTitle: 'Inställningar', currencyPref: 'Valutapreferens', currencyDesc: 'Valj din valutasymbol.',
       langPref: 'Språkpreferens', langDesc: 'Välj ditt gränssnittsspråk.', dataSyncPref: 'Datalagring & Synkronisering', dataSyncDesc: 'Välj hur data lagras.',
+      offlineMode: 'Spara endast på denna enhet (Offlineläge)', cloudBackup: 'Synkronisera mellan enheter (Molnsäkerhetskopia)',
       navTrans: 'Transaktion', navStats: 'Statistik', navSettings: 'Inställningar',
       cancel: 'Avbryt', expenseOrIncome: 'Utgift eller Inkomst', delete: 'Radera',
       date: 'Datum', category: 'Kategori', merchantNote: 'Företag / Anteckning', amountLabel: 'Belopp',
+      oneTime: 'Engångs', weeklyRepeat: 'Vecko-upprepning', monthlyRepeat: 'Månads-upprepning', yearlyRepeat: 'Årlig upprepning',
       selectCategory: 'Välj kategori', close: 'Stäng', selectCategoryType: 'Välj kategoritype',
       expenseNeg: 'Utgift (-)', incomePos: 'Inkomst (+)', noTransactions: 'Inga transaktioner än',
       noStats: 'Ingen statistik för denna period', noExpenseData: 'Inga utgiftsdata',
-      expenseBreakdown: 'Utgiftsfördelning', incomeBreakdown: 'Inkomstfördelning'
+      addCategoryPrompt: 'Ange namn på ny kategori:', categoryExists: 'Kategorin finns redan!',
+      deleteCategoryPrompt: 'Ange kategori att radera:', categoryDeleted: 'Raderad och poster ändrade till Övrigt.',
+      recurringDeleteConfirm: 'Vill du stoppa denna återkommande post och endast radera framtida tillfällen från detta datum?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Dina tidigare poster sparas säkert).</span>',
+      yesStopDelete: 'Ja, stopp & radera', renameMerchantPrompt: 'Byt namn på "{name}" till:', merchantRenamed: 'Företag omdöpt till "{name}"',
+      syncEnabled: 'Synkronisering aktiverad', localEnabled: 'Lokal lagring aktiverad'
     },
     th: {
       income: 'รายรับ', expense: 'รายจ่าย', total: 'คงเหลือ',
@@ -715,13 +829,19 @@
       statistics: 'สถิติ', weekly: 'รายสัปดาห์', annually: 'รายปี',
       settingsTitle: 'ตั้งค่า', currencyPref: 'สกุลเงิน', currencyDesc: 'เลือกสัญลักษณ์สกุลเงินของคุณ',
       langPref: 'ภาษา', langDesc: 'เลือกภาษาของแอปพลิเคชัน', dataSyncPref: 'การจัดเก็บข้อมูลและการซิงค์', dataSyncDesc: 'เลือกโหมดการบันทึกข้อมูล',
+      offlineMode: 'จัดเก็บในอุปกรณ์นี้เท่านั้น (โหมดออฟไลน์)', cloudBackup: 'ซิงค์ข้ามอุปกรณ์ (สำรองข้อมูลบนคลาวด์)',
       navTrans: 'รายการ', navStats: 'สถิติ', navSettings: 'ตั้งค่า',
       cancel: 'ยกเลิก', expenseOrIncome: 'บันทึกรายรับ-รายจ่าย', delete: 'ลบ',
       date: 'วันที่', category: 'หมวดหมู่', merchantNote: 'ร้านค้า / บันทึก', amountLabel: 'จำนวนเงิน',
+      oneTime: 'ครั้งเดียว', weeklyRepeat: 'ซ้ำทุกสัปดาห์', monthlyRepeat: 'ซ้ำทุกเดือน', yearlyRepeat: 'ซ้ำทุกปี',
       selectCategory: 'เลือกหมวดหมู่', close: 'ปิด', selectCategoryType: 'เลือกประเภทหมวดหมู่',
       expenseNeg: 'รายจ่าย (-)', incomePos: 'รายรับ (+)', noTransactions: 'ยังไม่มีรายการ',
       noStats: 'ไม่มีข้อมูลสถิติในช่วงเวลานี้', noExpenseData: 'ไม่มีข้อมูลรายจ่าย',
-      expenseBreakdown: 'รายละเอียดรายจ่าย', incomeBreakdown: 'รายละเอียดรายรับ'
+      addCategoryPrompt: 'ป้อนชื่อหมวดหมู่ใหม่:', categoryExists: 'มีหมวดหมู่นี้อยู่แล้ว!',
+      deleteCategoryPrompt: 'ป้อนชื่อหมวดหมู่ที่ต้องการลบ:', categoryDeleted: 'ลบเรียบร้อยและเปลี่ยนรายการเป็นอื่นๆ แล้ว',
+      recurringDeleteConfirm: 'คุณต้องการหยุดรายการประจำนี้และลบเฉพาะรายการในอนาคตตั้งแต่วันนี้เป็นต้นไปหรือไม่?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(รายการที่ผ่านมาของคุณจะยังคงอยู่).</span>',
+      yesStopDelete: 'ใช่, หยุดและลบ', renameMerchantPrompt: 'เปลี่ยนชื่อ "{name}" เป็น:', merchantRenamed: 'เปลี่ยนชื่อร้านค้าเป็น "{name}" แล้ว',
+      syncEnabled: 'เปิดใช้งานการซิงค์ข้อมูลแล้ว', localEnabled: 'เปิดใช้งานการจัดเก็บในเครื่องแล้ว'
     },
     tr: {
       income: 'Gelir', expense: 'Gider', total: 'Toplam',
@@ -729,13 +849,19 @@
       statistics: 'İstatistikler', weekly: 'Haftalık', annually: 'Yıllık',
       settingsTitle: 'Ayarlar', currencyPref: 'Para Birimi Tercihi', currencyDesc: 'Para birimi simgenizi seçin.',
       langPref: 'Dil Tercihi', langDesc: 'Arayüz dilinizi seçin.', dataSyncPref: 'Veri Depolama ve Senkronizasyon', dataSyncDesc: 'Kaydetme modunu seçin.',
+      offlineMode: 'Yalnızca bu cihazda sakla (Çevrimdışı Mod)', cloudBackup: 'Cihazlar arasında senkronize et (Bulut Yedekleme)',
       navTrans: 'İşlemler', navStats: 'İstatistikler', navSettings: 'Ayarlar',
       cancel: 'İptal', expenseOrIncome: 'Gider veya Gelir', delete: 'Sil',
       date: 'Tarih', category: 'Kategori', merchantNote: 'Satıcı / Not', amountLabel: 'Tutar',
+      oneTime: 'Tek seferlik', weeklyRepeat: 'Haftalık Tekrar', monthlyRepeat: 'Aylık Tekrar', yearlyRepeat: 'Yıllık Tekrar',
       selectCategory: 'Kategori Seç', close: 'Kapat', selectCategoryType: 'Kategori Türü Seç',
       expenseNeg: 'Gider (-)', incomePos: 'Gelir (+)', noTransactions: 'Henüz işlem yok',
       noStats: 'Bu dönem için istatistik yok', noExpenseData: 'Gider verisi yok',
-      expenseBreakdown: 'Gider Dağılımı', incomeBreakdown: 'Gelir Dağılımı'
+      addCategoryPrompt: 'Yeni kategori adını girin:', categoryExists: 'Kategori zaten var!',
+      deleteCategoryPrompt: 'Silinecek kategori adını girin:', categoryDeleted: 'Silindi ve kayıtlar Diğer olarak değiştirildi.',
+      recurringDeleteConfirm: 'Bu yinelenen kaydı durdurup yalnızca bu tarihten sonraki gelecekteki kayıtları silmek istiyor musunuz?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Geçmiş kayıtlarınız güvenle saklanacaktır).</span>',
+      yesStopDelete: 'Evet, Durdur ve Sil', renameMerchantPrompt: '"{name}" satıcısını yeniden adlandır:', merchantRenamed: 'Satıcı "{name}" olarak yeniden adlandırıldı',
+      syncEnabled: 'Bulut Senkronizasyonu Etkinleştirildi', localEnabled: 'Yerel Cihaz Depolama Etkinleştirildi'
     },
     vi: {
       income: 'Thu nhập', expense: 'Chi tiêu', total: 'Tổng số',
@@ -743,13 +869,19 @@
       statistics: 'Thống kê', weekly: 'Hàng tuần', annually: 'Hàng năm',
       settingsTitle: 'Cài đặt', currencyPref: 'Tiền tệ', currencyDesc: 'Chọn ký hiệu tiền tệ của bạn.',
       langPref: 'Ngôn ngữ', langDesc: 'Chọn ngôn ngữ giao diện.', dataSyncPref: 'Lưu trữ & Đồng bộ dữ liệu', dataSyncDesc: 'Chọn chế độ lưu dữ liệu.',
+      offlineMode: 'Lưu trên thiết bị này (Chế độ ngoại tuyến)', cloudBackup: 'Đồng bộ qua các thiết bị (Sao lưu đám mây)',
       navTrans: 'Giao dịch', navStats: 'Thống kê', navSettings: 'Cài đặt',
       cancel: 'Hủy', expenseOrIncome: 'Chi tiêu hoặc Thu nhập', delete: 'Xóa',
       date: 'Ngày', category: 'Danh mục', merchantNote: 'Cửa hàng / Ghi chú', amountLabel: 'Số tiền',
+      oneTime: 'Một lần', weeklyRepeat: 'Lặp lại hàng tuần', monthlyRepeat: 'Lặp lại hàng tháng', yearlyRepeat: 'Lặp lại hàng năm',
       selectCategory: 'Chọn danh mục', close: 'Đóng', selectCategoryType: 'Chọn loại danh mục',
       expenseNeg: 'Chi tiêu (-)', incomePos: 'Thu nhập (+)', noTransactions: 'Chưa có giao dịch nào',
       noStats: 'Không có thống kê cho khoảng thời gian này', noExpenseData: 'Không có dữ liệu chi tiêu',
-      expenseBreakdown: 'Chi tiết chi tiêu', incomeBreakdown: 'Chi tiết thu nhập'
+      addCategoryPrompt: 'Nhập tên danh mục mới:', categoryExists: 'Danh mục đã tồn tại!',
+      deleteCategoryPrompt: 'Nhập tên danh mục cần xóa:', categoryDeleted: 'Đã xóa và chuyển các mục sang Khác.',
+      recurringDeleteConfirm: 'Bạn có muốn dừng ghi chú định kỳ này và chỉ xóa các lần lặp trong tương lai từ ngày này trở đi không?<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">(Các mục trước đây của bạn sẽ được giữ lại an toàn).</span>',
+      yesStopDelete: 'Có, Dừng & Xóa', renameMerchantPrompt: 'Đổi tên "{name}" thành:', merchantRenamed: 'Đã đổi tên cửa hàng thành "{name}"',
+      syncEnabled: 'Đã bật đồng bộ đa thiết bị', localEnabled: 'Đã bật lưu trữ trên thiết bị'
     },
     'zh-CN': {
       income: '收入', expense: '支出', total: '结余',
@@ -757,13 +889,19 @@
       statistics: '统计', weekly: '每周', annually: '每年',
       settingsTitle: '设置', currencyPref: '货币偏好', currencyDesc: '选择您使用的货币符号。',
       langPref: '语言偏好', langDesc: '选择您的界面显示语言。', dataSyncPref: '数据存储与同步模式', dataSyncDesc: '选择将数据同步到云端还是单机保存。',
+      offlineMode: '仅保存在本机（离线模式）', cloudBackup: '跨设备同步（云端备份）',
       navTrans: '交易', navStats: '统计', navSettings: '设置',
       cancel: '取消', expenseOrIncome: '记账', delete: '删除',
       date: '日期', category: '类别', merchantNote: '商家 / 备注', amountLabel: '金额',
+      oneTime: '单次', weeklyRepeat: '每周重复', monthlyRepeat: '每月重复', yearlyRepeat: '每年重复',
       selectCategory: '选择类别', close: '关闭', selectCategoryType: '选择类别类型',
       expenseNeg: '支出 (-)', incomePos: '收入 (+)', noTransactions: '暂无交易记录',
       noStats: '该时间段无统计数据', noExpenseData: '无支出数据',
-      expenseBreakdown: '支出明细', incomeBreakdown: '收入明细'
+      addCategoryPrompt: '请输入新类别名称：', categoryExists: '该类别已存在！',
+      deleteCategoryPrompt: '请输入要删除的类别名称：', categoryDeleted: '删除成功，原有记录已归至“其他”。',
+      recurringDeleteConfirm: '您要停止该周期记账并从今天起删除后续的所有重复记录吗？<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">（您过去的账目将安全保留）。</span>',
+      yesStopDelete: '是的，停止并删除', renameMerchantPrompt: '将 "{name}" 重命名为：', merchantRenamed: '商家已重命名为 "{name}"',
+      syncEnabled: '多设备同步已启用', localEnabled: '本机存储模式已启用'
     },
     'zh-TW': {
       income: '收入', expense: '支出', total: '結餘',
@@ -771,13 +909,19 @@
       statistics: '統計', weekly: '每週', annually: '每年',
       settingsTitle: '設定', currencyPref: '貨幣偏好', currencyDesc: '選擇您使用的貨幣符號。',
       langPref: '語言偏好', langDesc: '選擇您的介面顯示語言。', dataSyncPref: '資料存儲與同步模式', dataSyncDesc: '選擇將資料同步至雲端或單機儲存。',
+      offlineMode: '僅保存在本機（離線模式）', cloudBackup: '跨裝置同步（雲端備份）',
       navTrans: '交易', navStats: '統計', navSettings: '設定',
       cancel: '取消', expenseOrIncome: '記帳', delete: '刪除',
       date: '日期', category: '類別', merchantNote: '商家 / 備註', amountLabel: '金額',
+      oneTime: '單次', weeklyRepeat: '每週重複', monthlyRepeat: '每月重複', yearlyRepeat: '每年重複',
       selectCategory: '選擇類別', close: '關閉', selectCategoryType: '選擇類別類型',
       expenseNeg: '支出 (-)', incomePos: '收入 (+)', noTransactions: '暫無交易記錄',
       noStats: '該時間段無統計數據', noExpenseData: '無支出數據',
-      expenseBreakdown: '支出明細', incomeBreakdown: '收入明細'
+      addCategoryPrompt: '請輸入新類別名稱：', categoryExists: '該類別已存在！',
+      deleteCategoryPrompt: '請輸入要刪除的類別名稱：', categoryDeleted: '刪除成功，原有記錄已歸至「其他」。',
+      recurringDeleteConfirm: '您要停止該週期記帳並從今天起刪除後續的所有重複記錄嗎？<br><br><span style="font-size:12px; font-weight:normal; color:#6b7280;">（您過去的帳目將安全保留）。</span>',
+      yesStopDelete: '是的，停止並刪除', renameMerchantPrompt: '將 "{name}" 重新命名為：', merchantRenamed: '商家已重新命名為 "{name}"',
+      syncEnabled: '多裝置同步已啟用', localEnabled: '本機儲存模式已啟用'
     }
   };
 
@@ -1623,9 +1767,9 @@
 
     if (centerTxt) {
       if (activeStatsMode === 'income') {
-        centerTxt.innerHTML = `<div style="font-size:10px; color:#9ca3af;">INCOME</div><div style="font-size:12px; color:#10b981;">${formatMoney(statsIncome)}</div>`;
+        centerTxt.innerHTML = `<div style="font-size:10px; color:#9ca3af;">${t('income').toUpperCase()}</div><div style="font-size:12px; color:#10b981;">${formatMoney(statsIncome)}</div>`;
       } else {
-        centerTxt.innerHTML = `<div style="font-size:10px; color:#9ca3af;">EXPENSE</div><div style="font-size:12px; color:#111827;">${formatMoney(statsExpense)}</div>`;
+        centerTxt.innerHTML = `<div style="font-size:10px; color:#9ca3af;">${t('expense').toUpperCase()}</div><div style="font-size:12px; color:#111827;">${formatMoney(statsExpense)}</div>`;
       }
     }
 
@@ -1722,7 +1866,7 @@
       listContainer.innerHTML = displayItems.map(item => `
         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f3f4f6;">
           <div>
-            <div style="font-size:14px; font-weight:600; color:#111827;">${item.merchant || item.note || (isInc ? 'Income' : 'Expense')}</div>
+            <div style="font-size:14px; font-weight:600; color:#111827;">${item.merchant || item.note || (isInc ? t('income') : t('expense'))}</div>
             <div style="font-size:11px; color:#6b7280;">${item.date} ${item.repeat && item.repeat !== 'none' ? '🔁' : ''}</div>
           </div>
           <div style="font-size:14px; font-weight:600; color:${isInc ? '#10b981' : '#ef4444'};">${isInc ? '+' : '-'}${formatMoney(item.amount)}</div>
@@ -1821,12 +1965,12 @@
       tile.addEventListener('click', async () => {
         const name = tile.dataset.category;
         if (name === '+ Add Category') {
-          const newCategory = prompt('Enter new category name:');
+          const newCategory = prompt(t('addCategoryPrompt'));
           if (newCategory && newCategory.trim()) {
             const catName = newCategory.trim();
             
             if (customCategories.includes(catName) || customIncomeCategories.includes(catName) || baseCategories.includes(catName)) {
-              showToast('Category already exists!');
+              showToast(t('categoryExists'));
               return;
             }
 
@@ -1855,7 +1999,7 @@
             return;
           }
         } else if (name === '🗑 Delete Category') {
-          const deleteCategory = prompt('Enter category name to delete:');
+          const deleteCategory = prompt(t('deleteCategoryPrompt'));
           if (deleteCategory && deleteCategory.trim()) {
             const catToDelete = deleteCategory.trim();
             expenses.forEach(item => {
@@ -1866,7 +2010,7 @@
 
             await saveCustomCategoriesToCloud();
             localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-            showToast(`"${catToDelete}" deleted and existing records changed to Other.`);
+            showToast(`"${catToDelete}" ${t('categoryDeleted')}`);
             openCategoryModal();
             return;
           }
@@ -1935,9 +2079,7 @@
     if (!target) return;
     
     if (target.repeat && target.repeat !== 'none') {
-      const confirmed = await showCustomConfirm(
-        "Do you want to stop this recurring entry and delete only future occurrences from this date forward?<br><br><span style='font-size:12px; font-weight:normal; color:#6b7280;'>(Your past entries will be kept safely).</span>"
-      );
+      const confirmed = await showCustomConfirm(t('recurringDeleteConfirm'));
       
       if (!confirmed) return;
 
@@ -1974,6 +2116,8 @@
       const btnClose = document.getElementById('close-delete-modal');
 
       textEl.innerHTML = messageHtml;
+      btnConfirm.textContent = t('yesStopDelete');
+      btnClose.textContent = t('cancel');
       modal.style.display = 'flex';
 
       function cleanup(result) {
@@ -2080,10 +2224,10 @@
       if (syncMode === 'sync') {
         subscribeToExpenses();
         processPendingSyncQueue();
-        showToast('Multi-Device Sync Enabled');
+        showToast(t('syncEnabled'));
       } else {
         unsubscribeFromExpenses();
-        showToast('Single-Device Storage Enabled');
+        showToast(t('localEnabled'));
       }
     });
   }
@@ -2175,7 +2319,8 @@
   document.getElementById('btn-clear-merchant').addEventListener('click', async () => {
     const oldMerchant = document.getElementById('input-merchant').value.trim();
     if (!oldMerchant) return;
-    const newMerchant = prompt(`Rename "${oldMerchant}" to:`);
+    const promptMsg = t('renameMerchantPrompt').replace('{name}', oldMerchant);
+    const newMerchant = prompt(promptMsg);
     if (!newMerchant || !newMerchant.trim()) return;
     const merchantName = newMerchant.trim();
     expenses.forEach(item => {
@@ -2191,7 +2336,7 @@
     if (syncMode === 'sync') processPendingSyncQueue();
     document.getElementById('input-merchant').value = merchantName;
     renderAllViews();
-    showToast(`Merchant renamed to "${merchantName}"`);
+    showToast(t('merchantRenamed').replace('{name}', merchantName));
   });
 
   document.getElementById('btn-export-excel').addEventListener('click', () => {
