@@ -1,5 +1,4 @@
-<!-- 20261029 v51 pie chart -->
-<!-- Works Prefectly -->
+<!-- 20261030 v52 Trying to fix income and expense button -->
 
 <!DOCTYPE html>
 
@@ -202,10 +201,16 @@
     <button id="btn-stats-inc" data-i18n="incomeBreakdown" style="background: #f3f4f6; color: #374151; border: none; padding: 4px 16px; border-radius: 14px; font-size: 12px; cursor: pointer; font-weight: 500;">Income Breakdown</button>
   </div>
 
-  <!-- STATS INCOME/EXPENSE SUMMARY BAR -->
-  <div class="summary-bar">
-    <div class="summary-item-box"><div data-i18n="income">Income</div><div id="stats-income-txt">£ 0.00</div></div>
-    <div class="summary-item-box"><div data-i18n="expense">Expense</div><div id="stats-expense-txt">£ 0.00</div></div>
+<!-- STATS INCOME/EXPENSE INTERACTIVE SUMMARY BAR -->
+  <div class="summary-bar" style="cursor: pointer;">
+    <div id="stats-box-inc" class="summary-item-box" style="flex: 1; padding: 6px; border-radius: 8px; transition: background 0.2s;">
+      <div data-i18n="income">Income</div>
+      <div id="stats-income-txt" style="font-weight: 600;">£ 0.00</div>
+    </div>
+    <div id="stats-box-exp" class="summary-item-box" style="flex: 1; padding: 6px; border-radius: 8px; background: #d1fae5; transition: background 0.2s;">
+      <div data-i18n="expense">Expense</div>
+      <div id="stats-expense-txt" style="font-weight: 600;">£ 0.00</div>
+    </div>
   </div>
 
 <div class="content-area">
@@ -1582,7 +1587,22 @@
       }
     }
 
-function renderStats() {
+function updateStatsModeUI() {
+      const boxInc = document.getElementById('stats-box-inc');
+      const boxExp = document.getElementById('stats-box-exp');
+      if (!boxInc || !boxExp) return;
+
+      if (activeStatsMode === 'income') {
+        boxInc.style.background = '#d1fae5';
+        boxExp.style.background = 'transparent';
+      } else {
+        boxExp.style.background = '#d1fae5';
+        boxInc.style.background = 'transparent';
+      }
+      renderStats();
+    }
+
+    function renderStats() {
       const container = document.getElementById('stats-list-container');
       const svg = document.getElementById('svgPie');
       const centerTxt = document.getElementById('pie-center-txt');
@@ -1680,6 +1700,16 @@ function renderStats() {
         });
       });
     }
+
+    document.getElementById('stats-box-inc').addEventListener('click', () => {
+      activeStatsMode = 'income';
+      updateStatsModeUI();
+    });
+
+    document.getElementById('stats-box-exp').addEventListener('click', () => {
+      activeStatsMode = 'expense';
+      updateStatsModeUI();
+    });
 
     // Category Detail Modal Functions
     function openCategoryDetailModal(categoryName) {
