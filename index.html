@@ -1,4 +1,4 @@
-<!-- 20261102 v55  Password Toggle & Smart Month-End Date Clamp -->
+<!-- 20261102 v55 Password Toggle & Smart Month-End Date Clamp -->
 <!-- Works Perfectly -->
 
 <!DOCTYPE html>
@@ -121,7 +121,7 @@
     <input type="email" id="auth-email" class="auth-input" placeholder="Username">
     <div style="position: relative; width: 100%; margin-bottom: 12px;">
       <input type="password" id="auth-password" class="auth-input" placeholder="Password" style="margin-bottom: 0;">
-      <button type="button" id="btn-toggle-password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 16px; cursor: pointer; color: #6b7280;" title="Toggle Password Visibility">👀</button>
+      <button type="button" id="btn-toggle-password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 16px; cursor: pointer; color: #6b7280;" title="Toggle Password Visibility">👁️‍🗨️</button>
     </div>
     <button id="btn-login" class="auth-btn">Sign In</button>
     <div id="auth-error" class="auth-error"></div>
@@ -1325,7 +1325,7 @@
     btnTogglePassword.addEventListener('click', () => {
       const isPassword = authPasswordInput.type === 'password';
       authPasswordInput.type = isPassword ? 'text' : 'password';
-      btnTogglePassword.textContent = isPassword ? '🔒' : '👁️';
+      btnTogglePassword.textContent = isPassword ? '🔒' : '👁️‍🗨️';
     });
   }
 
