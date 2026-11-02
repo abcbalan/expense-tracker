@@ -1,5 +1,4 @@
-<!-- 20261102 v55 Password Toggle & Smart Month-End Date Clamp -->
-<!-- Works Perfectly -->
+<!-- 20261102 v57 try to fix rename abcbalan shows issue -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -104,6 +103,21 @@
 </head>
 <body>
 
+<!-- CUSTOM PROMPT MODAL FOR RENAMING MERCHANT -->
+<div class="modal" id="custom-prompt-modal" style="z-index: 300;">
+  <div class="modal-content" style="max-width: 340px; text-align: center;">
+    <div class="modal-header">
+      <span id="prompt-title">Rename Merchant</span>
+      <button class="icon-btn" style="color:#333;font-size:14px;" id="close-prompt-modal">Cancel</button>
+    </div>
+    <p id="prompt-message" style="margin: 10px 0; font-size: 14px; color: #4b5563; font-weight: 500;"></p>
+    <input type="text" id="prompt-input" class="form-control" style="margin-bottom: 16px;">
+    <div style="display: flex; gap: 10px;">
+      <button type="button" id="btn-prompt-ok" class="auth-btn" style="flex: 1;">OK</button>
+    </div>
+  </div>
+</div>
+  
 <!-- STATS CATEGORY DETAIL MODAL -->
 <div class="modal" id="stats-detail-modal" style="z-index: 220;">
   <div class="modal-content" style="max-height: 80vh;">
@@ -2142,6 +2156,35 @@
     renderAllViews();
   }
 
+function showCustomPrompt(messageText, defaultValue = '') {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('custom-prompt-modal');
+      const msgEl = document.getElementById('prompt-message');
+      const inputEl = document.getElementById('prompt-input');
+      const btnOk = document.getElementById('btn-prompt-ok');
+      const btnClose = document.getElementById('close-prompt-modal');
+
+      msgEl.textContent = messageText;
+      inputEl.value = defaultValue;
+      modal.style.display = 'flex';
+      inputEl.focus();
+
+      function cleanup(val) {
+        modal.style.display = 'none';
+        btnOk.onclick = null;
+        btnClose.onclick = null;
+        resolve(val);
+      }
+
+      btnOk.onclick = () => cleanup(inputEl.value.trim());
+      btnClose.onclick = () => cleanup(null);
+    });
+  }
+
+  function showCustomConfirm(messageHtml) {
+    // ... existing code for showCustomConfirm ...
+  }
+  
   function showCustomConfirm(messageHtml) {
     return new Promise((resolve) => {
       const modal = document.getElementById('delete-confirm-modal');
@@ -2350,28 +2393,32 @@
     });
   });
 
-  document.getElementById('btn-clear-merchant').addEventListener('click', async () => {
-    const oldMerchant = document.getElementById('input-merchant').value.trim();
-    if (!oldMerchant) return;
-    const promptMsg = t('renameMerchantPrompt').replace('{name}', oldMerchant);
-    const newMerchant = prompt(promptMsg);
-    if (!newMerchant || !newMerchant.trim()) return;
-    const merchantName = newMerchant.trim();
-    expenses.forEach(item => {
-      if ((item.merchant || '').toLowerCase() === oldMerchant.toLowerCase()) {
-        item.merchant = merchantName;
-        item.note = merchantName;
-        if (syncMode === 'sync' && currentUser?.id) {
-          enqueuePendingAction({ type: 'UPSERT', item });
-        }
+document.getElementById('btn-clear-merchant').addEventListener('click', async () => {
+  const oldMerchant = document.getElementById('input-merchant').value.trim();
+  if (!oldMerchant) return;
+  
+  const promptMsg = t('renameMerchantPrompt').replace('{name}', oldMerchant);
+  const newMerchant = await showCustomPrompt(promptMsg, oldMerchant);
+  
+  if (!newMerchant || !newMerchant.trim()) return;
+  const merchantName = newMerchant.trim();
+  
+  expenses.forEach(item => {
+    if ((item.merchant || '').toLowerCase() === oldMerchant.toLowerCase()) {
+      item.merchant = merchantName;
+      item.note = merchantName;
+      if (syncMode === 'sync' && currentUser?.id) {
+        enqueuePendingAction({ type: 'UPSERT', item });
       }
-    });
-    localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
-    if (syncMode === 'sync') processPendingSyncQueue();
-    document.getElementById('input-merchant').value = merchantName;
-    renderAllViews();
-    showToast(t('merchantRenamed').replace('{name}', merchantName));
+    }
   });
+  
+  localStorage.setItem(getUserStorageKey(), JSON.stringify(expenses));
+  if (syncMode === 'sync') processPendingSyncQueue();
+  document.getElementById('input-merchant').value = merchantName;
+  renderAllViews();
+  showToast(t('merchantRenamed').replace('{name}', merchantName));
+});
 
   document.getElementById('btn-export-excel').addEventListener('click', () => {
     if (!expenses.length) {
