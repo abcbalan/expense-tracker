@@ -1,4 +1,4 @@
-<!-- 20261102 v57 try to fix rename abcbalan shows issue -->
+<!-- 20261102 v58 try to fix rename abcbalan shows issue -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -2178,13 +2178,14 @@ function showCustomPrompt(messageText, defaultValue = '') {
 
       btnOk.onclick = () => cleanup(inputEl.value.trim());
       btnClose.onclick = () => cleanup(null);
+      
+      // Also allow pressing Enter to submit
+      inputEl.onkeypress = (e) => {
+        if (e.key === 'Enter') cleanup(inputEl.value.trim());
+      };
     });
   }
 
-  function showCustomConfirm(messageHtml) {
-    // ... existing code for showCustomConfirm ...
-  }
-  
   function showCustomConfirm(messageHtml) {
     return new Promise((resolve) => {
       const modal = document.getElementById('delete-confirm-modal');
