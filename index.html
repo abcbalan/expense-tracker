@@ -1,5 +1,4 @@
-<!-- 20261030 v54  Fully Localized Dropdowns & Dynamic Prompts -->
-<!-- Work Perfectly -->
+<!-- 20261102 v55  Trying to Password Toggle & Smart Month-End Date Clamp -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -119,7 +118,10 @@
   <div id="auth-screen">
     <h2>ExpenseTracker Login</h2>
     <input type="email" id="auth-email" class="auth-input" placeholder="Username">
-    <input type="password" id="auth-password" class="auth-input" placeholder="Password">
+    <div style="position: relative; width: 100%; margin-bottom: 12px;">
+      <input type="password" id="auth-password" class="auth-input" placeholder="Password" style="margin-bottom: 0;">
+      <button type="button" id="btn-toggle-password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 16px; cursor: pointer; color: #6b7280;" title="Toggle Password Visibility">👁️</button>
+    </div>
     <button id="btn-login" class="auth-btn">Sign In</button>
     <div id="auth-error" class="auth-error"></div>
   </div>
@@ -1315,6 +1317,17 @@
   document.getElementById('auth-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
   document.getElementById('btn-logout').addEventListener('click', logout);
 
+  // Password Visibility Toggle Listener
+  const btnTogglePassword = document.getElementById('btn-toggle-password');
+  const authPasswordInput = document.getElementById('auth-password');
+  if (btnTogglePassword && authPasswordInput) {
+    btnTogglePassword.addEventListener('click', () => {
+      const isPassword = authPasswordInput.type === 'password';
+      authPasswordInput.type = isPassword ? 'text' : 'password';
+      btnTogglePassword.textContent = isPassword ? '🔒' : '👁️';
+    });
+  }
+
   if (accessToken && currentUserId) {
     document.getElementById('auth-screen').style.display = 'none';
   }
@@ -1353,24 +1366,44 @@
 
       if (!item.repeat || item.repeat === 'none') return;
       
-      let [y, m, d] = (item.date || '').split('-').map(Number);
-      if (!y || !m || !d) return;
+      let [origY, origM, origD] = (item.date || '').split('-').map(Number);
+      if (!origY || !origM || !origD) return;
 
-      let currDate = new Date(y, m - 1, d);
+      let targetDay = origD;
+      let currYear = origY;
+      let currMonth = origM - 1; // 0-indexed
       let count = 0;
 
       while (count < 250) {
         if (item.repeat === 'weekly') {
+          // Weekly increment
+          let currDate = new Date(currYear, currMonth, targetDay);
           currDate.setDate(currDate.getDate() + 7);
+          currYear = currDate.getFullYear();
+          currMonth = currDate.getMonth();
+          targetDay = currDate.getDate();
         } else if (item.repeat === 'monthly') {
-          currDate.setMonth(currDate.getMonth() + 1);
+          // Monthly increment with smart month-end clamping (e.g. 31 -> Feb 28/29)
+          currMonth += 1;
+          if (currMonth > 11) {
+            currMonth = 0;
+            currYear += 1;
+          }
+          // Find max days in the new target month
+          const maxDaysInNewMonth = new Date(currYear, currMonth + 1, 0).getDate();
+          targetDay = Math.min(origD, maxDaysInNewMonth);
         } else if (item.repeat === 'annually') {
-          currDate.setFullYear(currDate.getFullYear() + 1);
+          currYear += 1;
+          const maxDaysInNewMonth = new Date(currYear, currMonth + 1, 0).getDate();
+          targetDay = Math.min(origD, maxDaysInNewMonth);
         }
 
+        const currDate = new Date(currYear, currMonth, targetDay);
         if (currDate > maxDate) break;
 
-        const dateStr = currDate.toISOString().slice(0, 10);
+        const mStr = String(currMonth + 1).padStart(2, '0');
+        const dStr = String(targetDay).padStart(2, '0');
+        const dateStr = `${currYear}-${mStr}-${dStr}`;
         
         if (item.repeat_until && dateStr >= item.repeat_until) break;
 
